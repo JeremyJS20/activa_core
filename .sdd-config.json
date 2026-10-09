@@ -1,0 +1,45 @@
+{
+  "role": "developer",
+  "ides": ["antigravity"],
+  "spec_prefix": "AB#",
+  "app_dir": "",
+  "host": "none",
+  "project_host": "none",
+  "azure_devops_org": "",
+  "azure_devops_project": "",
+  "wi_states": {
+    "start": "To Do",
+    "working": "In Progress",
+    "pr_created": "Fixed",
+    "testing": "In Testing",
+    "done": "Done",
+    "reopen": "Reopen",
+    "hold": "On Hold",
+    "defer": "Fix Later",
+    "acceptance": "Acceptance",
+    "test_passed": "Test Passed",
+    "qa_passed": "QA Passed"
+  },
+  "wi_types": {
+    "feature": "Feature",
+    "bug": "Bug",
+    "requirement": "User Story",
+    "data": "Data Dictionary",
+    "structure": "Structure",
+    "rule": "Business Rule",
+    "pbi": "Product Backlog Item",
+    "e2e_scenario": "E2E Scenario"
+  },
+  "versioning": {
+    "strategy": "semver",
+    "source": "git-tag",
+    "version_file": true,
+    "initial_version": "1.0.0"
+  },
+  "environments": {
+    "local": { "url": "", "start_command": "" },
+    "dev":   { "branch": "develop", "url": "" },
+    "qa":    { "branch": "qa",      "url": "" },
+    "prod":  { "branch": "main",    "url": "" }
+  }
+}

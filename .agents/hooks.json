@@ -1,0 +1,7 @@
+{
+  "sdd-mcp-reminder": {
+    "PreInvocation": [
+      { "type": "command", "command": "node hooks/sdd-mcp-reminder.js", "timeout": 10 }
+    ]
+  }
+}
