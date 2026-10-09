@@ -13,7 +13,7 @@
 - **Test Cases**: [test-cases.md](./test-cases.md)
 
 ## Overview
-El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el núcleo operativo del sistema para la Universidad APEC (UNAPEC). Provee el registro integral de los bienes institucionales, control estricto de custodios mediante validación de identidad dominicana, trazabilidad inmutable de traslados entre dependencias, generación e impresión de etiquetas con código QR institucional para levantamiento físico de inventario, y el procedimiento formal de desincorporación y baja de bienes con bloqueo permanente de depreciaciones futuras.
+El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el núcleo operativo del sistema para la Universidad APEC (UNAPEC). Provee el registro integral de los bienes institucionales, control estricto de custodios mediante validación de identidad dominicana, trazabilidad inmutable de traslados entre dependencias, generación e impresión de marbetes y etiquetas de identificación física, y el procedimiento formal de desincorporación y baja de bienes con bloqueo permanente de depreciaciones futuras.
 
 ## User Stories (EARS Notation)
 
@@ -33,16 +33,15 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 **Dependencies:** Sub-módulo 01 (Catálogos Base: Departamento, TipoActivo, Empleado)
 **Tracker:** Sub-módulo 02
 
-### REQ-ACT-002: Generación e Impresión de Marbetes con Código QR
+### REQ-ACT-002: Generación e Impresión de Marbetes y Etiquetas de Inventario
 **Type:** Ubiquitous
-**Rule:** Para cada activo fijo registrado en el sistema cuyo estado sea `ACTIVO` o `EN_MANTENIMIENTO`, el sistema DEBERÁ generar de manera determinista un código QR vectorial conteniendo una carga útil estandarizada con URI de verificación institucional (`https://activos.unapec.edu.do/v/{codigo}`), código del activo, descripción, marca, modelo, número de serie, custodio actual y departamento, proveyendo una vista de impresión optimizada para etiquetas autoadhesivas de inventario (dimensiones estándar 50mm x 25mm o marbete institucional UNAPEC) con el logotipo institucional.
+**Rule:** Para cada activo fijo registrado en el sistema cuyo estado sea `ACTIVO` o `EN_MANTENIMIENTO`, el sistema DEBERÁ proveer una plantilla visual de marbete/etiqueta imprimible conteniendo el código institucional (`ACT-YYYY-NNNN`), logotipo de UNAPEC, descripción del bien, marca, modelo, número de serie, custodio actual y departamento asignado, optimizada mediante reglas CSS de impresión (`@media print`) para etiquetas adhesivas estándar de 50mm x 25mm.
 **Entities:** `ActivoFijo`, `Empleado`, `Departamento`
-**Error Handling:** Si el identificador del activo no existe, el sistema retorna `ASSET_NOT_FOUND` (HTTP 404). Si el activo se encuentra en estado `DADO_DE_BAJA`, la vista de verificación QR muestra un banner visual prominente advirtiendo 'ACTIVO DESINCORPORADO - NO OPERATIVO'.
+**Error Handling:** Si el identificador del activo no existe, el sistema retorna `ASSET_NOT_FOUND` (HTTP 404). Si el activo se encuentra en estado `DADO_DE_BAJA`, la vista de ficha técnica muestra un banner visual prominente advirtiendo 'ACTIVO DESINCORPORADO - FUERA DE SERVICIO'.
 
 **Acceptance Criteria:**
-- [ ] DADO UN activo registrado con código `ACT-2026-0015`, CUANDO el usuario ingresa a la ficha técnica o presiona 'Imprimir Marbete', ENTONCES el sistema renderiza el código QR en pantalla y permite disparar la ventana de impresión con márgenes CSS `@media print` de 50mm x 25mm incluyendo código, descripción resumida y logo UNAPEC.
-- [ ] DADO EL escaneo del código QR mediante un dispositivo óptico o cámara móvil, CUANDO se decodifica la URL, ENTONCES el navegador redirige a la vista pública de auditoría mostrando la ficha de verificación del bien y confirmando su custodio actual.
-- [ ] DADO UN activo desincorporado en estado `DADO_DE_BAJA`, CUANDO se consulta su URI de verificación QR, ENTONCES la pantalla muestra el sello rojo 'DESINCORPORADO' y la fecha oficial de baja.
+- [ ] DADO UN activo registrado con código `ACT-2026-0015`, CUANDO el usuario presiona 'Imprimir Marbete', ENTONCES el sistema presenta una vista previa limpia y dispara el diálogo de impresión configurado para tamaño 50mm x 25mm con el logotipo de UNAPEC, código visible, serial y custodio.
+- [ ] DADO UN activo desincorporado en estado `DADO_DE_BAJA`, CUANDO se consulta su ficha técnica, ENTONCES la pantalla muestra el sello visual 'DESINCORPORADO' y la fecha oficial de baja.
 
 **Priority:** Must
 **Dependencies:** REQ-ACT-001
@@ -109,14 +108,14 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 **Dependencies:** REQ-ACT-001
 **Tracker:** Sub-módulo 02
 
-### REQ-ACT-007: Búsqueda, Filtrado Multicriterio y Escaneo QR de Inventario
+### REQ-ACT-007: Búsqueda y Filtrado Multicriterio de Inventario
 **Type:** Event-Driven
-**Rule:** CUANDO el usuario consulte el inventario de activos fijos, el sistema DEBERÁ proveer una vista tabular reactiva con soporte de búsqueda instantánea por coincidencia parcial en código institucional, descripción o número de serie, filtros combinados por Departamento, Tipo de Activo, Empleado Custodio y Estado Operativo (`ACTIVO`, `EN_MANTENIMIENTO`, `DADO_DE_BAJA`), paginación en servidor (10, 25, 50 registros por página), y soporte para recepción de entradas desde pistola lectora de código de barras/código QR o cámara web.
+**Rule:** CUANDO el usuario consulte el inventario de activos fijos, el sistema DEBERÁ proveer una vista tabular reactiva con soporte de búsqueda instantánea por coincidencia parcial en código institucional (`ACT-YYYY-NNNN`), descripción textual o número de serie del fabricante, filtros combinados por Departamento, Tipo de Activo, Empleado Custodio y Estado Operativo (`ACTIVO`, `EN_MANTENIMIENTO`, `DADO_DE_BAJA`), paginación en servidor (10, 25, 50 registros por página), y exportación de datos tabulares a Excel y CSV.
 **Entities:** `ActivoFijo`, `Departamento`, `TipoActivo`, `Empleado`
 **Error Handling:** Si el término de búsqueda no arroja coincidencias, el sistema muestra un estado visual vacío amigable con botón 'Restablecer filtros' sin producir excepciones.
 
 **Acceptance Criteria:**
-- [ ] DADO UN catálogo con más de 1,000 activos fijos registrados, CUANDO el usuario digita un número de serie o escanea un marbete con pistola lectora de código QR, ENTONCES la tabla filtra y localiza el activo específico en menos de 200ms.
+- [ ] DADO UN catálogo con más de 1,000 activos fijos registrados, CUANDO el usuario digita un número de serie o código 'ACT-2026-0042', ENTONCES la tabla filtra y localiza el activo correspondiente en menos de 200ms.
 - [ ] DADO EL uso de filtros combinados de 'Departamento = Ciencias Jurídicas' y 'Estado = ACTIVO', CUANDO se aplica la consulta, ENTONCES la grilla muestra exclusivamente los activos que satisfacen ambas condiciones simultáneamente con paginación server-side exacta.
 - [ ] DADO EL botón 'Exportar Inventario', CUANDO el usuario solicita la descarga en formato Excel (`.xlsx`), ENTONCES el sistema exporta las filas filtradas con sus valores en libros y datos de custodia formateados.
 
@@ -128,10 +127,10 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ## Non-Functional Requirements
 
-### NFR-001: Rendimiento en Generación y Verificación de Marbetes QR
+### NFR-001: Rendimiento en Consultas de Inventario
 **Category:** Performance
-**Rule:** The system SHALL render QR code vectors and process public verification requests with optimal speed.
-**Metric:** Generación de código QR en cliente en tiempo inferior a 80ms; respuesta del endpoint de verificación pública en tiempo de respuesta p95 < 250ms.
+**Rule:** The system SHALL return filtered asset inventory listings within acceptable latency thresholds.
+**Metric:** Tiempo de respuesta del endpoint de inventario filtrado p95 < 250ms para catálogos de hasta 10,000 activos.
 **Priority:** Must
 
 ### NFR-002: Integridad Transaccional ACID en Movimientos de Custodia
@@ -174,10 +173,10 @@ graph TD
     Auditor["Auditor / Consulta"]:::actorStyle
 
     UC1(["Alta y Registro de Activo Fijo"]):::usecaseStyle
-    UC2(["Impresión de Marbete con Código QR"]):::usecaseStyle
+    UC2(["Impresión de Marbete de Inventario"]):::usecaseStyle
     UC3(["Reasignación de Custodio y Traslado"]):::usecaseStyle
     UC4(["Descarga de Acta Digital de Entrega PDF"]):::usecaseStyle
-    UC5(["Búsqueda y Escaneo de Inventario"]):::usecaseStyle
+    UC5(["Búsqueda y Filtrado Multicriterio"]):::usecaseStyle
     UC6(["Desincorporación y Baja de Activo"]):::adminStyle
     UC7(["Actualización de Metadatos Físicos"]):::usecaseStyle
 
@@ -205,7 +204,7 @@ graph TD
 ```mermaid
 stateDiagram-v2
     [*] --> REGISTRADO: Alta inicial en sistema
-    REGISTRADO --> ACTIVO: Asignación de custodio y generación de marbete QR
+    REGISTRADO --> ACTIVO: Asignación de custodio y emisión de marbete
 
     ACTIVO --> EN_MANTENIMIENTO: Envío a reparación o mantenimiento técnico
     EN_MANTENIMIENTO --> ACTIVO: Retorno a operación regular
@@ -233,10 +232,11 @@ stateDiagram-v2
 | # | Assumption | Temporary stub | Replaced when |
 |---|-----------|----------------|---------------|
 | 1 | La moneda operativa del sistema es exclusivamente Peso Dominicano (RD$ / DOP) | Formateador numérico fijo en DOP (`Intl.NumberFormat('es-DO')`) | Soporte multimoneda si se requiere en fases futuras |
-| 2 | La generación de marbetes QR se realiza directamente en el navegador del cliente mediante renderizado SVG/Canvas | Librería cliente `qrcode.react` con exportación a imagen/PDF | Integración con impresoras térmicas Zebra directas (ZPL) si aplica |
+| 2 | La impresión de marbetes se ejecuta mediante hojas de estilo CSS `@media print` en el navegador del cliente | Vista de marbete HTML con dimensiones fijas de 50mm x 25mm | Integración con controladores térmicos ZPL si la institución lo incorpora |
 | 3 | La desincorporación de un activo es una operación irreversible a nivel contable y fiscal | Validación lógica de estado `DADO_DE_BAJA` | Procedimiento especial de reactivación auditada en secretaría general |
 
 ## Out of Scope
+- Escaneo óptico de códigos QR mediante cámara web o dispositivos externos en la aplicación (la búsqueda y consulta se realiza mediante campos de texto estándar y filtros combinados).
 - Cálculo automático periódico de cuotas de depreciación contable mensual (corresponde a la especificación del Sub-módulo 03: Motor de Depreciación).
 - Generación de asientos de diario contables y transmisión mediante Web Service SOAP/REST al sistema de Contabilidad externa (corresponde al Sub-módulo 05).
 - Módulo de compras, licitaciones o recepción de órdenes de compra con proveedores externos.
