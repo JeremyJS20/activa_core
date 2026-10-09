@@ -19,29 +19,29 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ### REQ-ACT-001: Alta y Registro de Activo Fijo Institucional
 **Type:** Event-Driven
-**Rule:** CUANDO un usuario con rol `ADMIN` u `OPERADOR` envíe el formulario de registro de un nuevo bien institucional con descripción, tipo de activo, departamento, custodio, fecha de adquisición, costo de compra y valor residual, el sistema DEBERÁ validar que el costo de adquisición sea mayor a cero (RD$ > 0.00), que el valor residual sea mayor o igual a cero y menor o igual al costo de adquisición, que el custodio pertenezca a un colaborador activo con cédula validada y que el departamento se encuentre activo, asignando automáticamente un código institucional correlativo único bajo el formato `ACT-YYYY-NNNN` (donde YYYY es el año de registro y NNNN es un secuencial de 4 dígitos relleno con ceros a la izquierda), inicializando el valor en libros igual al costo de adquisición, la depreciación acumulada en RD$ 0.00, el estado operativo en `ACTIVO` y registrando la primera entrada en la bitácora de custodia con motivo 'ALTA_INICIAL'.
+**Rule:** WHEN un usuario con rol `ADMIN` u `OPERADOR` envíe el formulario de registro de un nuevo bien institucional con descripción, tipo de activo, departamento, custodio, fecha de adquisición, costo de compra y valor residual, the system SHALL validar que el costo de adquisición sea mayor a cero (RD$ > 0.00), que el valor residual sea mayor o igual a cero y menor o igual al costo de adquisición, que el custodio pertenezca a un colaborador activo con cédula validada y que el departamento se encuentre activo, asignando automáticamente un código institucional correlativo único bajo el formato `ACT-YYYY-NNNN` (donde YYYY es el año de registro y NNNN es un secuencial de 4 dígitos relleno con ceros a la izquierda), inicializando el valor en libros igual al costo de adquisición, la depreciación acumulada en RD$ 0.00, el estado operativo en `ACTIVO` y registrando la primera entrada en la bitácora de custodia con motivo 'ALTA_INICIAL'.
 **Entities:** `ActivoFijo`, `TipoActivo`, `Departamento`, `Empleado`, `HistorialCustodia`
 **Error Handling:** Si el costo de adquisición es menor o igual a cero, el sistema rechaza la solicitud con `ASSET_INVALID_COST` (HTTP 422). Si el valor residual es negativo o supera el costo de compra, rechaza con `ASSET_INVALID_RESIDUAL_VALUE` (HTTP 422). Si el empleado custodio está inactivo o inexistente, rechaza con `EMPLOYEE_NOT_ELIGIBLE` (HTTP 400). Si el departamento está inactivo, rechaza con `DEPARTMENT_INACTIVE` (HTTP 400). Si la fecha de adquisición es futura respecto a la fecha actual, rechaza con `ACQUISITION_DATE_FUTURE` (HTTP 422).
 
 **Acceptance Criteria:**
-- [ ] DADO QUE el operador completó los campos con costo de RD$ 85,000.00, valor residual de RD$ 8,500.00, departamento 'Tecnología' y custodio activo, CUANDO presiona 'Guardar Activo', ENTONCES el sistema genera el código correlativo `ACT-2026-0001`, persiste el activo en estado `ACTIVO` con valor en libros de RD$ 85,000.00 y genera automáticamente el primer registro en `HistorialCustodia` con motivo 'ALTA_INICIAL'.
-- [ ] DADO UN formulario donde el costo de compra es RD$ 0.00 o negativo, CUANDO se envía la solicitud, ENTONCES el sistema bloquea el guardado, resalta el campo de costo en rojo y emite el mensaje 'El costo de adquisición debe ser estrictamente mayor a RD$ 0.00'.
-- [ ] DADO UN valor residual de RD$ 90,000.00 sobre un costo de RD$ 50,000.00, CUANDO se valida el formulario, ENTONCES el sistema rechaza la operación informando 'El valor residual no puede ser superior al costo de compra del activo'.
-- [ ] DADO UN intento de seleccionar una fecha de adquisición posterior a la fecha del sistema, CUANDO se envía el formulario, ENTONCES el sistema rechaza la transacción con código 422 e impide registrar fechas futuras.
+- [ ] Given que el operador completó los campos con costo de RD$ 85,000.00, valor residual de RD$ 8,500.00, departamento 'Tecnología' y custodio activo, When presiona 'Guardar Activo', Then the system genera el código correlativo `ACT-2026-0001`, persiste el activo en estado `ACTIVO` con valor en libros de RD$ 85,000.00 y genera automáticamente el primer registro en `HistorialCustodia` con motivo 'ALTA_INICIAL'.
+- [ ] Given un formulario donde el costo de compra es RD$ 0.00 o negativo, When se envía la solicitud, Then the system bloquea el guardado, resalta el campo de costo en rojo y emite el mensaje 'El costo de adquisición debe ser estrictamente mayor a RD$ 0.00'.
+- [ ] Given un valor residual de RD$ 90,000.00 sobre un costo de RD$ 50,000.00, When se valida el formulario, Then the system rechaza la operación informando 'El valor residual no puede ser superior al costo de compra del activo'.
+- [ ] Given un intento de seleccionar una fecha de adquisición posterior a la fecha del sistema, When se envía el formulario, Then the system rechaza la transacción con código 422 e impide registrar fechas futuras.
 
 **Priority:** Must
 **Dependencies:** Sub-módulo 01 (Catálogos Base: Departamento, TipoActivo, Empleado)
 **Tracker:** Sub-módulo 02
 
 ### REQ-ACT-002: Generación e Impresión de Marbetes y Etiquetas de Inventario
-**Type:** Ubiquitous
-**Rule:** Para cada activo fijo registrado en el sistema cuyo estado sea `ACTIVO` o `EN_MANTENIMIENTO`, el sistema DEBERÁ proveer una plantilla visual de marbete/etiqueta imprimible conteniendo el código institucional (`ACT-YYYY-NNNN`), logotipo de UNAPEC, descripción del bien, marca, modelo, número de serie, custodio actual y departamento asignado, optimizada mediante reglas CSS de impresión (`@media print`) para etiquetas adhesivas estándar de 50mm x 25mm.
+**Type:** State-Driven
+**Rule:** WHILE un activo fijo registrado se encuentre en estado `ACTIVO` o `EN_MANTENIMIENTO`, the system SHALL proveer una plantilla visual de marbete/etiqueta imprimible conteniendo el código institucional (`ACT-YYYY-NNNN`), logotipo de UNAPEC, descripción del bien, marca, modelo, número de serie, custodio actual y departamento asignado, optimizada mediante reglas CSS de impresión (`@media print`) para etiquetas adhesivas estándar de 50mm x 25mm.
 **Entities:** `ActivoFijo`, `Empleado`, `Departamento`
 **Error Handling:** Si el identificador del activo no existe, el sistema retorna `ASSET_NOT_FOUND` (HTTP 404). Si el activo se encuentra en estado `DADO_DE_BAJA`, la vista de ficha técnica muestra un banner visual prominente advirtiendo 'ACTIVO DESINCORPORADO - FUERA DE SERVICIO'.
 
 **Acceptance Criteria:**
-- [ ] DADO UN activo registrado con código `ACT-2026-0015`, CUANDO el usuario presiona 'Imprimir Marbete', ENTONCES el sistema presenta una vista previa limpia y dispara el diálogo de impresión configurado para tamaño 50mm x 25mm con el logotipo de UNAPEC, código visible, serial y custodio.
-- [ ] DADO UN activo desincorporado en estado `DADO_DE_BAJA`, CUANDO se consulta su ficha técnica, ENTONCES la pantalla muestra el sello visual 'DESINCORPORADO' y la fecha oficial de baja.
+- [ ] Given un activo registrado con código `ACT-2026-0015`, When el usuario presiona 'Imprimir Marbete', Then the system presenta una vista previa limpia y dispara el diálogo de impresión configurado para tamaño 50mm x 25mm con el logotipo de UNAPEC, código visible, serial y custodio.
+- [ ] Given un activo desincorporado en estado `DADO_DE_BAJA`, When se consulta su ficha técnica, Then the system muestra el sello visual 'DESINCORPORADO' y la fecha oficial de baja.
 
 **Priority:** Must
 **Dependencies:** REQ-ACT-001
@@ -49,15 +49,15 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ### REQ-ACT-003: Reasignación de Custodio y Traslado Departamental
 **Type:** Event-Driven
-**Rule:** CUANDO un usuario con rol `ADMIN` u `OPERADOR` registre el traslado físico de un activo hacia un nuevo departamento o nuevo empleado custodio, el sistema DEBERÁ verificar que el activo esté en estado `ACTIVO`, que el nuevo empleado custodio se encuentre en estado activo, registrar de manera transaccional e indivisible (ACID) la entrada en `HistorialCustodia` con el custodio anterior, nuevo custodio, departamento anterior, nuevo departamento, fecha/hora exacta, justificación obligatoria (mínimo 10 caracteres) y usuario autenticado responsable, actualizando los punteros de custodio y departamento en el registro maestro del activo fijo.
+**Rule:** WHEN un usuario con rol `ADMIN` u `OPERADOR` registre el traslado físico de un activo hacia un nuevo departamento o nuevo empleado custodio, the system SHALL verificar que el activo esté en estado `ACTIVO`, que el nuevo empleado custodio se encuentre en estado activo, registrar de manera transaccional e indivisible (ACID) la entrada en `HistorialCustodia` con el custodio anterior, nuevo custodio, departamento anterior, nuevo departamento, fecha/hora exacta, justificación obligatoria (mínimo 10 caracteres) y usuario autenticado responsable, actualizando los punteros de custodio y departamento en el registro maestro del activo fijo.
 **Entities:** `ActivoFijo`, `HistorialCustodia`, `Empleado`, `Departamento`, `Usuario`
 **Error Handling:** Si el activo se encuentra en estado `DADO_DE_BAJA` o `VENDIDO`, el sistema rechaza el traslado con `ASSET_DISPOSED_CANNOT_TRANSFER` (HTTP 400). Si el nuevo custodio y departamento son idénticos a los actuales, rechaza con `NO_CUSTODY_CHANGE_DETECTED` (HTTP 422). Si la justificación del movimiento tiene menos de 10 caracteres, rechaza con `TRANSFER_JUSTIFICATION_TOO_SHORT` (HTTP 422).
 
 **Acceptance Criteria:**
-- [ ] DADO UN activo fijo asignado al empleado 'Juan Pérez' en el departamento 'Tecnología', CUANDO el operador selecciona nuevo custodio 'María Rodríguez' en 'Contabilidad' con justificación 'Reasignación por rotación de puesto de trabajo', ENTONCES el sistema actualiza en una sola transacción el custodio y departamento del activo, y genera un registro inmutable en `HistorialCustodia`.
-- [ ] DADO UN intento de traslado sobre un activo en estado `DADO_DE_BAJA`, CUANDO se envía la solicitud, ENTONCES el sistema bloquea la transacción con código 400 y notifica 'Un activo desincorporado no puede ser transferido ni reasignado'.
-- [ ] DADO UN formulario de traslado donde no se modificó ni el custodio ni el departamento, CUANDO se presiona 'Confirmar Traslado', ENTONCES el sistema advierte 'Debe seleccionar un custodio o departamento diferente al actual'.
-- [ ] DADO UN intento de guardar un traslado con justificación de 5 caracteres, CUANDO se valida el formulario, ENTONCES el sistema impide el envío indicando 'La justificación debe contener al menos 10 caracteres explicativos'.
+- [ ] Given un activo fijo asignado al empleado 'Juan Pérez' en el departamento 'Tecnología', When el operador selecciona nuevo custodio 'María Rodríguez' en 'Contabilidad' con justificación 'Reasignación por rotación de puesto de trabajo', Then the system actualiza en una sola transacción el custodio y departamento del activo, y genera un registro inmutable en `HistorialCustodia`.
+- [ ] Given un intento de traslado sobre un activo en estado `DADO_DE_BAJA`, When se envía la solicitud, Then the system bloquea la transacción con código 400 y notifica 'Un activo desincorporado no puede ser transferido ni reasignado'.
+- [ ] Given un formulario de traslado donde no se modificó ni el custodio ni el departamento, When se presiona 'Confirmar Traslado', Then the system advierte 'Debe seleccionar un custodio o departamento diferente al actual'.
+- [ ] Given un intento de guardar un traslado con justificación de 5 caracteres, When se valida el formulario, Then the system impide el envío indicando 'La justificación debe contener al menos 10 caracteres explicativos'.
 
 **Priority:** Must
 **Dependencies:** REQ-ACT-001
@@ -65,14 +65,14 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ### REQ-ACT-004: Emisión de Acta Digital de Entrega y Recepción de Activo
 **Type:** Event-Driven
-**Rule:** CUANDO se confirme una reasignación de custodia o alta inicial de activo, el sistema DEBERÁ generar un documento imprimible y descargable en formato PDF denominado 'Acta de Asignación y Responsabilidad de Activo Fijo', conteniendo membrete oficial de UNAPEC, fecha y hora de emisión, código del activo, descripción, marca, modelo, número de serie, costo histórico, departamento destino, datos completos del empleado custodio (nombre completo, cédula JCE formateada y cargo), y los bloques de firma para entrega conforme (Administración de Activos) y recepción conforme (Custodio).
+**Rule:** WHEN se confirme una reasignación de custodia o alta inicial de activo, the system SHALL generar un documento imprimible y descargable en formato PDF denominado 'Acta de Asignación y Responsabilidad de Activo Fijo', conteniendo membrete oficial de UNAPEC, fecha y hora de emisión, código del activo, descripción, marca, modelo, número de serie, costo histórico, departamento destino, datos completos del empleado custodio (nombre completo, cédula JCE formateada y cargo), y los bloques de firma para entrega conforme (Administración de Activos) y recepción conforme (Custodio).
 **Entities:** `ActivoFijo`, `HistorialCustodia`, `Empleado`, `Departamento`
-**Error Handling:** Si el identificador de traslado o activo no es localizado, retorna `TRANSFER_RECORD_NOT_FOUND` (HTTP 404). Si ocurre fallo interno durante la compilación del binario PDF, el sistema retorna `PDF_GENERATION_FAILED` (HTTP 500) garantizando que la transacción previa del traslado en base de datos permanezca intacta.
+**Error Handling:** Si el identificador de traslado o activo no es localizado, retorna `TRANSFER_RECORD_NOT_FOUND` (HTTP 404). Si ocurre fallo interno durante la compilación del binario PDF, the system retorna `PDF_GENERATION_FAILED` (HTTP 500) garantizando que la transacción previa del traslado en base de datos permanezca intacta.
 
 **Acceptance Criteria:**
-- [ ] DADO UN traslado o alta de activo confirmado, CUANDO el usuario hace clic en 'Descargar Acta de Entrega', ENTONCES el sistema compila y descarga un archivo PDF tamaño Carta con membrete institucional UNAPEC, cláusula legal de custodia y líneas de firma formal.
-- [ ] DADO EL documento PDF generado, CUANDO se inspecciona el bloque del empleado custodio, ENTONCES la cédula JCE se muestra normalizada bajo formato `001-XXXXXXX-X` y coincide con el registro del empleado.
-- [ ] DADO UN error temporal de generación de PDF, CUANDO falla la descarga, ENTONCES el registro del activo no se revierte y el usuario puede reintentar la descarga en cualquier momento desde el historial.
+- [ ] Given un traslado o alta de activo confirmado, When el usuario hace clic en 'Descargar Acta de Entrega', Then the system compila y descarga un archivo PDF tamaño Carta con membrete institucional UNAPEC, cláusula legal de custodia y líneas de firma formal.
+- [ ] Given el documento PDF generado, When se inspecciona el bloque del empleado custodio, Then the system normaliza la cédula JCE bajo formato `001-XXXXXXX-X` coincidiendo con el registro del empleado.
+- [ ] Given un error temporal de generación de PDF, When falla la descarga, Then the system preserva intacto el registro del activo en base de datos permitiendo reintentar la descarga en cualquier momento desde el historial.
 
 **Priority:** Should
 **Dependencies:** REQ-ACT-003
@@ -80,14 +80,14 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ### REQ-ACT-005: Desincorporación y Baja Formal de Activo Fijo
 **Type:** Event-Driven
-**Rule:** CUANDO un usuario con rol `ADMIN` ejecute la desincorporación de un activo fijo, el sistema DEBERÁ exigir la selección de un motivo de baja válido (`OBSOLESCENCIA_TECNOLOGICA`, `DANO_IRREPARABLE`, `PERDIDA_ROBO`, `VENTA_DESECHO`, `DONACION`), una justificación descriptiva obligatoria (mínimo 20 caracteres), el número de acta o informe técnico de soporte y la fecha de desincorporación, actualizando el estado del activo de forma irreversible a `DADO_DE_BAJA`, registrando la entrada en `HistorialBaja` y excluyendo de inmediato al bien de cualquier ejecución de cálculo de depreciación mensual posterior a la fecha de corte.
+**Rule:** WHEN un usuario con rol `ADMIN` ejecute la desincorporación de un activo fijo, the system SHALL exigir la selección de un motivo de baja válido (`OBSOLESCENCIA_TECNOLOGICA`, `DANO_IRREPARABLE`, `PERDIDA_ROBO`, `VENTA_DESECHO`, `DONACION`), una justificación descriptiva obligatoria (mínimo 20 caracteres), el número de acta o informe técnico de soporte y la fecha de desincorporación, actualizando el estado del activo de forma irreversible a `DADO_DE_BAJA`, registrando la entrada en `HistorialBaja` y excluyendo de inmediato al bien de cualquier ejecución de cálculo de depreciación mensual posterior a la fecha de corte.
 **Entities:** `ActivoFijo`, `HistorialBaja`, `Usuario`
 **Error Handling:** Si un usuario con rol distinto de `ADMIN` (como `OPERADOR` o `AUDITOR`) intenta dar de baja un bien, el sistema rechaza la operación con `FORBIDDEN_ADMIN_REQUIRED` (HTTP 403). Si el activo ya se encuentra en estado `DADO_DE_BAJA`, rechaza con `ASSET_ALREADY_DISPOSED` (HTTP 409). Si la justificación descriptiva tiene menos de 20 caracteres, rechaza con `DISPOSAL_JUSTIFICATION_TOO_SHORT` (HTTP 422).
 
 **Acceptance Criteria:**
-- [ ] DADO UN activo en estado `ACTIVO` con valor en libros de RD$ 15,000.00, CUANDO un Administrador completa el formulario de baja con motivo 'DANO_IRREPARABLE', informe técnico 'INF-TEC-2026-04' y justificación 'Falla catastrófica de compresor sin repuesto en el mercado', ENTONCES el activo pasa irreversiblemente a estado `DADO_DE_BAJA` y queda excluido permanentemente de futuros cierres de depreciación.
-- [ ] DADO UN usuario autenticado con rol `OPERADOR`, CUANDO intenta invocar el endpoint o botón de baja de activo, ENTONCES el sistema bloquea la acción respondiendo HTTP 403 Forbidden y mostrando 'Acceso denegado: solo el Administrador puede autorizar la baja de activos fijos'.
-- [ ] DADO UN activo previamente dado de baja, CUANDO se intenta enviar una segunda solicitud de desincorporación, ENTONCES el sistema responde HTTP 409 Conflict notificando 'El activo ya se encuentra desincorporado'.
+- [ ] Given un activo en estado `ACTIVO` con valor en libros de RD$ 15,000.00, When un Administrador completa el formulario de baja con motivo 'DANO_IRREPARABLE', informe técnico 'INF-TEC-2026-04' y justificación 'Falla catastrófica de compresor sin repuesto en el mercado', Then the system cambia irreversiblemente el activo a estado `DADO_DE_BAJA` y lo excluye permanentemente de futuros cierres de depreciación.
+- [ ] Given un usuario autenticado con rol `OPERADOR`, When intenta invocar el endpoint o botón de baja de activo, Then the system bloquea la acción respondiendo HTTP 403 Forbidden y mostrando 'Acceso denegado: solo el Administrador puede autorizar la baja de activos fijos'.
+- [ ] Given un activo previamente dado de baja, When se intenta enviar una segunda solicitud de desincorporación, Then the system responde HTTP 409 Conflict notificando 'El activo ya se encuentra desincorporado'.
 
 **Priority:** Must
 **Dependencies:** REQ-ACT-001
@@ -95,14 +95,14 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ### REQ-ACT-006: Actualización Controlada de Datos Físicos y Bloqueo Financiero
 **Type:** State-Driven
-**Rule:** MIENTRAS un activo fijo se encuentre registrado, el sistema DEBERÁ permitir la actualización de sus metadatos físicos descriptivos (marca, modelo, número de serie, color, ubicación física detallada); no obstante, SI el activo ya cuenta con registros históricos de depreciación calculados o transferidos a contabilidad, el sistema DEBERÁ bloquear estrictamente la edición de los campos financieros críticos (`costoAdquisicion`, `fechaAdquisicion`, `tipoActivoId`, `valorResidual`) para salvaguardar la consistencia contable y la inmutabilidad de los estados financieros.
+**Rule:** WHILE un activo fijo se encuentre registrado, the system SHALL permitir la actualización de sus metadatos físicos descriptivos (marca, modelo, número de serie, color, ubicación física detallada); WHERE el activo ya cuenta con registros históricos de depreciación calculados o transferidos a contabilidad, the system SHALL bloquear estrictamente la edición de los campos financieros críticos (`costoAdquisicion`, `fechaAdquisicion`, `tipoActivoId`, `valorResidual`) para salvaguardar la consistencia contable y la inmutabilidad de los estados financieros.
 **Entities:** `ActivoFijo`, `TipoActivo`
 **Error Handling:** Si una solicitud de modificación intenta alterar campos financieros bloqueados en un activo con depreciaciones registradas, el sistema rechaza la operación con `FINANCIAL_FIELDS_LOCKED` (HTTP 409) detallando los campos inmutables.
 
 **Acceptance Criteria:**
-- [ ] DADO UN activo nuevo que no posee ningún registro histórico de depreciación, CUANDO el operador edita el costo de compra de RD$ 40,000.00 a RD$ 42,000.00 por ajuste de factura de entrada, ENTONCES el sistema persiste el cambio y recalcula el valor en libros inicial.
-- [ ] DADO UN activo con períodos de depreciación ya procesados, CUANDO el usuario abre la pantalla de edición, ENTONCES los campos de costo, valor residual, tipo de activo y fecha de compra se muestran deshabilitados (read-only) con una etiqueta informativa 'Campos bloqueados por historial contable'.
-- [ ] DADO UN payload malicioso o directo por API que intente mutar el costo de un activo con historial de depreciación, CUANDO el backend procesa la petición, ENTONCES rechaza con HTTP 409 Conflict y aborta la mutación.
+- [ ] Given un activo nuevo que no posee ningún registro histórico de depreciación, When el operador edita el costo de compra de RD$ 40,000.00 a RD$ 42,000.00 por ajuste de factura de entrada, Then the system persiste el cambio y recalcula el valor en libros inicial.
+- [ ] Given un activo con períodos de depreciación ya procesados, When el usuario abre la pantalla de edición, Then the system muestra deshabilitados (read-only) los campos de costo, valor residual, tipo de activo y fecha de compra con la etiqueta informativa 'Campos bloqueados por historial contable'.
+- [ ] Given un payload malicioso o directo por API que intente mutar el costo de un activo con historial de depreciación, When el backend procesa la petición, Then the system rechaza la operación con HTTP 409 Conflict y aborta la mutación.
 
 **Priority:** Must
 **Dependencies:** REQ-ACT-001
@@ -110,14 +110,14 @@ El sub-módulo de Gestión de Activos Fijos, Inventario y Custodia constituye el
 
 ### REQ-ACT-007: Búsqueda y Filtrado Multicriterio de Inventario
 **Type:** Event-Driven
-**Rule:** CUANDO el usuario consulte el inventario de activos fijos, el sistema DEBERÁ proveer una vista tabular reactiva con soporte de búsqueda instantánea por coincidencia parcial en código institucional (`ACT-YYYY-NNNN`), descripción textual o número de serie del fabricante, filtros combinados por Departamento, Tipo de Activo, Empleado Custodio y Estado Operativo (`ACTIVO`, `EN_MANTENIMIENTO`, `DADO_DE_BAJA`), paginación en servidor (10, 25, 50 registros por página), y exportación de datos tabulares a Excel y CSV.
+**Rule:** WHEN el usuario consulte el inventario de activos fijos, the system SHALL proveer una vista tabular reactiva con soporte de búsqueda instantánea por coincidencia parcial en código institucional (`ACT-YYYY-NNNN`), descripción textual o número de serie del fabricante, filtros combinados por Departamento, Tipo de Activo, Empleado Custodio y Estado Operativo (`ACTIVO`, `EN_MANTENIMIENTO`, `DADO_DE_BAJA`), paginación en servidor (10, 25, 50 registros por página), y exportación de datos tabulares a Excel y CSV.
 **Entities:** `ActivoFijo`, `Departamento`, `TipoActivo`, `Empleado`
 **Error Handling:** Si el término de búsqueda no arroja coincidencias, el sistema muestra un estado visual vacío amigable con botón 'Restablecer filtros' sin producir excepciones.
 
 **Acceptance Criteria:**
-- [ ] DADO UN catálogo con más de 1,000 activos fijos registrados, CUANDO el usuario digita un número de serie o código 'ACT-2026-0042', ENTONCES la tabla filtra y localiza el activo correspondiente en menos de 200ms.
-- [ ] DADO EL uso de filtros combinados de 'Departamento = Ciencias Jurídicas' y 'Estado = ACTIVO', CUANDO se aplica la consulta, ENTONCES la grilla muestra exclusivamente los activos que satisfacen ambas condiciones simultáneamente con paginación server-side exacta.
-- [ ] DADO EL botón 'Exportar Inventario', CUANDO el usuario solicita la descarga en formato Excel (`.xlsx`), ENTONCES el sistema exporta las filas filtradas con sus valores en libros y datos de custodia formateados.
+- [ ] Given un catálogo con más de 1,000 activos fijos registrados, When el usuario digita un número de serie o código 'ACT-2026-0042', Then the system filtra y localiza el activo correspondiente en menos de 200ms.
+- [ ] Given el uso de filtros combinados de 'Departamento = Ciencias Jurídicas' y 'Estado = ACTIVO', When se aplica la consulta, Then the system muestra exclusivamente los activos que satisfacen ambas condiciones simultáneamente con paginación server-side exacta.
+- [ ] Given el botón 'Exportar Inventario', When el usuario solicita la descarga en formato Excel (`.xlsx`), Then the system exporta las filas filtradas con sus valores en libros y datos de custodia formateados.
 
 **Priority:** Must
 **Dependencies:** REQ-ACT-001, REQ-ACT-002
