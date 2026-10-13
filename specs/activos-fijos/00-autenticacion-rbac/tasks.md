@@ -163,13 +163,14 @@ graph TD
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/middleware.ts`
 
-### Task 2.3: Endpoints de Recuperación, Reseteo y Cambio de Contraseña (~1.5h)
+### Task 2.3: Endpoints de Recuperación, Reseteo y Cambio de Contraseña (~1.5h) ✅
 - **Description:** Implementar los Route Handlers para recuperación de contraseña olvidada (`/api/auth/forgot-password`), restablecimiento con token (`/api/auth/reset-password`) y cambio voluntario autenticado (`/api/auth/change-password`).
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] `POST /api/auth/forgot-password` emite token SHA-256 de 15 minutos y responde con mensaje neutro.
-  - [ ] `POST /api/auth/reset-password` valida token no expirado, actualiza hash bcrypt y marca `utilizado = true`.
-  - [ ] `PUT /api/auth/change-password` exige verificación de contraseña actual antes de actualizar.
-  - [ ] `MockConsoleEmailService` imprime el enlace de recuperación en terminal durante desarrollo local.
+  - [x] `POST /api/auth/forgot-password` emite token SHA-256 de 15 minutos y responde con mensaje neutro.
+  - [x] `POST /api/auth/reset-password` valida token no expirado, actualiza hash bcrypt y marca `utilizado = true`.
+  - [x] `PUT /api/auth/change-password` exige verificación de contraseña actual antes de actualizar.
+  - [x] `MockConsoleEmailService` imprime el enlace de recuperación en terminal durante desarrollo local.
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
 - **Files to create/modify:** `app/app/api/auth/forgot-password/route.ts`, `app/app/api/auth/reset-password/route.ts`, `app/app/api/auth/change-password/route.ts`, `app/lib/services/email.service.ts`
 
