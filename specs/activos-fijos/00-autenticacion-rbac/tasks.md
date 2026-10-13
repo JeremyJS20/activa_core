@@ -174,15 +174,16 @@ graph TD
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
 - **Files to create/modify:** `app/app/api/auth/forgot-password/route.ts`, `app/app/api/auth/reset-password/route.ts`, `app/app/api/auth/change-password/route.ts`, `app/lib/services/email.service.ts`
 
-### Task 2.4: Endpoints de Directorio de Usuarios, Roles y Desbloqueo (~1h)
+### Task 2.4: Endpoints de Directorio de Usuarios, Roles y Desbloqueo (~1h) ✅
 - **Description:** Implementar los Route Handlers para listar usuarios, registrar cuentas, actualizar perfiles, desbloquear cuentas administrativamente y consultar el catálogo de roles y permisos.
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] `GET /api/usuarios` retorna lista paginada con rol y empleado asociado (restringido a `USER_ADMIN`).
-  - [ ] `POST /api/usuarios` valida unicidad de correo y asigna `rolId`.
-  - [ ] `POST /api/usuarios/[id]/unlock` limpia el contador de intentos fallidos y el bloqueo.
-  - [ ] `GET /api/roles` y `GET /api/roles/[id]/permisos` listan perfiles y capacidades.
+  - [x] `GET /api/usuarios` retorna lista paginada con rol y empleado asociado (restringido a `USER_ADMIN`).
+  - [x] `POST /api/usuarios` valida unicidad de correo y asigna `rolId`.
+  - [x] `POST /api/usuarios/[id]/unlock` limpia el contador de intentos fallidos y el bloqueo.
+  - [x] `GET /api/roles` y `GET /api/roles/[id]/permisos` listan perfiles y capacidades.
 - **Dependencies:** Task 1.1, Task 1.3
-- **Files to create/modify:** `app/app/api/usuarios/route.ts`, `app/app/api/usuarios/[id]/route.ts`, `app/app/api/usuarios/[id]/unlock/route.ts`, `app/app/api/roles/route.ts`
+- **Files to create/modify:** `app/app/api/usuarios/route.ts`, `app/app/api/usuarios/[id]/route.ts`, `app/app/api/usuarios/[id]/unlock/route.ts`, `app/app/api/roles/route.ts`, `app/app/api/roles/[id]/permisos/route.ts`, `app/lib/auth/rbac.ts`
 
 ---
 
