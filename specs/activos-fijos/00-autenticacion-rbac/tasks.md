@@ -87,13 +87,14 @@ graph TD
 - **Dependencies:** Task 0.1
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/lib/prisma.ts`, `app/.env.example`
 
-### Task 0.3: Script de Semillas Deterministas de Seguridad (`seed.ts`) (~2h)
+### Task 0.3: Script de Semillas Deterministas de Seguridad (`seed.ts`) (~2h) ✅
 - **Description:** Crear el script de seeding de seguridad (`app/prisma/seed.ts`). Registrar los 3 roles predefinidos (`ADMIN`, `OPERADOR`, `AUDITOR`), el catálogo de permisos por módulo (`CAT_READ`, `CAT_WRITE`, `ACT_OPERATE`, `DEP_EXECUTE`, `DEP_CLOSE`, `USER_ADMIN`, etc.), vincular los permisos a cada rol y crear la cuenta inicial del Administrador General (`admin@unapec.edu.do` / hash bcrypt seguro).
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] Roles precargados con bandera `esSistema = true`.
-  - [ ] Matriz de permisos vinculada en `roles_permisos`.
-  - [ ] Usuario administrador creado con rol `ADMIN` y contraseña inicial hasheada con bcrypt.
-  - [ ] Comando `pnpm prisma db seed` ejecuta la inserción idempotente sin duplicar registros.
+  - [x] Roles precargados con bandera `esSistema = true`.
+  - [x] Matriz de permisos vinculada en `roles_permisos`.
+  - [x] Usuario administrador creado con rol `ADMIN` y contraseña inicial hasheada con bcrypt.
+  - [x] Comando `pnpm prisma db seed` ejecuta la inserción idempotente sin duplicar registros.
 - **Dependencies:** Task 0.2, Task 1.1
 - **Files to create/modify:** `app/prisma/seed.ts`, `app/package.json`
 
