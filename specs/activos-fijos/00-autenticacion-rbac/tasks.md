@@ -76,13 +76,14 @@ graph TD
 - **Dependencies:** None
 - **Files to create/modify:** `app/package.json`, `app/tsconfig.json`, `app/tailwind.config.ts`, `.sdd-config.json`, `.gitignore`
 
-### Task 0.2: Inicialización de Prisma ORM y Conexión PostgreSQL (~1.5h)
+### Task 0.2: Inicialización de Prisma ORM y Conexión PostgreSQL (~1.5h) ✅
 - **Description:** Configurar Prisma ORM dentro de `app/`, generar el cliente `@prisma/client`, configurar el proveedor PostgreSQL (`postgresql`) y documentar las variables de conexión en `app/.env.example` y `app/.env`.
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] Prisma v6 instalado e inicializado (`app/prisma/schema.prisma`).
-  - [ ] Cadena de conexión `DATABASE_URL` configurada apuntando a PostgreSQL (Supabase / Docker).
-  - [ ] Archivo `app/lib/prisma.ts` implementa el patrón singleton para evitar múltiples instancias en desarrollo.
-  - [ ] Comando `pnpm prisma db push` o `pnpm prisma migrate dev` valida conexión exitosa.
+  - [x] Prisma v6 instalado e inicializado (`app/prisma/schema.prisma`).
+  - [x] Cadena de conexión `DATABASE_URL` configurada apuntando a PostgreSQL (Supabase / Docker).
+  - [x] Archivo `app/lib/prisma.ts` implementa el patrón singleton para evitar múltiples instancias en desarrollo.
+  - [x] Comando `pnpm prisma db push` o `pnpm prisma migrate dev` valida conexión exitosa.
 - **Dependencies:** Task 0.1
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/lib/prisma.ts`, `app/.env.example`
 
