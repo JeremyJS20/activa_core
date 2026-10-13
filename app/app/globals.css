@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  --canvas-base: #F9F9FF;
+  --surface-card: #FFFFFF;
+  --surface-inset: #F2F3FF;
+  --text-primary: #1B2A4A;
+  --text-secondary: #505F76;
+  --brand-primary: #003D9B;
+  --brand-secondary: #0052CC;
+  --brand-navy: #002B49;
+  --brand-crimson: #990000;
+  --ghost-border: rgba(27, 42, 74, 0.08);
+  --radius: 0.5rem;
+
+  --background: var(--canvas-base);
+  --foreground: var(--text-primary);
+}
+
+.dark {
+  --canvas-base: #111319;
+  --surface-card: #1E1F25;
+  --surface-inset: #1A1B21;
+  --text-primary: #E2E2EA;
+  --text-secondary: #C4C6D4;
+  --brand-primary: #0052CC;
+  --brand-secondary: #3B82F6;
+  --brand-navy: #0F172A;
+  --brand-crimson: #DC2626;
+  --ghost-border: rgba(255, 255, 255, 0.05);
+
+  --background: var(--canvas-base);
+  --foreground: var(--text-primary);
+}
+@theme inline {
+  --color-canvas-base: var(--canvas-base);
+  --color-surface-card: var(--surface-card);
+  --color-surface-inset: var(--surface-inset);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-crimson: var(--brand-crimson);
+  --color-ghost-border: var(--ghost-border);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  background-color: var(--canvas-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
