@@ -102,15 +102,16 @@ graph TD
 
 ## Wave 1: Foundation & Setup (~5h)
 
-### Task 1.1: Esquema de Base de Datos Prisma RBAC (`schema.prisma`) (~1.5h)
+### Task 1.1: Esquema de Base de Datos Prisma RBAC (`schema.prisma`) (~1.5h) ✅
 - **Description:** Definir los modelos Prisma para `Usuario`, `Rol`, `Permiso`, `RolPermiso` y `PasswordResetToken`, estableciendo las claves primarias UUID, códigos únicos, índices B-Tree, constraints de chequeo y relaciones foráneas estrictas.
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] Modelo `Rol` con campos `codigo`, `nombre`, `descripcion`, `esSistema`, `estado`.
-  - [ ] Modelo `Permiso` con `codigo`, `modulo`, `descripcion`.
-  - [ ] Modelo `RolPermiso` con clave primaria compuesta `@@id([rolId, permisoId])`.
-  - [ ] Modelo `Usuario` con relación `rolId -> Rol` (`onDelete: Restrict`) y relación opcional con `Empleado`.
-  - [ ] Modelo `PasswordResetToken` con `tokenHash` único, `expiraAt` y `utilizado`.
-  - [ ] Migración inicial generada y aplicada con éxito (`prisma migrate dev --name init_security_rbac`).
+  - [x] Modelo `Rol` con campos `codigo`, `nombre`, `descripcion`, `esSistema`, `estado`.
+  - [x] Modelo `Permiso` con `codigo`, `modulo`, `descripcion`.
+  - [x] Modelo `RolPermiso` con clave primaria compuesta `@@id([rolId, permisoId])`.
+  - [x] Modelo `Usuario` con relación `rolId -> Rol` (`onDelete: Restrict`) y relación opcional con `Empleado`.
+  - [x] Modelo `PasswordResetToken` con `tokenHash` único, `expiraAt` y `utilizado`.
+  - [x] Migración inicial generada y aplicada con éxito (`prisma migrate dev --name init_security_rbac`).
 - **Dependencies:** Task 0.2
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 
