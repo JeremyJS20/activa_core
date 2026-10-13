@@ -41,31 +41,34 @@ El sistema se divide en **6 sub-módulos independientes y desacoplados**. Cada s
 Para garantizar que nadie sobreescriba el trabajo de otros, el repositorio utiliza una **estrategia de aislamiento estricto por módulo**:
 
 ```mermaid
-gitgraph
-    commit id: "Init SDD Governance"
-    branch dev
-    checkout dev
-    branch feature/00-auth
-    checkout feature/00-auth
-    commit id: "Specs Mod 00"
-    checkout dev
-    merge feature/00-auth id: "Merge Mod 00"
-    branch feature/01-catalogos
-    checkout feature/01-catalogos
-    commit id: "Specs Mod 01"
-    checkout dev
-    merge feature/01-catalogos id: "Merge Mod 01"
-    branch feature/02-custodia
-    checkout feature/02-custodia
-    commit id: "Specs Mod 02"
-    checkout dev
-    merge feature/02-custodia id: "Merge Mod 02"
-    branch feature/03-depreciacion
-    checkout feature/03-depreciacion
-    commit id: "Trabajo Companero 1"
-    branch feature/04-reportes
-    checkout feature/04-reportes
-    commit id: "Trabajo Companero 2"
+flowchart TD
+    classDef mainStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1;
+    classDef devStyle fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534;
+    classDef doneStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
+    classDef pendStyle fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#6b21a8;
+
+    Main["Rama main (Base Limpia SDD)"]:::mainStyle
+    Dev["Rama dev (Integración ActivaCore)"]:::devStyle
+
+    subgraph ModulosListos["Módulos Completados"]
+        F00["feature/activos-fijos-00-autenticacion-rbac"]:::doneStyle
+        F01["feature/activos-fijos-01-catalogos-base"]:::doneStyle
+        F02["feature/activos-fijos-02-gestion-activos-custodia"]:::doneStyle
+    end
+
+    subgraph ModulosEquipo["Módulos Asignados al Equipo"]
+        F03["feature/activos-fijos-03-motor-depreciacion"]:::pendStyle
+        F04["feature/activos-fijos-04-consultas-reportes"]:::pendStyle
+        F05["feature/activos-fijos-05-integracion-ws-contabilidad"]:::pendStyle
+    end
+
+    Main --> Dev
+    Dev --> F00 -->|Merge completado| Dev
+    Dev --> F01 -->|Merge completado| Dev
+    Dev --> F02 -->|Merge completado| Dev
+    Dev -.->|Heredan base de dev| F03
+    Dev -.->|Heredan base de dev| F04
+    Dev -.->|Heredan base de dev| F05
 ```
 
 ### Convención de Ramas:
