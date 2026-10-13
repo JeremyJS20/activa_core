@@ -1,4 +1,12 @@
-﻿import NextAuth from "next-auth";
+﻿import NextAuth, { CredentialsSignin } from "next-auth";
+
+export class AccountLockedError extends CredentialsSignin {
+  code = "bloqueada";
+}
+
+export class AccountInactiveError extends CredentialsSignin {
+  code = "inactiva";
+}
 import Credentials from "next-auth/providers/credentials";
 import { authConfig } from "./auth.config";
 import { prisma } from "@/lib/prisma";
@@ -31,9 +39,7 @@ export const {
         // 1. Validar si la cuenta está bloqueada temporalmente por fuerza bruta
         const rateCheck = authRateLimiter.isBlocked(correo);
         if (rateCheck.blocked) {
-          throw new Error(
-            `Cuenta bloqueada temporalmente por exceso de intentos fallidos. Reintente en ${rateCheck.remainingSeconds} segundos.`
-          );
+          throw new AccountLockedError();
         }
 
         // 2. Buscar usuario en PostgreSQL vía Prisma con roles y permisos
@@ -53,13 +59,16 @@ export const {
         });
 
         if (!usuario) {
-          authRateLimiter.recordFailedAttempt(correo);
+          const attempt = authRateLimiter.recordFailedAttempt(correo);
+          if (attempt.blocked) {
+            throw new AccountLockedError();
+          }
           return null;
         }
 
         // 3. Verificar estado de la cuenta
         if (usuario.estado !== "ACTIVO") {
-          throw new Error("Su cuenta institucional se encuentra inactiva. Contacte al administrador.");
+          throw new AccountInactiveError();
         }
 
         // 4. Comparar hash de contraseña
@@ -67,9 +76,7 @@ export const {
         if (!passwordMatches) {
           const attempt = authRateLimiter.recordFailedAttempt(correo);
           if (attempt.blocked) {
-            throw new Error(
-              `Cuenta bloqueada temporalmente por 15 minutos debido a 5 intentos fallidos consecutivos.`
-            );
+            throw new AccountLockedError();
           }
           return null;
         }

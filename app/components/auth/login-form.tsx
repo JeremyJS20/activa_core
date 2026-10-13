@@ -39,11 +39,11 @@ export function LoginForm() {
       });
 
       if (res?.error) {
-        if (res.error.includes("bloqueada") || res.error.includes("fuerza bruta")) {
+        if (res.error.includes("bloqueada") || (res as any)?.code === "bloqueada" || res.error.includes("fuerza bruta")) {
           setErrorMessage(
             "Cuenta bloqueada temporalmente por 15 minutos debido a 5 intentos fallidos consecutivos."
           );
-        } else if (res.error.includes("inactiva")) {
+        } else if (res.error.includes("inactiva") || (res as any)?.code === "inactiva") {
           setErrorMessage(
             "Su cuenta institucional se encuentra inactiva. Contacte al departamento de TI de UNAPEC."
           );
