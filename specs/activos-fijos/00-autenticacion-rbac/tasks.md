@@ -212,13 +212,14 @@ graph TD
 - **Dependencies:** Task 2.3
 - **Files to create/modify:** `app/components/auth/auth-shell.tsx`, `app/app/login/page.tsx`, `app/app/recuperar-contrasena/page.tsx`, `app/app/restablecer-contrasena/page.tsx`, `app/components/auth/forgot-password-form.tsx`, `app/components/auth/reset-password-form.tsx`
 
-### Task 3.3: Directorio Administrativo de Usuarios y Matriz de Roles (~1.5h)
+### Task 3.3: Directorio Administrativo de Usuarios y Matriz de Roles (~1.5h) ✅
+- **Status:** COMPLETED
 - **Description:** Diseñar e integrar la interfaz de administración de usuarios (`/admin/usuarios`), con tabla de colaboradores, selector de rol relacional, modal de creación de usuario, y botón de desbloqueo de cuenta.
 - **Acceptance criteria:**
-  - [ ] Ruta `/admin/usuarios` muestra tabla paginada con nombre, correo, rol y estado.
-  - [ ] Diálogo de creación permite seleccionar rol desde el catálogo relacional `roles`.
-  - [ ] Botón "Desbloquear" visible y funcional para cuentas throttled.
-  - [ ] Diálogo para visualizar la matriz de permisos de los roles institucionales.
+  - [x] Ruta `/admin/usuarios` muestra tabla paginada con nombre, correo, rol y estado.
+  - [x] Diálogo de creación permite seleccionar rol desde el catálogo relacional `roles`.
+  - [x] Botón "Desbloquear" visible y funcional para cuentas throttled.
+  - [x] Diálogo para visualizar la matriz de permisos de los roles institucionales.
 - **Dependencies:** Task 2.4
 - **Files to create/modify:** `app/app/admin/usuarios/page.tsx`, `app/components/auth/user-table.tsx`, `app/components/auth/user-dialog.tsx`, `app/components/auth/role-matrix-dialog.tsx`
 
