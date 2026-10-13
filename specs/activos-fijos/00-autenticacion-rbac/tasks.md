@@ -126,15 +126,16 @@ graph TD
 - **Dependencies:** Task 0.1
 - **Files to create/modify:** `app/lib/security/bcrypt.ts`, `app/lib/security/tokens.ts`, `app/lib/security/rate-limiter.ts`
 
-### Task 1.3: Schemas de Validación Zod y Tipos DTO de Autenticación (~1.5h)
+### Task 1.3: Schemas de Validación Zod y Tipos DTO de Autenticación (~1.5h) ✅
 - **Description:** Crear schemas de validación Zod para login, creación/edición de usuarios, solicitud de recuperación y restablecimiento de contraseña con políticas de robustez forzada (8+ caracteres, mayúsculas, números y símbolos).
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] `LoginSchema` valida formato de correo institucional y presencia de contraseña.
-  - [ ] `CreateUserSchema` valida robustez de contraseña, selección de `rolId` válido y estado.
-  - [ ] `ResetPasswordSchema` valida coincidencia de `nuevaPassword` y `confirmarPassword`.
-  - [ ] Tipos TypeScript inferidos exportados para uso universal en cliente y servidor.
+  - [x] `LoginSchema` valida formato de correo institucional y presencia de contraseña.
+  - [x] `CreateUserSchema` valida robustez de contraseña, selección de `rolId` válido y estado.
+  - [x] `ResetPasswordSchema` valida coincidencia de `nuevaPassword` y `confirmarPassword`.
+  - [x] Tipos TypeScript inferidos exportados para uso universal en cliente y servidor.
 - **Dependencies:** Task 1.2
-- **Files to create/modify:** `app/lib/schemas/auth.schema.ts`, `app/lib/schemas/user.schema.ts`
+- **Files to create/modify:** `app/lib/validations/auth.ts`, `app/lib/validations/users.ts`, `app/lib/schemas/auth.schema.ts`, `app/lib/schemas/user.schema.ts`
 
 ---
 
