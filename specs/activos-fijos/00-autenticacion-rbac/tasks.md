@@ -141,15 +141,16 @@ graph TD
 
 ## Wave 2: Core Implementation (~6h)
 
-### Task 2.1: Configuración de NextAuth.js v5 (Auth.js) y CredentialsProvider (~2h)
+### Task 2.1: Configuración de NextAuth.js v5 (Auth.js) y CredentialsProvider (~2h) ✅
 - **Description:** Configurar el handler de NextAuth.js v5 en `app/app/api/auth/[...nextauth]/route.ts`, implementando `CredentialsProvider` con validación de credenciales en base de datos, verificación de cuenta inactiva o bloqueada, e inyección del rol y permisos en el token JWT y sesión.
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] Flujo de login valida email y contraseña contra la tabla `usuarios` vía Prisma.
-  - [ ] Autenticación rechaza cuentas con `estado = INACTIVO` o `bloqueadoHasta > NOW()`.
-  - [ ] Callback `jwt` incluye `id`, `rol`, `permisos` y `nombre` en el token.
-  - [ ] Callback `session` expone la información del usuario autenticado en `auth()`.
+  - [x] Flujo de login valida email y contraseña contra la tabla `usuarios` vía Prisma.
+  - [x] Autenticación rechaza cuentas con `estado = INACTIVO` o `bloqueadoHasta > NOW()`.
+  - [x] Callback `jwt` incluye `id`, `rol`, `permisos` y `nombre` en el token.
+  - [x] Callback `session` expone la información del usuario autenticado en `auth()`.
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
-- **Files to create/modify:** `app/auth.ts`, `app/app/api/auth/[...nextauth]/route.ts`
+- **Files to create/modify:** `app/auth.ts`, `app/auth.config.ts`, `app/types/next-auth.d.ts`, `app/app/api/auth/[...nextauth]/route.ts`
 
 ### Task 2.2: Next.js Edge Middleware de Protección y RBAC (`middleware.ts`) (~1.5h)
 - **Description:** Implementar el middleware perimetral en la raíz de `app/` para interceptar todas las peticiones entrantes, verificar la validez del token JWT y validar que el rol del usuario contenga los permisos exigidos según la ruta solicitada.
