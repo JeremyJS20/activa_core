@@ -24,7 +24,8 @@ trigger: always_on
 14. Anti-Cascading Approval — 1:1 approval per artifact, approval for requirements NEVER implies approval for design or tasks
 15. UTF-8 Clean Encoding — all file mutations must use UTF-8, no raw PowerShell stream redirection
 16. Living Master Diagram Sync — Module master diagrams (State Machine, Flowchart, ERD) must evolve when sub-modules are integrated
-17. Anti-Generic UI — frontend applications must define a formal design system (DESIGN.md) with dual-mode tokens, No-Line layout, and typographic triad. Generic unstyled Bootstrap/shadcn is strictly forbidden.
+17. Anti-Generic UI — frontend applications must define a formal design system (DESIGN.md) with dual-mode tokens, No-Line layout, and typographic triad. Generic unstyled Bootstrap/shadcn and AI UI clichés (fake security badges, redundant input icons, demo credential boxes, centered card in a void, border obsession, OS dark mode desync) are strictly forbidden.
+18. Atomic Task Closing — tasks must be verified, checked [x] in tasks.md, and committed immediately before proposing the next task. Batch closing at the end of waves is strictly forbidden.
 
 ## MCP checkpoints (MANDATORY — full detail in sdd-tool-protocol)
 - Session start: server-memory read → report "🧠 Memoria: …"; codebase-memory index check → report "🗺️ Grafo: …"

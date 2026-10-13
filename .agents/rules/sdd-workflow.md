@@ -419,7 +419,8 @@ When a feature or sub-feature specification is completed and approved:
 | 14 | Cascade a single approval across multiple artifacts, or stamp approval on an artifact not explicitly named by the user | BLOCK |
 | 15 | Corrupt file encoding or introduce mojibake via non-UTF-8 tools (e.g. raw PowerShell redirection) | BLOCK |
 | 16 | Update docs/modules/{module}.md without synchronizing all 3 master diagrams (State Machine, Component Flow, ERD) or leaving corrupted table rows | BLOCK |
-| 17 | Implement UI components or frontend screens without a defined design system (DESIGN.md) or producing generic unstyled boilerplate | BLOCK |
+| 17 | Implement UI components or frontend screens without a defined design system (DESIGN.md), producing generic boilerplate, or introducing AI UI slop clichés | BLOCK |
+| 18 | Propose or begin subsequent task while current task in tasks.md remains unchecked [ ] or uncommitted (batch closing anti-pattern) | BLOCK |
 
 ## What happens when a block is triggered
 1. STOP immediately — do not proceed
@@ -444,7 +445,8 @@ When a feature or sub-feature specification is completed and approved:
 - Gate 14: Obtain explicit, independent approval for EACH artifact individually. Approval for requirements.md NEVER authorizes design.md. Approval for design.md NEVER authorizes tasks.md. Colloquial words ("dale", "continúa", "ok") apply ONLY to the single artifact currently under review.
 - Gate 15: Restore clean UTF-8 encoding and use safe tools (replace_file_content, write_to_file, or Node.js UTF-8) for all file mutations. Ban raw PowerShell stream redirection.
 - Gate 16: Fully synchronize all 3 master diagrams (Section 3.1 stateDiagram-v2, Section 3.2 flowchart, Section 4 erDiagram) in docs/modules/{module}.md to reflect certified sub-module changes (new sub-states, engines/resolvers, entities), and eliminate empty lines or malformed rows in Markdown tables.
-- Gate 17: Establish a formal Design System specification (`DESIGN.md` in repository root or `docs/architecture/design-system.md` using `design-system-template.md`). Define the aesthetic theme narrative, dual-mode color tokens (Canvas, Surface, Inset, Text, Ghost Borders), the "No-Line" spatial layout rule, the typographic triad (Display, Sans, Monospace for codes/numbers), and interactive component states before implementing frontend code. Ban generic unstyled Bootstrap or flat-white boilerplate.
+- Gate 17: Establish a formal Design System specification (`DESIGN.md` in repository root or `docs/architecture/design-system.md` using `design-system-template.md`). Define the aesthetic theme narrative, dual-mode color tokens (Canvas, Surface, Inset, Text, Ghost Borders), the "No-Line" spatial layout rule, the typographic triad (Display, Sans, Monospace for codes/numbers), and interactive component states before implementing frontend code. Ban generic unstyled Bootstrap/shadcn boilerplate and strictly prohibit AI UI clichés (fake security badges, redundant input icons, demo credential boxes, centered card in a void, border obsession, OS dark mode desync).
+- Gate 18: Immediately complete the atomic Definition of Done (DoD) for the active task: execute automated verification/tests, mark all acceptance criteria `[x]` in `tasks.md`, set status to `COMPLETED`, and create the Git commit BEFORE proposing or starting the next task. Never defer task closing to the end of waves.
 
 ## What NEVER to do
 - DO NOT bypass gates even if the user says "just do it"
