@@ -115,13 +115,14 @@ graph TD
 - **Dependencies:** Task 0.2
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 
-### Task 1.2: Motor Criptográfico y Utilidades de Seguridad (~2h)
+### Task 1.2: Motor Criptográfico y Utilidades de Seguridad (~2h) ✅
 - **Description:** Implementar las librerías de seguridad: funciones de hashing con `bcryptjs` (`hashPassword`, `comparePassword`), generador de tokens de 256 bits y digest SHA-256 (`cryptoTokenUtils.ts`), y mecanismo de control de fuerza bruta y rate limiting en memoria (`rateLimiter.ts`).
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] `hashPassword` genera hashes con factor de costo 10.
-  - [ ] `generateResetToken` emite tokens de 32 bytes hexadecimales y computa su hash SHA-256.
-  - [ ] `rateLimiter` bloquea solicitudes tras 5 intentos fallidos consecutivos en ventana de 15 minutos.
-  - [ ] Cobertura de pruebas unitarias mínimas para hashing, verificación y expiración de tokens.
+  - [x] `hashPassword` genera hashes con factor de costo 10.
+  - [x] `generateResetToken` emite tokens de 32 bytes hexadecimales y computa su hash SHA-256.
+  - [x] `rateLimiter` bloquea solicitudes tras 5 intentos fallidos consecutivos en ventana de 15 minutos.
+  - [x] Cobertura de pruebas unitarias mínimas para hashing, verificación y expiración de tokens.
 - **Dependencies:** Task 0.1
 - **Files to create/modify:** `app/lib/security/bcrypt.ts`, `app/lib/security/tokens.ts`, `app/lib/security/rate-limiter.ts`
 
