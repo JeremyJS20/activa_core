@@ -200,15 +200,17 @@ graph TD
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/app/login/page.tsx`, `app/components/auth/login-form.tsx`
 
-### Task 3.2: Vistas de Autoservicio de Recuperación y Reseteo (~1.5h)
+### Task 3.2: Vistas de Autoservicio de Recuperación y Reseteo (~1.5h) ✅
+- **Status:** COMPLETED
 - **Description:** Implementar las páginas de solicitud de recuperación (`/recuperar-contrasena`) con confirmación neutral, y la página de ingreso de nueva contraseña (`/restablecer-contrasena?token=...`) con indicador de robustez.
 - **Acceptance criteria:**
-  - [ ] Ruta `/recuperar-contrasena` captura correo y muestra mensaje neutral de éxito.
-  - [ ] Ruta `/restablecer-contrasena` lee el token de los searchParams y valida su estado.
-  - [ ] Validación interactiva de requisitos de contraseña mientras el usuario escribe.
-  - [ ] Notificación toast y redirección a `/login` al restablecer la clave con éxito.
+  - [x] Ruta `/recuperar-contrasena` captura correo y muestra mensaje neutral de éxito.
+  - [x] Ruta `/restablecer-contrasena` lee el token de los searchParams y valida su estado.
+  - [x] Validación interactiva de requisitos de contraseña mientras el usuario escribe.
+  - [x] Redirección y enlace a /login al restablecer la clave con éxito.
+  - [x] Unificación visual 100% homogénea con /login mediante AuthShell institucional.
 - **Dependencies:** Task 2.3
-- **Files to create/modify:** `app/app/recuperar-contrasena/page.tsx`, `app/app/restablecer-contrasena/page.tsx`, `app/components/auth/forgot-password-form.tsx`, `app/components/auth/reset-password-form.tsx`
+- **Files to create/modify:** `app/components/auth/auth-shell.tsx`, `app/app/login/page.tsx`, `app/app/recuperar-contrasena/page.tsx`, `app/app/restablecer-contrasena/page.tsx`, `app/components/auth/forgot-password-form.tsx`, `app/components/auth/reset-password-form.tsx`
 
 ### Task 3.3: Directorio Administrativo de Usuarios y Matriz de Roles (~1.5h)
 - **Description:** Diseñar e integrar la interfaz de administración de usuarios (`/admin/usuarios`), con tabla de colaboradores, selector de rol relacional, modal de creación de usuario, y botón de desbloqueo de cuenta.
