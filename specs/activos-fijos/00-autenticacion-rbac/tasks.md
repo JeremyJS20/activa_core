@@ -189,13 +189,14 @@ graph TD
 
 ## Wave 3: UI & Integration (~6h)
 
-### Task 3.1: Pantalla Institucional de Inicio de Sesión (`/login`) (~1.5h)
+### Task 3.1: Pantalla Institucional de Inicio de Sesión (`/login`) (~1.5h) ✅
 - **Description:** Diseñar e integrar la página de inicio de sesión con branding institucional UNAPEC, formulario reactivo con React Hook Form + Zod, feedback de errores (credenciales erróneas, cuenta bloqueada) y enlace a recuperación de contraseña.
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] Ruta `/login` renderiza diseño institucional con tarjeta centrada y logotipo.
-  - [ ] Envío de formulario invoca `signIn('credentials', ...)` de NextAuth.
-  - [ ] Manejo visual de errores con alertas claras en español.
-  - [ ] Redirección automática al dashboard o `callbackUrl` tras autenticación exitosa.
+  - [x] Ruta `/login` renderiza diseño institucional con tarjeta centrada y logotipo.
+  - [x] Envío de formulario invoca `signIn('credentials', ...)` de NextAuth.
+  - [x] Manejo visual de errores con alertas claras en español.
+  - [x] Redirección automática al dashboard o `callbackUrl` tras autenticación exitosa.
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/app/login/page.tsx`, `app/components/auth/login-form.tsx`
 
