@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Loader2 } from "lucide-react";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <AuthShell
-      badge="Gestión Institucional"
       title="Control de activos fijos y su contabilización."
       subtitle="Plataforma integral para el inventario, ciclo de vida, depreciación y cumplimiento normativo DGII de la Universidad APEC."
     >

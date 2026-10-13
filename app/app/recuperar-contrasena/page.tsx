@@ -1,20 +1,22 @@
-﻿import type { Metadata } from "next";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 export const metadata: Metadata = {
-  title: "Recuperar Contraseña | ActivaCore UNAPEC",
-  description: "Solicitud de recuperación de contraseña institucional — Universidad APEC.",
+  title: "Recuperación de Contraseña | ActivaCore UNAPEC",
+  description: "Solicite un enlace institucional para restablecer sus credenciales de acceso.",
 };
 
 export default function RecuperarContrasenaPage() {
   return (
     <AuthShell
-      badge="Seguridad Institucional"
-      title="Restablecimiento y recuperación de acceso."
-      subtitle="Verificación de identidad y emisión de credenciales temporales cifradas para el personal docente y administrativo de UNAPEC."
+      title="Recupere el acceso a su cuenta institucional."
+      subtitle="Ingrese su correo electrónico registrado y le enviaremos un enlace seguro para restablecer su clave."
     >
-      <ForgotPasswordForm />
+      <Suspense fallback={<div className="text-xs text-slate-400 p-8">Cargando formulario...</div>}>
+        <ForgotPasswordForm />
+      </Suspense>
     </AuthShell>
   );
 }

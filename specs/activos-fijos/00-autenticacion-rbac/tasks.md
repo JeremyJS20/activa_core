@@ -223,15 +223,16 @@ graph TD
 - **Dependencies:** Task 2.4
 - **Files to create/modify:** `app/app/admin/usuarios/page.tsx`, `app/components/auth/user-table.tsx`, `app/components/auth/user-dialog.tsx`, `app/components/auth/role-matrix-dialog.tsx`
 
-### Task 3.4: Shell Institucional y Menú de Usuario en Barra Superior (~1.5h)
-- **Description:** Construir la barra superior unificada de la aplicación (`TopNavbar`), incorporando el branding universitario, indicador de rol activo (`[ADMIN]`, `[OPERADOR]`), avatar de usuario, acceso a la vista de perfil (`/perfil`) y botón de cerrar sesión.
+### Task 3.4: Shell Institucional, Sidebar y Navegación de Usuario (~1.5h) ✅
+- **Status:** COMPLETED
+- **Description:** Construir la arquitectura de navegación institucional compuesta por Sidebar lateral (`AppSidebar`), barra superior unificada (`TopNavbar`) con rutas de navegación limpias (`ConsoleBreadcrumb`) y menú de usuario (`UserNavMenu`), vista de perfil (`/perfil`), y eliminación de footers y badges decorativos.
 - **Acceptance criteria:**
-  - [ ] Barra superior visible en todas las rutas autenticadas del sistema.
-  - [ ] Componente `UserNavMenu` renderiza nombre del usuario y badge con su rol relacional.
-  - [ ] Opción "Cerrar Sesión" invoca `signOut()` y limpia cookies de navegación.
-  - [ ] Vista `/perfil` permite actualizar la contraseña validando la clave actual.
+  - [x] Barra superior con migas de pan limpias y sidebar lateral visible en todas las rutas autenticadas.
+  - [x] Componente `UserNavMenu` renderiza nombre, correo y rol del usuario sin adornos de IA.
+  - [x] Opción "Cerrar Sesión" invoca `signOut()` y limpia cookies de navegación.
+  - [x] Vista `/perfil` permite actualizar la contraseña validando la clave actual.
 - **Dependencies:** Task 2.1, Task 2.3
-- **Files to create/modify:** `app/components/layout/top-navbar.tsx`, `app/components/auth/user-nav-menu.tsx`, `app/app/perfil/page.tsx`, `app/components/auth/change-password-form.tsx`
+- **Files to create/modify:** `app/components/layout/app-sidebar.tsx`, `app/components/layout/console-breadcrumb.tsx`, `app/components/layout/top-navbar.tsx`, `app/components/layout/console-shell.tsx`, `app/components/auth/user-nav-menu.tsx`, `app/app/perfil/page.tsx`, `app/components/auth/perfil-content.tsx`, `app/components/auth/change-password-form.tsx`, `app/app/page.tsx`, `app/components/dashboard/dashboard-content.tsx`
 
 ---
 
