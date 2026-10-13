@@ -152,13 +152,14 @@ graph TD
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
 - **Files to create/modify:** `app/auth.ts`, `app/auth.config.ts`, `app/types/next-auth.d.ts`, `app/app/api/auth/[...nextauth]/route.ts`
 
-### Task 2.2: Next.js Edge Middleware de Protección y RBAC (`middleware.ts`) (~1.5h)
+### Task 2.2: Next.js Edge Middleware de Protección y RBAC (`middleware.ts`) (~1.5h) ✅
 - **Description:** Implementar el middleware perimetral en la raíz de `app/` para interceptar todas las peticiones entrantes, verificar la validez del token JWT y validar que el rol del usuario contenga los permisos exigidos según la ruta solicitada.
+- **Status:** COMPLETED
 - **Acceptance criteria:**
-  - [ ] Rutas públicas (`/login`, `/recuperar-contrasena`, `/restablecer-contrasena`, `/_next`, `/api/auth`) quedan exentas de bloqueo.
-  - [ ] Solicitudes no autenticadas a rutas privadas se redirigen a `/login?callbackUrl=...`.
-  - [ ] Solicitudes de mutación a APIs (`POST`, `PUT`, `DELETE`) verifican el permiso específico del módulo respondiendo 403 Forbidden ante ausencia de privilegios.
-  - [ ] Latencia de ejecución del middleware < 15ms p95.
+  - [x] Rutas públicas (`/login`, `/recuperar-contrasena`, `/restablecer-contrasena`, `/_next`, `/api/auth`) quedan exentas de bloqueo.
+  - [x] Solicitudes no autenticadas a rutas privadas se redirigen a `/login?callbackUrl=...`.
+  - [x] Solicitudes de mutación a APIs (`POST`, `PUT`, `DELETE`) verifican el permiso específico del módulo respondiendo 403 Forbidden ante ausencia de privilegios.
+  - [x] Latencia de ejecución del middleware < 15ms p95.
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/middleware.ts`
 
