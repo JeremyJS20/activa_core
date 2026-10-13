@@ -238,15 +238,16 @@ graph TD
 
 ## Wave 4: Testing & Polish (~5h)
 
-### Task 4.1: Pruebas Unitarias y de Integración con Vitest (~2h)
+### Task 4.1: Pruebas Unitarias y de Integración con Vitest (~2h) ✅
+- **Status:** COMPLETED
 - **Description:** Configurar Vitest y escribir suite completa de pruebas unitarias para hashing bcrypt, generación y verificación de tokens SHA-256, schemas Zod, evaluador RBAC y endpoints de autenticación.
 - **Acceptance criteria:**
-  - [ ] Pruebas unitarias para `bcryptUtils` validan hashing y comparación segura.
-  - [ ] Pruebas unitarias para `cryptoTokenUtils` validan longitud, unicidad y expiración.
-  - [ ] Pruebas de integración para endpoints de login y recuperación validan respuestas 200, 400, 401, 403 y 429.
-  - [ ] Cobertura de código superior al 85% en librerías de seguridad.
+  - [x] Pruebas unitarias para `bcryptUtils` validan hashing y comparación segura (5 pruebas).
+  - [x] Pruebas unitarias para `cryptoTokenUtils` validan longitud, unicidad y expiración (4 pruebas).
+  - [x] Pruebas de integración para endpoints de login y recuperación validan respuestas 200, 400, 401, 403, 422 y 429 (10 pruebas).
+  - [x] Cobertura de código superior al 85% en librerías de seguridad (92.72% alcanzado).
 - **Dependencies:** Task 2.1, Task 2.3, Task 2.4
-- **Files to create/modify:** `app/tests/security/auth.test.ts`, `app/tests/security/tokens.test.ts`, `app/vitest.config.ts`
+- **Files to create/modify:** `app/tests/security/tokens.test.ts`, `app/tests/security/crypto.test.ts`, `app/tests/security/rateLimiter.test.ts`, `app/tests/security/validations.test.ts`, `app/tests/security/rbac.test.ts`, `app/tests/security/api-routes.test.ts`, `app/vitest.config.mts`
 
 ### Task 4.2: Pruebas End-to-End de Humo con Playwright (~2h)
 - **Description:** Implementar prueba E2E de humo en Playwright que verifique el flujo completo: login exitoso con usuario administrador, rechazo de credenciales incorrectas, bloqueo tras 5 intentos fallidos, y flujo de solicitud de recuperación de contraseña.
