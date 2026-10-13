@@ -64,14 +64,15 @@ graph TD
 
 ## Wave 0: Project Setup (~6h)
 
-### Task 0.1: Scaffolding de la Aplicación Next.js en `app/` (~2.5h)
+### Task 0.1: Scaffolding de la Aplicación Next.js en `app/` (~2.5h) ✅
 - **Description:** Inicializar el proyecto Next.js 15 dentro de la subcarpeta `app/` respetando la regla Greenfield de aislamiento de dependencias respecto a la raíz SDD. Configurar TypeScript, Tailwind CSS, componentes base de shadcn/ui y actualizar `.sdd-config.json` con `"app_dir": "app"`.
+- **Status:** COMPLETED (Commit `2e69e41`)
 - **Acceptance criteria:**
-  - [ ] Proyecto Next.js 15 (React 19, TypeScript) creado dentro de `app/`.
-  - [ ] Tailwind CSS configurado con la paleta de colores institucional UNAPEC.
-  - [ ] Componentes shadcn/ui (`card`, `button`, `form`, `input`, `table`, `badge`, `dropdown-menu`, `toast`) inicializados.
-  - [ ] Archivo `.sdd-config.json` actualizado con `"app_dir": "app"`.
-  - [ ] Archivo `.gitignore` de la raíz protege `app/node_modules/`, `app/.next/` y `app/.env`.
+  - [x] Proyecto Next.js 15 (React 19, TypeScript) creado dentro de `app/`.
+  - [x] Tailwind CSS configurado con la paleta de colores institucional UNAPEC.
+  - [x] Componentes shadcn/ui (`card`, `button`, `form`, `input`, `table`, `badge`, `dropdown-menu`, `toast`) inicializados.
+  - [x] Archivo `.sdd-config.json` actualizado con `"app_dir": "app"`.
+  - [x] Archivo `.gitignore` de la raíz protege `app/node_modules/`, `app/.next/` y `app/.env`.
 - **Dependencies:** None
 - **Files to create/modify:** `app/package.json`, `app/tsconfig.json`, `app/tailwind.config.ts`, `.sdd-config.json`, `.gitignore`
 
