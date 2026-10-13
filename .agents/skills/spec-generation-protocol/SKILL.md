@@ -296,8 +296,9 @@ Every user-facing frontend application or module MUST adhere to an explicit, ent
        * Dense data tables with fixed column alignment and sticky pagination footer.
      - **Tailwind Config Blueprint**: Exact token exports to `tailwind.config.ts`.
 
-2. **Integration into Feature Designs**:
+2. **Integration into Feature Designs & Implementation Wave Cadence**:
    - Every feature `design.md` that touches the frontend MUST include the `## UI / UX & Frontend Design` section mapping feature views directly to the tokens and layout patterns of `DESIGN.md`.
+   - **Shared Layout Shell First**: When implementing multi-screen flows (Authentication, Onboarding, Console/Dashboard workspaces), the shared layout shell (e.g. `(auth)/layout.tsx` or `<AuthShell>`) MUST be established in the initial task before leaf pages are built. Sibling pages MUST render as children within that shell without redefining outer wrappers, background canvases, or conflicting headers/footers.
 
 3. **Prohibited AI Design Clichés & UI Slop (Instant Rejection)**:
    Any frontend code displaying the following hallmarks of lazy AI generation SHALL be automatically rejected:
@@ -308,6 +309,7 @@ Every user-facing frontend application or module MUST adhere to an explicit, ent
    - **The "Border-Obsession" Anti-Pattern**: Drawing 1px dark borders around cards, headers, footers, and inserting `<hr />` dividing lines between sections. Spatial hierarchy must follow the **No-Line Rule** (tonal background shifts and diffuse shadows).
    - **The "OS Dark Mode Desync" Anti-Pattern**: Uncoordinated Tailwind `dark:` classes keyed to OS settings, mixing black inputs on light cards. Dark mode MUST be controlled by an explicit `.dark` class toggle with synchronized tokens.
    - **The "Flat Button" Anti-Pattern**: Generic solid blue/black buttons ignoring the brand's specified gradient, hover micro-interactions, or active state scaling (`active:scale-[0.98]`).
+   - **The "Layout Drift / Fragmented Flow" Anti-Pattern**: Building `/login` with an architectural layout shell (such as the split-screen shell) but reverting sibling routes (`/recuperar-contrasena`, `/restablecer-contrasena`, `/verificar-2fa`) to inconsistent standalone templates or adding conflicting external headers/footers. Public auth flows MUST share a single `AuthShell` (e.g., `(auth)/layout.tsx`) where leaf pages only render their specific form contents.
 
 ---
 
