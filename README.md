@@ -148,18 +148,10 @@ pnpm install
 
 # 2. Configurar variables de entorno
 cp .env.example .env
-# Ajusta tu DATABASE_URL en app/.env (por ejemplo: postgresql://postgres:postgres@localhost:5432/activa_core)
+# Pega en DATABASE_URL la cadena de conexión de Neon Cloud provista por el equipo.
+# (¡Listo! Las tablas y datos de prueba ya están creados y sincronizados en Neon).
 
-# 3. Levantar la base de datos PostgreSQL (si usas Docker)
-docker compose up -d
-
-# 4. Ejecutar migraciones de Prisma
-pnpm prisma migrate dev
-
-# 5. Cargar datos de prueba deterministas (Seeds con Faker)
-pnpm prisma db seed
-
-# 6. Iniciar servidor de desarrollo
+# 3. Iniciar servidor de desarrollo
 pnpm dev
 ```
 
