@@ -108,13 +108,13 @@ graph TD
 
 ## Wave 2: Core Implementation (~6h)
 
-### Task 2.1: Endpoints API de Departamentos (`/api/departamentos`) (~1.5h)
+### Task 2.1: Endpoints API de Departamentos (`/api/departamentos`) (~1.5h) [COMPLETED]
 - **Description:** Implementar los Route Handlers Next.js para operaciones CRUD de departamentos, con soporte de paginación server-side, búsqueda por coincidencia parcial en descripción y código, autogeneración correlativa de código (`DEP-XXX`), y validación de borrado físico restringido si existen dependencias.
 - **Acceptance criteria:**
-  - [ ] `GET /api/departamentos` retorna lista paginada con conteo de empleados asociados.
-  - [ ] `POST /api/departamentos` valida payload con Zod, comprueba unicidad case-insensitive y responde 201 Created.
-  - [ ] `PUT /api/departamentos/[id]` permite actualizar descripción, responsable y alternar estado Activo/Inactivo.
-  - [ ] `DELETE /api/departamentos/[id]` rechaza la eliminación con `DEPT_HAS_ACTIVE_EMPLOYEES` (HTTP 400) si posee relaciones foráneas.
+  - [x] `GET /api/departamentos` retorna lista paginada con conteo de empleados asociados.
+  - [x] `POST /api/departamentos` valida payload con Zod, comprueba unicidad case-insensitive y responde 201 Created.
+  - [x] `PUT /api/departamentos/[id]` permite actualizar descripción, responsable y alternar estado Activo/Inactivo.
+  - [x] `DELETE /api/departamentos/[id]` rechaza la eliminación con `DEPT_HAS_ACTIVE_EMPLOYEES` (HTTP 400) si posee relaciones foráneas.
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/app/api/departamentos/route.ts`, `app/app/api/departamentos/[id]/route.ts`
 
