@@ -193,13 +193,13 @@ graph TD
 
 ## Wave 4: Testing & Polish (~5h)
 
-### Task 4.1: Pruebas Unitarias y de Integración con Vitest (~2h)
+### Task 4.1: Pruebas Unitarias y de Integración con Vitest (~2h) [COMPLETED]
 - **Description:** Escribir suite completa de pruebas unitarias para el motor de validación cripto-aritmética (cédula JCE y RNC), pruebas de schemas Zod y pruebas de integración de los Route Handlers de catálogos.
 - **Acceptance criteria:**
-  - [ ] Pruebas unitarias para `validarCedulaJCE` cubren cédulas válidas reales, inválidas y casos borde.
-  - [ ] Pruebas unitarias para `validarRncDGII` cubren algoritmos con residuos 0, 1 y estándar.
-  - [ ] Pruebas de integración sobre endpoints validan códigos de error 400, 404, 409 y 422.
-  - [ ] Cobertura de código superior al 85% en librerías de validación (`app/lib/validators/*`).
+  - [x] Pruebas unitarias para `validarCedulaJCE` cubren cédulas válidas reales, inválidas y casos borde.
+  - [x] Pruebas unitarias para `validarRncDGII` cubren algoritmos con residuos 0, 1 y estándar.
+  - [x] Pruebas de integración sobre endpoints validan códigos de error 400, 404, 409 y 422.
+  - [x] Cobertura de código superior al 85% en librerías de validación (`app/lib/validators/*`).
 - **Dependencies:** Task 2.1, Task 2.2, Task 2.3
 - **Files to create/modify:** `app/tests/validators/identity.test.ts`, `app/tests/api/catalogos.test.ts`
 
