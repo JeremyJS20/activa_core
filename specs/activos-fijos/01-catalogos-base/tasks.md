@@ -137,12 +137,12 @@ graph TD
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
 - **Files to create/modify:** `app/app/api/empleados/route.ts`, `app/app/api/empleados/[id]/route.ts`
 
-### Task 2.4: Endpoint API de Exportación Tabular (`/api/catalogos/export`) (~1.5h)
+### Task 2.4: Endpoint API de Exportación Tabular (`/api/catalogos/export`) (~1.5h) [COMPLETED]
 - **Description:** Implementar el servicio unificado de exportación para generar archivos en formato Excel (`.xlsx`) mediante `exceljs` y archivos planos `.csv` con preámbulo UTF-8 BOM (`\uFEFF`) para compatibilidad directa con Microsoft Excel en Windows.
 - **Acceptance criteria:**
-  - [ ] Endpoint `GET /api/catalogos/export` recibe query params `catalogo` (`departamentos`, `tipos-activos`, `empleados`) y `format` (`xlsx`, `csv`).
-  - [ ] Exportación a Excel genera columnas auto-ajustadas con estilos de encabezado institucionales.
-  - [ ] Exportación a CSV emite `\uFEFF` asegurando visualización limpia de acentos y caracteres dominicanos (cero mojibake).
+  - [x] Endpoint `GET /api/catalogos/export` recibe query params `catalogo` (`departamentos`, `tipos-activos`, `empleados`) y `format` (`xlsx`, `csv`).
+  - [x] Exportación a Excel genera columnas auto-ajustadas con estilos de encabezado institucionales.
+  - [x] Exportación a CSV emite `\uFEFF` asegurando visualización limpia de acentos y caracteres dominicanos (cero mojibake).
 - **Dependencies:** Task 2.1, Task 2.2, Task 2.3
 - **Files to create/modify:** `app/app/api/catalogos/export/route.ts`, `app/lib/services/export.service.ts`
 
