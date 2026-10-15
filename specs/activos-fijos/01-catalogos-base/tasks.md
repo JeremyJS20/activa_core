@@ -84,13 +84,13 @@ graph TD
 - **Dependencies:** None
 - **Files to create/modify:** `app/lib/validators/identity.ts`, `app/lib/validators/accounting.ts`
 
-### Task 1.3: Schemas de Validación Zod y Tipos DTO Compartidos (~1.5h)
+### Task 1.3: Schemas de Validación Zod y Tipos DTO Compartidos (~1.5h) [COMPLETED]
 - **Description:** Crear schemas de validación Zod reutilizables en cliente y servidor para creación y actualización de Departamentos, Tipos de Activos y Empleados, integrando los refinamientos de validación de cédula y formato contable.
 - **Acceptance criteria:**
-  - [ ] `DepartmentSchema` valida descripción requerida (min 3 caracteres) y código opcional.
-  - [ ] `AssetTypeSchema` valida cuentas contables, coherencia de porcentajes y método DGII.
-  - [ ] `EmployeeSchema` incluye refinamiento `.refine(validarCedulaJCE)` para personas físicas y validación de fecha de contratación no futura.
-  - [ ] Tipos TypeScript inferidos (`CreateDepartmentDTO`, `CreateEmployeeDTO`, etc.) exportados para uso universal.
+  - [x] `DepartmentSchema` valida descripción requerida (min 3 caracteres) y código opcional.
+  - [x] `AssetTypeSchema` valida cuentas contables, coherencia de porcentajes y método DGII.
+  - [x] `EmployeeSchema` incluye refinamiento `.refine(validarCedulaJCE)` para personas físicas y validación de fecha de contratación no futura.
+  - [x] Tipos TypeScript inferidos (`CreateDepartmentDTO`, `CreateEmployeeDTO`, etc.) exportados para uso universal.
 - **Dependencies:** Task 1.2
 - **Files to create/modify:** `app/lib/schemas/department.schema.ts`, `app/lib/schemas/asset-type.schema.ts`, `app/lib/schemas/employee.schema.ts`
 

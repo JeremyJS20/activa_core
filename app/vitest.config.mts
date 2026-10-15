@@ -10,7 +10,12 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["lib/auth/**", "lib/validations/**", "lib/validators/**"],
+      include: [
+        "lib/auth/**",
+        "lib/validations/**",
+        "lib/validators/**",
+        "lib/schemas/**",
+      ],
       reporter: ["text", "json-summary"],
     },
   },
