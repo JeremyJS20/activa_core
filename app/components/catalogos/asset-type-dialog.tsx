@@ -201,7 +201,7 @@ export function AssetTypeDialog({
       onSaved();
       onClose();
     } catch (err: any) {
-      setServerError(err.message || "Ocurri? un error inesperado al procesar el tipo de activo.");
+      setServerError(err.message || "Ocurrió un error inesperado al procesar el tipo de activo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -222,8 +222,8 @@ export function AssetTypeDialog({
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 {isEditing
-                  ? "Actualice los par?metros de depreciación DGII y cuentas contables asociadas."
-                  : "Defina la categor?a fiscal DGII y las cuentas de compra y depreciación."}
+                  ? "Actualice los parámetros de depreciación DGII y cuentas contables asociadas."
+                  : "Defina la categoría fiscal DGII y las cuentas de compra y depreciación."}
               </p>
             </div>
           </div>
@@ -322,7 +322,7 @@ export function AssetTypeDialog({
                 }
               }}
               maxLength={150}
-              placeholder="ej. Equipos de Computaci?n y Servidores"
+              placeholder="ej. Equipos de Computación y Servidores"
               className={
                 "w-full px-3.5 py-2 text-sm bg-slate-50/70 border rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all " +
                 (fieldErrors.descripcion
@@ -336,19 +336,19 @@ export function AssetTypeDialog({
               </p>
             ) : (
               <p className="text-[11px] text-slate-400 mt-1">
-                Denominaci?n t?cnica de la familia o clase de bienes.
+                Denominaci?n técnica de la familia o clase de bienes.
               </p>
             )}
           </div>
 
-          {/* Categoría Fiscal DGII & Par?metros */}
+          {/* Categoría Fiscal DGII & Parámetros */}
           <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-4">
             <div className="flex items-center gap-2 text-xs font-semibold text-[#002D62] font-mono">
               <Calculator className="w-4 h-4 text-[#003D9B]" />
               <span>Régimen Fiscal DGII & Depreciación</span>
             </div>
 
-            {/* Selector de M?todo / Categoría */}
+            {/* Selector de Método / Categoría */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Categoría Fiscal DGII <span className="text-rose-500">*</span>
@@ -363,21 +363,21 @@ export function AssetTypeDialog({
                 className="w-full px-3.5 py-2 text-xs font-medium bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#003D9B]/20 focus:border-[#003D9B] text-slate-800"
               >
                 <option value="DGII_CAT2">
-                  Categoría 2 DGII ? C?mputo, Veh?culos y Mobiliario (25% anual / 48 meses)
+                  Categoría 2 DGII · Cómputo, Vehículos y Mobiliario (25% anual / 48 meses)
                 </option>
                 <option value="DGII_CAT1">
-                  Categoría 1 DGII ? Edificaciones e Infraestructura (5% anual / 240 meses)
+                  Categoría 1 DGII · Edificaciones e Infraestructura (5% anual / 240 meses)
                 </option>
                 <option value="DGII_CAT3">
-                  Categoría 3 DGII ? Maquinaria Pesada y Otros Bienes (15% anual / 80 meses)
+                  Categoría 3 DGII · Maquinaria Pesada y Otros Bienes (15% anual / 80 meses)
                 </option>
                 <option value="LINEA_RECTA">
-                  Línea Recta Est?ndar (Personalizado)
+                  Línea Recta Estándar (Personalizado)
                 </option>
               </select>
             </div>
 
-            {/* Par?metros Calculados (Porcentaje y Vida útil) */}
+            {/* Parámetros Calculados (Porcentaje y Vida útil) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">

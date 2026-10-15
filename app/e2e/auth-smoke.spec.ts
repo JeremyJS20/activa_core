@@ -52,7 +52,7 @@ test.describe('Autenticación y Control de Acceso RBAC - Smoke Tests', () => {
   test('4. Flujo de login exitoso navega al dashboard y renderiza el menú de usuario', async ({ page }) => {
     await page.goto('/login');
     await page.fill('#correo', 'admin@unapec.edu.do');
-    await page.fill('#password', 'Admin2026!Final');
+    await page.fill('#password', 'Admin2026!');
     await page.click('button[type="submit"]');
     await page.waitForURL('/**/', { timeout: 15000 });
     await expect(page.locator('aside')).toBeVisible();

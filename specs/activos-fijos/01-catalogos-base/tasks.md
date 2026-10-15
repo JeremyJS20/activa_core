@@ -203,13 +203,13 @@ graph TD
 - **Dependencies:** Task 2.1, Task 2.2, Task 2.3
 - **Files to create/modify:** `app/tests/validators/identity.test.ts`, `app/tests/api/catalogos.test.ts`
 
-### Task 4.2: Pruebas End-to-End de Humo con Playwright (~2h)
+### Task 4.2: Pruebas End-to-End de Humo con Playwright (~2h) [COMPLETED]
 - **Description:** Implementar prueba E2E de humo en Playwright que navegue por los tres catálogos, cree un departamento, configure un tipo de activo, registre un empleado con cédula válida y verifique la descarga del archivo Excel exportado.
 - **Acceptance criteria:**
-  - [ ] Playwright ejecutando en modo headless.
-  - [ ] Flujo completo de registro de catálogos pasa exitosamente en ambiente local.
-  - [ ] Verificación de mensajes de error cuando se ingresa una cédula inválida en la interfaz.
-  - [ ] Confirmación de descarga del archivo `.xlsx` generado.
+  - [x] Playwright ejecutando en modo headless.
+  - [x] Flujo completo de registro de catálogos pasa exitosamente en ambiente local.
+  - [x] Verificación de mensajes de error cuando se ingresa una cédula inválida en la interfaz.
+  - [x] Confirmación de descarga del archivo `.xlsx` generado.
 - **Dependencies:** Task 3.2, Task 3.3, Task 3.4
 - **Files to create/modify:** `app/e2e/catalogos-smoke.spec.ts`
 

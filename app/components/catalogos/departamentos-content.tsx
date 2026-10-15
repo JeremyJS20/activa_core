@@ -129,7 +129,7 @@ export function DepartamentosContent() {
           title="Listado de Departamentos"
           subtitle="Centros de costos registrados en UNAPEC con activos o personal a cargo."
           catalogoKey="departamentos"
-          searchPlaceholder="Buscar por c?digo o descripci?n..."
+          searchPlaceholder="Buscar por código o descripción..."
           searchValue={search}
           onSearchChange={(val) => {
             setSearch(val);
@@ -145,7 +145,7 @@ export function DepartamentosContent() {
           onPageChange={(newPage) => setPage(newPage)}
           onRefresh={fetchDepartments}
           emptyTitle="No se encontraron departamentos"
-          emptyDescription="No existen departamentos registrados o ning?n registro coincide con los criterios de búsqueda."
+          emptyDescription="No existen departamentos registrados o ningún registro coincide con los criterios de búsqueda."
           filters={
             <div className="flex items-center gap-2">
               <label className="text-xs font-semibold text-slate-500 font-mono">

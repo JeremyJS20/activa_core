@@ -220,7 +220,7 @@ export function DepartmentDialog({
       onSaved();
       onClose();
     } catch (err: any) {
-      setServerError(err.message || "Ocurri? un error inesperado al procesar el departamento.");
+      setServerError(err.message || "Ocurrió un error inesperado al procesar el departamento.");
     } finally {
       setIsSubmitting(false);
     }
@@ -302,7 +302,7 @@ export function DepartmentDialog({
                 </p>
               ) : (
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Formato alfanum?rico institucional (ej: DEP-001).
+                  Formato alfanumérico institucional (ej: DEP-001).
                 </p>
               )}
             </div>
@@ -329,7 +329,7 @@ export function DepartmentDialog({
           {/* Nombre / Descripcion */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Nombre o Descripci?n del Departamento <span className="text-rose-500">*</span>
+              Nombre o Descripción del Departamento <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -341,7 +341,7 @@ export function DepartmentDialog({
                 }
               }}
               maxLength={120}
-              placeholder="ej. Direcci?n de Tecnolog?a de la Informaci?n"
+              placeholder="ej. Dirección de Tecnología de la Información"
               className={
                 "w-full px-3.5 py-2 text-sm bg-slate-50/70 border rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all " +
                 (fieldErrors.descripcion

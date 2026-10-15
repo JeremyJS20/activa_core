@@ -210,7 +210,7 @@ export function TiposActivosContent() {
           onPageChange={(newPage) => setPage(newPage)}
           onRefresh={fetchAssetTypes}
           emptyTitle="No se encontraron tipos de activos"
-          emptyDescription="No existen tipos de activos registrados o ning?n registro coincide con los filtros aplicados."
+          emptyDescription="No existen tipos de activos registrados o ningún registro coincide con los filtros aplicados."
           filters={
             <div className="flex items-center gap-3 flex-wrap">
               {/* Filtro Régimen Fiscal DGII */}
