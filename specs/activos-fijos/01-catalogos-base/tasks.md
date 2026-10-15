@@ -118,13 +118,13 @@ graph TD
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/app/api/departamentos/route.ts`, `app/app/api/departamentos/[id]/route.ts`
 
-### Task 2.2: Endpoints API de Tipos de Activos (`/api/tipos-activos`) (~1.5h)
+### Task 2.2: Endpoints API de Tipos de Activos (`/api/tipos-activos`) (~1.5h) [COMPLETED]
 - **Description:** Implementar los Route Handlers para la gestión de tipos de activos, validando formato de cuentas contables, autocompletado de tasas según categorías DGII (Cat 1: 5%, Cat 2: 25%, Cat 3: 15%), control de unicidad de descripción y código, y protección de borrado lógico.
 - **Acceptance criteria:**
-  - [ ] `GET /api/tipos-activos` permite filtrar por método de depreciación y estado.
-  - [ ] `POST /api/tipos-activos` valida cuentas contables con regex institucional y calcula consistencia de tasa/vida útil.
-  - [ ] `PUT /api/tipos-activos/[id]` persiste modificaciones actualizando `updatedAt`.
-  - [ ] `DELETE /api/tipos-activos/[id]` restringe la baja a inactivación lógica si existen activos en inventario.
+  - [x] `GET /api/tipos-activos` permite filtrar por método de depreciación y estado.
+  - [x] `POST /api/tipos-activos` valida cuentas contables con regex institucional y calcula consistencia de tasa/vida útil.
+  - [x] `PUT /api/tipos-activos/[id]` persiste modificaciones actualizando `updatedAt`.
+  - [x] `DELETE /api/tipos-activos/[id]` restringe la baja a inactivación lógica si existen activos en inventario.
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/app/api/tipos-activos/route.ts`, `app/app/api/tipos-activos/[id]/route.ts`
 
