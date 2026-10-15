@@ -74,13 +74,13 @@ graph TD
 - **Dependencies:** Sub-módulo 00 (Base de datos e inicialización de Prisma)
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 
-### Task 1.2: Motor de Validación de Identidad (Cédula JCE y RNC) (~1.5h)
+### Task 1.2: Motor de Validación de Identidad (Cédula JCE y RNC) (~1.5h) [COMPLETED]
 - **Description:** Implementar la librería de utilidades `app/lib/validators/identity.ts` con los algoritmos matemáticos Módulo 10 (Luhn con vector alternado `[1,2,1,2,1,2,1,2,1,2]`), Módulo 11 para RNC institucional con pesos `[7,9,8,6,5,4,3,2]` y validador de cuentas contables `^[1-9]-[0-9]{2}-[0-9]{2}-[0-9]{4}$`.
 - **Acceptance criteria:**
-  - [ ] Función `validarCedulaJCE(cedula: string): boolean` comprueba longitud de 11 dígitos, normaliza guiones y valida el dígito verificador exacto.
-  - [ ] Función `validarRncDGII(rnc: string): boolean` comprueba 9 dígitos y verifica el residuo Módulo 11 con excepciones para 0 y 1.
-  - [ ] Función `validarCuentaContable(cuenta: string): boolean` valida la máscara `X-XX-XX-XXXX`.
-  - [ ] Pruebas unitarias integradas comprobando casos válidos, inválidos y caracteres alfanuméricos espurios.
+  - [x] Función `validarCedulaJCE(cedula: string): boolean` comprueba longitud de 11 dígitos, normaliza guiones y valida el dígito verificador exacto.
+  - [x] Función `validarRncDGII(rnc: string): boolean` comprueba 9 dígitos y verifica el residuo Módulo 11 con excepciones para 0 y 1.
+  - [x] Función `validarCuentaContable(cuenta: string): boolean` valida la máscara `X-XX-XX-XXXX`.
+  - [x] Pruebas unitarias integradas comprobando casos válidos, inválidos y caracteres alfanuméricos espurios.
 - **Dependencies:** None
 - **Files to create/modify:** `app/lib/validators/identity.ts`, `app/lib/validators/accounting.ts`
 

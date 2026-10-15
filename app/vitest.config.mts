@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+﻿import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
@@ -10,7 +10,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["lib/auth/**", "lib/validations/**"],
+      include: ["lib/auth/**", "lib/validations/**", "lib/validators/**"],
       reporter: ["text", "json-summary"],
     },
   },
