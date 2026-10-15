@@ -128,12 +128,12 @@ graph TD
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/app/api/tipos-activos/route.ts`, `app/app/api/tipos-activos/[id]/route.ts`
 
-### Task 2.3: Endpoints API de Empleados (`/api/empleados`) (~1.5h)
+### Task 2.3: Endpoints API de Empleados (`/api/empleados`) (~1.5h) [COMPLETED]
 - **Description:** Implementar los Route Handlers para registro y consulta de custodios, incorporando la validación del algoritmo Módulo 10 para cédulas dominicanas (o Módulo 11 para RNC), prevención de duplicados, y filtro por departamento o término de búsqueda.
 - **Acceptance criteria:**
-  - [ ] `GET /api/empleados` retorna listado paginado filtrable por nombre, código, cédula o departamento.
-  - [ ] `POST /api/empleados` ejecuta la validación cripto-aritmética de la cédula JCE, rechazando documentos no conformes con `CEDULA_INVALID_CHECKSUM` (HTTP 422).
-  - [ ] `PUT /api/empleados/[id]` actualiza datos del colaborador, advirtiendo si es responsable de departamento al inactivarlo.
+  - [x] `GET /api/empleados` retorna listado paginado filtrable por nombre, código, cédula o departamento.
+  - [x] `POST /api/empleados` ejecuta la validación cripto-aritmética de la cédula JCE, rechazando documentos no conformes con `CEDULA_INVALID_CHECKSUM` (HTTP 422).
+  - [x] `PUT /api/empleados/[id]` actualiza datos del colaborador, advirtiendo si es responsable de departamento al inactivarlo.
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
 - **Files to create/modify:** `app/app/api/empleados/route.ts`, `app/app/api/empleados/[id]/route.ts`
 
