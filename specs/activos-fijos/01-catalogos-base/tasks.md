@@ -179,13 +179,13 @@ graph TD
 - **Dependencies:** Task 2.2, Task 3.1
 - **Files to create/modify:** `app/app/catalogos/tipos-activos/page.tsx`, `app/components/catalogos/asset-type-dialog.tsx`
 
-### Task 3.4: Vista de Gestión de Empleados (`/catalogos/empleados`) (~1.5h)
+### Task 3.4: Vista de Gestión de Empleados (`/catalogos/empleados`) (~1.5h) [COMPLETED]
 - **Description:** Implementar la vista del directorio de colaboradores/custodios, integrando feedback visual en vivo mientras el usuario teclea la cédula (indicador de verificación Módulo 10 válido/inválido), selector de departamento y formulario accesible.
 - **Acceptance criteria:**
-  - [ ] Ruta `/catalogos/empleados` muestra la lista de colaboradores con badges de estado y departamento.
-  - [ ] Formulario ejecuta validación Módulo 10 mientras el usuario ingresa la cédula (verde si es válida, advertencia roja si el checksum falla).
-  - [ ] Selector dinámico de departamentos alimentado por el endpoint de departamentos activos.
-  - [ ] Datepicker accesible para fecha de ingreso con bloqueo de fechas futuras.
+  - [x] Ruta `/catalogos/empleados` muestra la lista de colaboradores con badges de estado y departamento.
+  - [x] Formulario ejecuta validación Módulo 10 mientras el usuario ingresa la cédula (verde si es válida, advertencia roja si el checksum falla).
+  - [x] Selector dinámico de departamentos alimentado por el endpoint de departamentos activos.
+  - [x] Datepicker accesible para fecha de ingreso con bloqueo de fechas futuras.
 - **Dependencies:** Task 2.3, Task 3.1
 - **Files to create/modify:** `app/app/catalogos/empleados/page.tsx`, `app/components/catalogos/employee-dialog.tsx`
 

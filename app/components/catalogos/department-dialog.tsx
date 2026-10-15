@@ -271,7 +271,7 @@ export function DepartmentDialog({
             {/* Codigo */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                C?digo del Departamento
+                Código del Departamento
                 {!isEditing && (
                   <span className="text-[11px] font-normal text-slate-400 ml-1">
                     (Opcional)
