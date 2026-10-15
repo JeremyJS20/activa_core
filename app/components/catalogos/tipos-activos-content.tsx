@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { CatalogNav } from "@/components/catalogos/catalog-nav";
 import { CatalogDataTable } from "@/components/catalogos/catalog-data-table";
 import {
   AssetTypeDialog,
@@ -161,24 +160,7 @@ export function TiposActivosContent() {
   };
 
   return (
-    <div className="p-6 sm:p-8 lg:p-10">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header Principal con Identidad Institucional UNAPEC */}
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#003D9B] uppercase tracking-wider font-mono mb-1">
-            <Tag className="w-4 h-4" />
-            <span>Clasificación Contable & Tributaria</span>
-          </div>
-          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#1B2A4A] tracking-tight">
-            Catálogo de Tipos de Activos
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Configuración de categorías fiscales DGII, tasas de amortización anual y asignación de cuentas contables.
-          </p>
-        </div>
-
-        {/* Navegaci?n entre Pesta?as de Catálogos */}
-        <CatalogNav />
+    <div className="space-y-6">
 
         {/* Notificación Toast Local */}
         {toast && (
@@ -399,7 +381,6 @@ export function TiposActivosContent() {
           assetType={deleteTarget}
           onDeleted={handleDeleted}
         />
-      </div>
     </div>
   );
 }

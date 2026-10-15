@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ConsoleShell } from "@/components/layout/console-shell";
 import { TiposActivosContent } from "@/components/catalogos/tipos-activos-content";
 
 export const metadata: Metadata = {
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function TiposActivosPage() {
-  return (
-    <ConsoleShell>
-      <TiposActivosContent />
-    </ConsoleShell>
-  );
+  return <TiposActivosContent />;
 }

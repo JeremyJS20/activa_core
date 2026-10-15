@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ConsoleShell } from "@/components/layout/console-shell";
 import { DepartamentosContent } from "@/components/catalogos/departamentos-content";
 
 export const metadata: Metadata = {
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DepartamentosPage() {
-  return (
-    <ConsoleShell>
-      <DepartamentosContent />
-    </ConsoleShell>
-  );
+  return <DepartamentosContent />;
 }

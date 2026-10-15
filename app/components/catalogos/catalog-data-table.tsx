@@ -160,9 +160,9 @@ export function CatalogDataTable({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-display">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-display">
               {title}
-            </h1>
+            </h2>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 font-mono border border-slate-200">
               {totalCount} {totalCount === 1 ? "registro" : "registros"}
             </span>

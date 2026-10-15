@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { CatalogNav } from "@/components/catalogos/catalog-nav";
 import { CatalogDataTable } from "@/components/catalogos/catalog-data-table";
 import {
   DepartmentDialog,
@@ -9,7 +8,6 @@ import {
 } from "@/components/catalogos/department-dialog";
 import { DepartmentDeleteDialog } from "@/components/catalogos/department-delete-dialog";
 import {
-  Building2,
   Users,
   User,
   UserX,
@@ -97,24 +95,7 @@ export function DepartamentosContent() {
   };
 
   return (
-    <div className="p-6 sm:p-8 lg:p-10">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header Principal con Identidad Institucional UNAPEC */}
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#003D9B] uppercase tracking-wider font-mono mb-1">
-            <Building2 className="w-4 h-4" />
-            <span>Gesti?n de Estructura Organizacional</span>
-          </div>
-          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#1B2A4A] tracking-tight">
-            Catálogo de Departamentos
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Definición de centros de costos, asignación de custodios institucionales y estructura orgánica para activos fijos.
-          </p>
-        </div>
-
-        {/* Navegaci?n entre Pestañas de Catálogos */}
-        <CatalogNav />
+    <div className="space-y-6">
 
         {/* Notificación Toast Local */}
         {toast && (
@@ -301,7 +282,6 @@ export function DepartamentosContent() {
           department={deleteTarget}
           onDeleted={handleDeleted}
         />
-      </div>
     </div>
   );
 }
