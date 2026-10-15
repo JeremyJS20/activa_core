@@ -169,13 +169,13 @@ graph TD
 - **Dependencies:** Task 2.1, Task 3.1
 - **Files to create/modify:** `app/app/catalogos/departamentos/page.tsx`, `app/components/catalogos/department-dialog.tsx`
 
-### Task 3.3: Vista de Gestión de Tipos de Activos (`/catalogos/tipos-activos`) (~1.5h)
+### Task 3.3: Vista de Gestión de Tipos de Activos (`/catalogos/tipos-activos`) (~1.5h) [COMPLETED]
 - **Description:** Diseñar e integrar la interfaz de tipos de activos, permitiendo seleccionar la categoría fiscal DGII y auto-completando la vida útil y tasa de depreciación en el formulario, junto a la captura de cuentas contables.
 - **Acceptance criteria:**
-  - [ ] Ruta `/catalogos/tipos-activos` renderiza la tabla de categorías con sus cuentas contables.
-  - [ ] Al seleccionar "Categoría 2 DGII", el formulario fija automáticamente 25% anual y 48 meses.
-  - [ ] Máscara de entrada para formato `X-XX-XX-XXXX` en campos de cuenta compra y depreciación.
-  - [ ] Botón de alternar estado Activo / Inactivo con feedback visual inmediato (Badge verde/gris).
+  - [x] Ruta `/catalogos/tipos-activos` renderiza la tabla de categorías con sus cuentas contables.
+  - [x] Al seleccionar "Categoría 2 DGII", el formulario fija automáticamente 25% anual y 48 meses.
+  - [x] Máscara de entrada para formato `X-XX-XX-XXXX` en campos de cuenta compra y depreciación.
+  - [x] Botón de alternar estado Activo / Inactivo con feedback visual inmediato (Badge verde/gris).
 - **Dependencies:** Task 2.2, Task 3.1
 - **Files to create/modify:** `app/app/catalogos/tipos-activos/page.tsx`, `app/components/catalogos/asset-type-dialog.tsx`
 
