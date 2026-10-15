@@ -159,13 +159,13 @@ graph TD
 - **Dependencies:** Sub-módulo 00 (Componentes base shadcn/ui)
 - **Files to create/modify:** `app/components/catalogos/catalog-data-table.tsx`, `app/components/catalogos/catalog-nav.tsx`
 
-### Task 3.2: Vista de Gestión de Departamentos (`/catalogos/departamentos`) (~1.5h)
+### Task 3.2: Vista de Gestión de Departamentos (`/catalogos/departamentos`) (~1.5h) [COMPLETED]
 - **Description:** Diseñar e integrar la página de administración de departamentos, con tabla de datos, modal de creación/edición con React Hook Form + Zod, selector de responsable y diálogo de confirmación para desactivación o eliminación.
 - **Acceptance criteria:**
-  - [ ] Ruta `/catalogos/departamentos` renderiza la lista reactiva de departamentos.
-  - [ ] Diálogo modal permite crear nuevo departamento o editar existentes con validaciones visuales en rojo.
-  - [ ] Mensajes de error específicos en español cuando ocurre duplicidad o campos vacíos.
-  - [ ] Diálogo de confirmación protege contra borrado accidental.
+  - [x] Ruta `/catalogos/departamentos` renderiza la lista reactiva de departamentos.
+  - [x] Diálogo modal permite crear nuevo departamento o editar existentes con validaciones visuales en rojo.
+  - [x] Mensajes de error específicos en español cuando ocurre duplicidad o campos vacíos.
+  - [x] Diálogo de confirmación protege contra borrado accidental.
 - **Dependencies:** Task 2.1, Task 3.1
 - **Files to create/modify:** `app/app/catalogos/departamentos/page.tsx`, `app/components/catalogos/department-dialog.tsx`
 
