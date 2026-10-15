@@ -64,13 +64,13 @@ graph TD
 
 ## Wave 1: Foundation & Setup (~6h)
 
-### Task 1.1: Esquema de Base de Datos Prisma (`schema.prisma`) (~1.5h)
+### Task 1.1: Esquema de Base de Datos Prisma (`schema.prisma`) (~1.5h) [COMPLETED]
 - **Description:** Extender el modelo Prisma existente para incorporar las entidades `Departamento`, `TipoActivo` y `Empleado`, estableciendo claves primarias UUID, códigos correlativos únicos, índices B-Tree para búsquedas frecuentes, y relaciones foráneas restrictivas (`onDelete: Restrict`).
 - **Acceptance criteria:**
-  - [ ] Modelo `Departamento` implementado con campos `id`, `codigo`, `descripcion`, `responsableId`, `estado`, timestamps.
-  - [ ] Modelo `TipoActivo` implementado con `cuentaContableCompra`, `cuentaContableDepreciacion`, `metodoDepreciacion`, `porcentajeDepreciacionAnual`, `vidaUtilMeses`.
-  - [ ] Modelo `Empleado` implementado con `codigo`, `nombre`, `apellido`, `tipoPersona`, `cedula`, `departamentoId`, `cargo`, `fechaIngreso`.
-  - [ ] Migración generada y aplicada con éxito (`prisma migrate dev --name add_catalogos_base`).
+  -[x] Modelo `Departamento` implementado con campos `id`, `codigo`, `descripcion`, `responsableId`, `estado`, timestamps.
+  -[x] Modelo `TipoActivo` implementado con `cuentaContableCompra`, `cuentaContableDepreciacion`, `metodoDepreciacion`, `porcentajeDepreciacionAnual`, `vidaUtilMeses`.
+  -[x] Modelo `Empleado` implementado con `codigo`, `nombre`, `apellido`, `tipoPersona`, `cedula`, `departamentoId`, `cargo`, `fechaIngreso`.
+  -[x] Migración generada y aplicada con éxito (`prisma migrate dev --name add_catalogos_base`).
 - **Dependencies:** Sub-módulo 00 (Base de datos e inicialización de Prisma)
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 

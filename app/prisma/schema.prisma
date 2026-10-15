@@ -60,9 +60,11 @@ model Usuario {
   updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
   rol           Rol                  @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  empleado      Empleado?            @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
   resetTokens   PasswordResetToken[]
 
   @@index([correo])
+  @@index([empleadoId])
   @@map("usuarios")
 }
 
@@ -79,4 +81,66 @@ model PasswordResetToken {
   @@index([usuarioId])
   @@index([tokenHash])
   @@map("password_reset_tokens")
+}
+
+model Departamento {
+  id            String       @id @default(uuid()) @db.VarChar(36)
+  codigo        String       @unique @db.VarChar(10)
+  descripcion   String       @db.VarChar(120)
+  responsableId String?      @map("responsable_id") @db.VarChar(36)
+  estado        String       @default("ACTIVO") @db.VarChar(10)
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  responsable   Empleado?    @relation("DepartamentoResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
+  empleados     Empleado[]   @relation("DepartamentoEmpleados")
+
+  @@index([codigo])
+  @@index([estado])
+  @@map("departamentos")
+}
+
+model TipoActivo {
+  id                         String       @id @default(uuid()) @db.VarChar(36)
+  codigo                    String       @unique @db.VarChar(10)
+  descripcion                String       @db.VarChar(150)
+  cuentaContableCompra        String       @map("cuenta_contable_compra") @db.VarChar(20)
+  cuentaContableDepreciacion  String       @map("cuenta_contable_depreciacion") @db.VarChar(20)
+  metodoDepreciacion          String       @default("LINEA_RECTA") @map("metodo_depreciacion") @db.VarChar(20)
+  porcentajeDepreciacionAnual Decimal      @default(0.00) @map("porcentaje_depreciacion_anual") @db.Decimal(5, 2)
+  vidaUtilMeses               Int          @default(12) @map("vida_util_meses")
+  estado                      String       @default("ACTIVO") @db.VarChar(10)
+  createdAt                   DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([codigo])
+  @@index([estado])
+  @@map("tipos_activos")
+}
+
+model Empleado {
+  id                        String         @id @default(uuid()) @db.VarChar(36)
+  codigo                    String         @unique @db.VarChar(10)
+  nombre                    String         @db.VarChar(100)
+  apellido                  String         @db.VarChar(100)
+  tipoPersona               String         @default("FISICA") @map("tipo_persona") @db.VarChar(10)
+  cedula                    String         @unique @db.VarChar(15)
+  departamentoId            String         @map("departamento_id") @db.VarChar(36)
+  cargo                     String         @db.VarChar(100)
+  correo                    String?        @db.VarChar(150)
+  telefono                  String?        @db.VarChar(20)
+  fechaIngreso              DateTime       @map("fecha_ingreso") @db.Date
+  estado                    String         @default("ACTIVO") @db.VarChar(10)
+  createdAt                 DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                 DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  departamento              Departamento   @relation("DepartamentoEmpleados", fields: [departamentoId], references: [id], onDelete: Restrict)
+  departamentosResponsable  Departamento[] @relation("DepartamentoResponsable")
+  usuarios                  Usuario[]
+
+  @@index([codigo])
+  @@index([cedula])
+  @@index([departamentoId])
+  @@index([estado])
+  @@map("empleados")
 }
