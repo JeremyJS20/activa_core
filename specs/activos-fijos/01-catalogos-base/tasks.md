@@ -150,12 +150,12 @@ graph TD
 
 ## Wave 3: UI & Integration (~6h)
 
-### Task 3.1: Componentes Base de Tablas y UI Shell (`CatalogDataTable`) (~1.5h)
+### Task 3.1: Componentes Base de Tablas y UI Shell (`CatalogDataTable`) (~1.5h) [COMPLETED]
 - **Description:** Construir los componentes de presentación reutilizables: contenedor de navegación institucional con pestañas para los catálogos, barra de búsqueda reactiva con debounce de 200ms, paginador server-side y botón de exportación desplegable (Excel / CSV).
 - **Acceptance criteria:**
-  - [ ] Componente `CatalogDataTable` maneja estados de carga (Skeleton), lista vacía y paginación reactiva.
-  - [ ] Input de búsqueda con debounce filtra resultados en tiempo real sin congelar la interfaz.
-  - [ ] Menú desplegable "Exportar" dispara la descarga del archivo seleccionado con notificación toast de éxito.
+  - [x] Componente `CatalogDataTable` maneja estados de carga (Skeleton), lista vacía y paginación reactiva.
+  - [x] Input de búsqueda con debounce filtra resultados en tiempo real sin congelar la interfaz.
+  - [x] Menú desplegable "Exportar" dispara la descarga del archivo seleccionado con notificación toast de éxito.
 - **Dependencies:** Sub-módulo 00 (Componentes base shadcn/ui)
 - **Files to create/modify:** `app/components/catalogos/catalog-data-table.tsx`, `app/components/catalogos/catalog-nav.tsx`
 

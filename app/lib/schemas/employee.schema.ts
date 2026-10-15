@@ -52,8 +52,7 @@ export const EmployeeCreateSchema = z
       .or(z.literal("")),
     fechaIngreso: z.coerce
       .date({
-        required_error: "La fecha de contratación es obligatoria",
-        invalid_type_error: "Formato de fecha de ingreso inválido",
+        message: "La fecha de contratación es obligatoria"
       })
       .refine(
         (date) => date <= new Date(),
