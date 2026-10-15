@@ -94,13 +94,13 @@ graph TD
 - **Dependencies:** Task 1.2
 - **Files to create/modify:** `app/lib/schemas/department.schema.ts`, `app/lib/schemas/asset-type.schema.ts`, `app/lib/schemas/employee.schema.ts`
 
-### Task 1.4: Script de Semillas con Faker para Catálogos y Empleados (`seed.ts`) (~1.5h)
+### Task 1.4: Script de Semillas con Faker para Catálogos y Empleados (`seed.ts`) (~1.5h) [COMPLETED]
 - **Description:** Extender el script de seeding automatizado (`app/prisma/seed.ts`) utilizando `@faker-js/faker` con semilla determinista (`42`). Generar 10 departamentos universitarios, 4 tipos de activos base (DGII Cat 1, 2, 3 y Línea Recta) y al menos 25 empleados custodios con cédulas matemáticamente válidas.
 - **Acceptance criteria:**
-  - [ ] Script genera Departamentos con códigos correlativos `DEP-001` a `DEP-010`.
-  - [ ] Script registra Tipos de Activos oficiales con cuentas contables válidas (`1-01-04-XXXX`).
-  - [ ] Script genera 25 empleados con cédulas dominicanas válidas bajo algoritmo Módulo 10 exacto.
-  - [ ] Comando `pnpm prisma db seed` ejecuta la inserción de catálogos sin conflictos foráneos.
+  - [x] Script genera Departamentos con códigos correlativos `DEP-001` a `DEP-010`.
+  - [x] Script registra Tipos de Activos oficiales con cuentas contables válidas (`1-01-04-XXXX`).
+  - [x] Script genera 25 empleados con cédulas dominicanas válidas bajo algoritmo Módulo 10 exacto.
+  - [x] Comando `pnpm prisma db seed` ejecuta la inserción de catálogos sin conflictos foráneos.
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/prisma/seed.ts`
 

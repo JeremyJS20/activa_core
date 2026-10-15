@@ -1,10 +1,41 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { faker } from "@faker-js/faker";
+import { validarCedulaJCE } from "../lib/validators/identity";
 
 const prisma = new PrismaClient();
 
+// Generador determinista de cédula dominicana válida (Módulo 10 JCE)
+function generarCedulaDominicana(serie: string, correlativo: number): string {
+  const primeros10 = `${serie}${correlativo.toString().padStart(7, "0")}`;
+  const pesos = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
+  let suma = 0;
+  for (let i = 0; i < 10; i++) {
+    const d = parseInt(primeros10[i], 10);
+    let p = d * pesos[i];
+    if (p >= 10) {
+      p = Math.floor(p / 10) + (p % 10);
+    }
+    suma += p;
+  }
+  const verificador = (10 - (suma % 10)) % 10;
+  const cedula = `${primeros10}${verificador}`;
+  if (!validarCedulaJCE(cedula)) {
+    throw new Error(`Cédula generada inválida: ${cedula}`);
+  }
+  return cedula;
+}
+
+function limpiarTextoParaEmail(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 async function main() {
-  console.log("Iniciando seed determinista de seguridad y RBAC...");
+  console.log("=== [1/4] Inicializando Seeding de Seguridad y RBAC ===");
 
   const rolesData = [
     {
@@ -24,7 +55,7 @@ async function main() {
     {
       codigo: "AUDITOR",
       nombre: "Auditor de Cumplimiento",
-      descripcion: "Consulta de registros, reportes ejecutivos, bitacora de auditoria y conciliacion DGRI",
+      descripcion: "Consulta de registros, reportes ejecutivos, bitacora de auditoria y conciliacion DGII",
       esSistema: true,
       estado: "ACTIVO",
     },
@@ -43,8 +74,8 @@ async function main() {
       create: r,
     });
     rolesMap.set(rol.codigo, rol.id);
-    console.log('Rol verificado: ' + rol.codigo);
   }
+  console.log(`Roles sincronizados: ${rolesData.length}`);
 
   const permisosData = [
     { codigo: "USER_ADMIN", modulo: "SEGURIDAD", descripcion: "Administracion de usuarios, roles y control de acceso RBAC" },
@@ -74,7 +105,7 @@ async function main() {
     });
     permisosMap.set(permiso.codigo, permiso.id);
   }
-  console.log('Permisos sincronizados: ' + permisosData.length);
+  console.log(`Permisos sincronizados: ${permisosData.length}`);
 
   const rolePermissionsMapping: Record<string, string[]> = {
     ADMIN: permisosData.map((p) => p.codigo),
@@ -110,14 +141,14 @@ async function main() {
 
       await prisma.rolPermiso.upsert({
         where: {
-          rolId_permisoId: {rolId, permisoId}
+          rolId_permisoId: { rolId, permisoId }
         },
         update: {},
-        create: {rolId, permisoId},
+        create: { rolId, permisoId },
       });
     }
-    console.log('Matriz configurada para rol: ' + roleCode);
   }
+  console.log("Matriz RBAC configurada exitosamente");
 
   const adminEmail = "admin@unapec.edu.do";
   const adminPasswordHash = await bcrypt.hash("Admin2026!", 10);
@@ -139,15 +170,217 @@ async function main() {
       estado: "ACTIVO",
     },
   });
+  console.log(`Usuario administrador verificado: ${adminUser.correo}`);
 
-  console.log('Administrador verificado: ' + adminUser.correo);
-  console.log('Seed finalizado con exito.');
+  console.log("\n=== [2/4] Sembrando Departamentos Universitarios (10) ===");
+  const departamentosData = [
+    { codigo: "DEP-001", descripcion: "Dirección de Tecnología de la Información" },
+    { codigo: "DEP-002", descripcion: "Decanato de Ingeniería e Informática" },
+    { codigo: "DEP-003", descripcion: "Departamento de Contabilidad y Finanzas" },
+    { codigo: "DEP-004", descripcion: "Dirección de Recursos Humanos" },
+    { codigo: "DEP-005", descripcion: "Departamento de Compras y Suministros" },
+    { codigo: "DEP-006", descripcion: "Departamento de Mantenimiento y Planta Física" },
+    { codigo: "DEP-007", descripcion: "Dirección de Registro y Admisiones" },
+    { codigo: "DEP-008", descripcion: "Rectoría y Secretaría General" },
+    { codigo: "DEP-009", descripcion: "Biblioteca Central UNAPEC" },
+    { codigo: "DEP-010", descripcion: "Decanato de Ciencias Económicas y Empresariales" },
+  ];
+
+  const deptosMap = new Map<string, string>();
+  for (const d of departamentosData) {
+    const depto = await prisma.departamento.upsert({
+      where: { codigo: d.codigo },
+      update: { descripcion: d.descripcion, estado: "ACTIVO" },
+      create: {
+        codigo: d.codigo,
+        descripcion: d.descripcion,
+        estado: "ACTIVO",
+      },
+    });
+    deptosMap.set(depto.codigo, depto.id);
+  }
+  console.log(`Departamentos registrados: ${departamentosData.length}`);
+
+  console.log("\n=== [3/4] Sembrando Tipos de Activos DGII y Línea Recta (4) ===");
+  const tiposActivosData = [
+    {
+      codigo: "TPA-001",
+      descripcion: "Edificaciones y Estructuras Universitarias (Cat. 1)",
+      cuentaContableCompra: "1-01-04-0010",
+      cuentaContableDepreciacion: "1-01-04-0011",
+      metodoDepreciacion: "DGII_CAT1",
+      porcentajeDepreciacionAnual: 5.00,
+      vidaUtilMeses: 240,
+      estado: "ACTIVO",
+    },
+    {
+      codigo: "TPA-002",
+      descripcion: "Equipos de Cómputo, Servidores y Laptops (Cat. 2)",
+      cuentaContableCompra: "1-01-04-0020",
+      cuentaContableDepreciacion: "1-01-04-0021",
+      metodoDepreciacion: "DGII_CAT2",
+      porcentajeDepreciacionAnual: 25.00,
+      vidaUtilMeses: 48,
+      estado: "ACTIVO",
+    },
+    {
+      codigo: "TPA-003",
+      descripcion: "Mobiliario y Equipos de Oficina (Cat. 3)",
+      cuentaContableCompra: "1-01-04-0030",
+      cuentaContableDepreciacion: "1-01-04-0031",
+      metodoDepreciacion: "DGII_CAT3",
+      porcentajeDepreciacionAnual: 15.00,
+      vidaUtilMeses: 80,
+      estado: "ACTIVO",
+    },
+    {
+      codigo: "TPA-004",
+      descripcion: "Equipos de Laboratorio y Maquinaria Especializada",
+      cuentaContableCompra: "1-01-04-0040",
+      cuentaContableDepreciacion: "1-01-04-0041",
+      metodoDepreciacion: "LINEA_RECTA",
+      porcentajeDepreciacionAnual: 10.00,
+      vidaUtilMeses: 120,
+      estado: "ACTIVO",
+    },
+  ];
+
+  for (const t of tiposActivosData) {
+    await prisma.tipoActivo.upsert({
+      where: { codigo: t.codigo },
+      update: {
+        descripcion: t.descripcion,
+        cuentaContableCompra: t.cuentaContableCompra,
+        cuentaContableDepreciacion: t.cuentaContableDepreciacion,
+        metodoDepreciacion: t.metodoDepreciacion,
+        porcentajeDepreciacionAnual: t.porcentajeDepreciacionAnual,
+        vidaUtilMeses: t.vidaUtilMeses,
+        estado: t.estado,
+      },
+      create: {
+        codigo: t.codigo,
+        descripcion: t.descripcion,
+        cuentaContableCompra: t.cuentaContableCompra,
+        cuentaContableDepreciacion: t.cuentaContableDepreciacion,
+        metodoDepreciacion: t.metodoDepreciacion,
+        porcentajeDepreciacionAnual: t.porcentajeDepreciacionAnual,
+        vidaUtilMeses: t.vidaUtilMeses,
+        estado: t.estado,
+      },
+    });
+  }
+  console.log(`Tipos de activos registrados: ${tiposActivosData.length}`);
+
+  console.log("\n=== [4/4] Sembrando Empleados Custodios Deterministas con Faker (25) ===");
+  faker.seed(42);
+
+  const cargosPorEmpleado: string[] = [
+    "Director de Tecnologías de la Información",
+    "Decano de Ingeniería e Informática",
+    "Director Financiero y Contralor",
+    "Directora de Gestión Humana",
+    "Encargado de Compras y Suministros",
+    "Encargado de Mantenimiento y Planta Física",
+    "Directora de Registro y Admisiones",
+    "Secretario General de Rectoría",
+    "Coordinador General de Biblioteca",
+    "Decano de Ciencias Económicas",
+    "Administrador de Infraestructura Cloud",
+    "Especialista de Ciberseguridad",
+    "Coordinador de Laboratorios de Cómputo",
+    "Contador Senior de Activos Fijos",
+    "Analista de Conciliaciones Bancarias",
+    "Especialista de Compensación y Beneficios",
+    "Coordinadora de Capacitación Docente",
+    "Supervisor de Almacén Central",
+    "Técnico Especialista en Climatización",
+    "Técnico Electricista Industrial",
+    "Analista de Admisiones y Matrícula",
+    "Asistente Ejecutiva de Rectoría",
+    "Encargada de Hemeroteca y Archivo",
+    "Docente Investigador Titular",
+    "Analista de Inteligencia Institucional",
+  ];
+
+  const deptoCodigos = departamentosData.map((d) => d.codigo);
+  const empleadosCreados: { id: string; codigo: string; nombre: string; deptoCodigo: string }[] = [];
+
+  for (let i = 0; i < 25; i++) {
+    const num = i + 1;
+    const codigo = `EMP-${num.toString().padStart(4, "0")}`;
+    const deptoCodigo = i < 10 ? deptoCodigos[i] : deptoCodigos[i % 10];
+    const departamentoId = deptosMap.get(deptoCodigo)!;
+
+    const nombre = faker.person.firstName();
+    const apellido = faker.person.lastName();
+    const cedula = generarCedulaDominicana("402", 1000000 + i * 37 + 13);
+    const cargo = cargosPorEmpleado[i];
+    const emailPrefix = `${limpiarTextoParaEmail(nombre)}.${limpiarTextoParaEmail(apellido)}`;
+    const correo = `${emailPrefix}${i > 15 ? i : ""}@unapec.edu.do`;
+    const telefono = `(809) ${555 + (i % 5)}-${(1000 + i * 111).toString().slice(0, 4)}`;
+
+    const fechaIngreso = faker.date.between({
+      from: new Date("2018-01-15T00:00:00Z"),
+      to: new Date("2025-06-30T00:00:00Z"),
+    });
+
+    const empleado = await prisma.empleado.upsert({
+      where: { codigo },
+      update: {
+        nombre,
+        apellido,
+        tipoPersona: "FISICA",
+        cedula,
+        departamentoId,
+        cargo,
+        correo,
+        telefono,
+        fechaIngreso,
+        estado: "ACTIVO",
+      },
+      create: {
+        codigo,
+        nombre,
+        apellido,
+        tipoPersona: "FISICA",
+        cedula,
+        departamentoId,
+        cargo,
+        correo,
+        telefono,
+        fechaIngreso,
+        estado: "ACTIVO",
+      },
+    });
+
+    empleadosCreados.push({
+      id: empleado.id,
+      codigo: empleado.codigo,
+      nombre: `${empleado.nombre} ${empleado.apellido}`,
+      deptoCodigo,
+    });
+  }
+  console.log(`Empleados registrados y validados con Cédula JCE: ${empleadosCreados.length}`);
+
+  console.log("\n=== Asignando Responsables a Departamentos ===");
+  for (let i = 0; i < 10; i++) {
+    const deptoCodigo = deptoCodigos[i];
+    const responsable = empleadosCreados[i];
+    await prisma.departamento.update({
+      where: { codigo: deptoCodigo },
+      data: { responsableId: responsable.id },
+    });
+    console.log(`  - ${deptoCodigo} -> Responsable: ${responsable.nombre} (${responsable.codigo})`);
+  }
+
+  console.log("\n===================================================");
+  console.log("✔ Seed de Catálogos y Empleados Completado con Éxito");
+  console.log("===================================================");
 }
-
 
 main()
   .catch((e) => {
-    console.error('Error durante el seed:', e);
+    console.error("Error fatal durante el seed:", e);
     process.exit(1);
   })
   .finally(async () => {
