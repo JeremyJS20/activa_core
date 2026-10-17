@@ -141,9 +141,9 @@ graph TD
 ### Task 2.4: Servicio de Emisión y Descarga de Actas Digitales en PDF (~1.5h)
 - **Description:** Implementar el generador de actas de entrega/recepción de custodia con `@react-pdf/renderer` en `app/lib/services/pdf-receipt.service.ts` y el Route Handler `GET /api/activos/[id]/acta-entrega`, emitiendo un documento PDF tamaño Carta membretado con formato institucional UNAPEC y bloques de firmas.
 - **Acceptance criteria:**
-  - [ ] Genera documento PDF con membrete oficial UNAPEC, detalles técnicos del activo, fecha/hora y datos del custodio con cédula formateada.
-  - [ ] Incorpora cláusula formal de responsabilidad de custodia y líneas de firma para entrega y recepción.
-  - [ ] Endpoint transmite el binario con cabeceras HTTP `Content-Type: application/pdf` y `Content-Disposition`.
+  - [x] Genera documento PDF con membrete oficial UNAPEC, detalles técnicos del activo, fecha/hora y datos del custodio con cédula formateada.
+  - [x] Incorpora cláusula formal de responsabilidad de custodia y líneas de firma para entrega y recepción.
+  - [x] Endpoint transmite el binario con cabeceras HTTP `Content-Type: application/pdf` y `Content-Disposition`.
 - **Dependencies:** Task 2.2
 - **Files to create/modify:** `app/app/api/activos/[id]/acta-entrega/route.ts`, `app/lib/services/pdf-receipt.service.tsx`
 
