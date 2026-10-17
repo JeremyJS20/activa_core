@@ -6,6 +6,8 @@ import { ConsoleShell } from "@/components/layout/console-shell";
 import { AssetTable, AssetRow } from "@/components/activos/asset-table";
 import { AssetDialog } from "@/components/activos/asset-dialog";
 import { TransferDialog } from "@/components/activos/transfer-dialog";
+import { DisposalDialog } from "@/components/activos/disposal-dialog";
+import { AssetBadgePrint } from "@/components/activos/asset-badge-print";
 import { Layers, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export function ActivosContent() {
@@ -31,8 +33,15 @@ export function ActivosContent() {
   // Estados de modales
   const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
   const [selectedAssetToEdit, setSelectedAssetToEdit] = useState<AssetRow | null>(null);
+
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [selectedAssetToTransfer, setSelectedAssetToTransfer] = useState<AssetRow | null>(null);
+
+  const [isDisposalDialogOpen, setIsDisposalDialogOpen] = useState(false);
+  const [selectedAssetToDispose, setSelectedAssetToDispose] = useState<AssetRow | null>(null);
+
+  const [isBadgePrintOpen, setIsBadgePrintOpen] = useState(false);
+  const [selectedAssetToPrint, setSelectedAssetToPrint] = useState<AssetRow | null>(null);
 
   // Estados de paginación y filtros
   const [page, setPage] = useState(1);
@@ -144,13 +153,14 @@ export function ActivosContent() {
   };
 
   const handleDispose = (asset: AssetRow) => {
-    showToast("success", `Apertura de desincorporación para ${asset.codigo}...`);
+    setSelectedAssetToDispose(asset);
+    setIsDisposalDialogOpen(true);
   };
 
   const handlePrintMarbete = (asset: AssetRow) => {
-    showToast("success", `Generando vista de marbete para ${asset.codigo}...`);
+    setSelectedAssetToPrint(asset);
+    setIsBadgePrintOpen(true);
   };
-
   return (
     <ConsoleShell>
       <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
@@ -264,6 +274,34 @@ export function ActivosContent() {
           }}
           asset={selectedAssetToTransfer}
           departamentos={departamentos}
+        />
+
+        {/* Modal de Desincorporación y Baja Formal */}
+        <DisposalDialog
+          isOpen={isDisposalDialogOpen}
+          onClose={() => {
+            setIsDisposalDialogOpen(false);
+            setSelectedAssetToDispose(null);
+          }}
+          onSuccess={() => {
+            showToast(
+              "success",
+              `El activo ${selectedAssetToDispose?.codigo || ""} ha sido dado de baja formalmente.`
+            );
+            fetchAssets();
+          }}
+          asset={selectedAssetToDispose}
+          canDispose={canDispose}
+        />
+
+        {/* Modal y Vista de Impresión de Marbete Físico */}
+        <AssetBadgePrint
+          isOpen={isBadgePrintOpen}
+          onClose={() => {
+            setIsBadgePrintOpen(false);
+            setSelectedAssetToPrint(null);
+          }}
+          asset={selectedAssetToPrint}
         />
       </div>
     </ConsoleShell>

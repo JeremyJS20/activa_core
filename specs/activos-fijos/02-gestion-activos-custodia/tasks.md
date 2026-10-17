@@ -184,9 +184,9 @@ graph TD
 ### Task 3.4: Modal de Baja Formal y Vista de Impresión de Marbetes (~1.5h)
 - **Description:** Desarrollar el modal de desincorporación formal `app/components/activos/disposal-dialog.tsx` (visible y ejecutable únicamente para usuarios `ADMIN`) y la plantilla de marbete imprimible `app/components/activos/asset-badge-print.tsx` con estilos `@media print` para etiquetas de 50mm x 25mm.
 - **Acceptance criteria:**
-  - [ ] Modal de baja exige motivo formal, justificación técnica (mínimo 20 caracteres) y número de acta con confirmación de alerta destructiva.
-  - [ ] Botón de baja permanece deshabilitado/oculto para usuarios con rol distinto de `ADMIN`.
-  - [ ] Vista de marbete formatea código correlativo visible, logotipo UNAPEC, descripción, serial y custodio lista para imprimir.
+  - [x] Modal de baja exige motivo formal, justificación técnica (mínimo 20 caracteres) y número de acta con confirmación de alerta destructiva.
+  - [x] Botón de baja permanece deshabilitado/oculto para usuarios con rol distinto de `ADMIN`.
+  - [x] Vista de marbete formatea código correlativo visible, logotipo UNAPEC, descripción, serial y custodio lista para imprimir.
 - **Dependencies:** Task 2.1, Task 2.3, Task 3.1
 - **Files to create/modify:** `app/components/activos/disposal-dialog.tsx`, `app/components/activos/asset-badge-print.tsx`
 
