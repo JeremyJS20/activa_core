@@ -1,7 +1,7 @@
 # ActivaCore — Sistema de Gestión de Activos Fijos & Contabilización DGII
 
 > 📖 Master Module Documentation · Living Domain Document
-> 🔄 Last Updated: 2026-10-15 · Status: Active / Certified Sub-00 & Sub-01
+> 🔄 Last Updated: 2026-10-15 · Status: Active / Certified Sub-00, Sub-01 & Sub-02
 > 👤 Technical & Functional Lead: Dirección de Tecnología & Finanzas (UNAPEC)
 > 📂 Scope: Gestión integral del ciclo de vida de activos fijos institucionales, asignación y transferencias de custodios, motor de cálculo de depreciación por línea recta bajo normativa DGII (Norma General 07-07 / Ley 11-92 Art. 287), integración contable auxiliar y gobernanza de acceso basada en roles relacionales (RBAC).
 
@@ -31,7 +31,7 @@
 | /catalogos/tipos-activos | Clasificación Fiscal DGII y Cuentas Contables | Operadores y Administradores (CAT_READ, CAT_WRITE) | ✅ Certified |
 | /catalogos/empleados | Directorio de Custodios y Colaboradores | Operadores y Administradores (CAT_READ, CAT_WRITE) | ✅ Certified |
 | /api/catalogos/export | Exportación Tabular (.xlsx y .csv) | Operadores, Auditores y Administradores (CAT_READ) | ✅ Certified |
-| /activos | Registro Patrimonial y Fichas de Activos | Operadores y Administradores (ACT_READ, ACT_CREATE) | ⏳ Pending (Sub-02) |
+| /activos | Registro Patrimonial, Custodia y Bajas de Activos | Operadores, Auditores y Administradores | ✅ Certified |
 | /depreciacion | Corrida Mensual y Asientos de Depreciación DGII | Operadores y Administradores (DEP_CALCULATE) | ⏳ Pending (Sub-03) |
 | /reportes | Consultas Fiscales y Conciliación DGII | Auditores, Operadores y Administradores (REP_READ) | ⏳ Pending (Sub-04) |
 
@@ -43,7 +43,7 @@
 |---|-------------------------|------------------------|--------|-----------|---------------|
 | **00** | **Autenticación, Usuarios y Control de Acceso Relacional RBAC** | Inicio de sesión NextAuth v5, hashing bcrypt (10 rondas), protección contra fuerza bruta (15 min / 5 intentos), tokens SHA-256 de autoservicio, middleware edge y directorio de roles dinámicos. | ✅ Certified | [specs/activos-fijos/00-autenticacion-rbac/](../../specs/activos-fijos/00-autenticacion-rbac/requirements.md) | Unit: 92.7% (45 pruebas Vitest) · E2E: ✅ (4/4 Playwright) |
 | **01** | **Catálogos Base del Sistema** | Mantenimiento de Departamentos, Cuentas Contables Auxiliares, Tipos de Activos con Vida Útil DGII (Cat 1: 5%, Cat 2: 25%, Cat 3: 15%), validación cripto-aritmética Módulo 10 de Cédulas JCE y Módulo 11 de RNC, interfaz unificada con layout de pestañas, búsqueda debounced y exportación a Excel (.xlsx) y CSV con UTF-8 BOM. | ✅ Certified | [specs/activos-fijos/01-catalogos-base/](../../specs/activos-fijos/01-catalogos-base/requirements.md) | Unit & Integration: 94.16% (123 pruebas Vitest) · E2E: ✅ (5/5 Playwright) |
-| **02** | **Gestión de Activos Fijos y Custodia** | Altas patrimoniales, códigos de barra / serialización única, ficha técnica, asignación a empleados, transferencias de ubicación física y bajas autorizadas. | ⏳ Pending | [specs/activos-fijos/02-gestion-activos-custodia/](../../specs/activos-fijos/02-gestion-activos-custodia/requirements.md) | Pendiente de inicio |
+| **02** | **Gestión de Activos Fijos y Custodia** | Altas patrimoniales con código correlativo anual (ACT-YYYY-NNNN), bloqueo contable de campos financieros, traslados ACID de custodio y departamento, emisión de Actas de Entrega en PDF Carta, marbetes imprimibles y bajas formales irreversibles restringidas a ADMIN. | ✅ Certified | [specs/activos-fijos/02-gestion-activos-custodia/](../../specs/activos-fijos/02-gestion-activos-custodia/requirements.md) | Unit & Integration: 93.33% (207 pruebas Vitest) · E2E: ✅ (3/3 Playwright) |
 | **03** | **Motor de Depreciación y Contabilización DGII** | Cálculo mensual determinista por línea recta según Ley 11-92 Art. 287 (Categorías 1, 2 y 3), generación de asientos contables débitos/créditos y cierre mensual inmutable. | ⏳ Pending | Planificado Sub-03 | Pendiente de inicio |
 | **04** | **Reportes, Auditoría e Integración Contable Externa** | Consultas multicriterio, exportación a Excel / PDF, trazabilidad inmutable de eventos y despacho al Web Service Contable de la Universidad. | ⏳ Pending | Planificado Sub-04 | Pendiente de inicio |
 
@@ -73,7 +73,19 @@ stateDiagram-v2
     ACTIVO --> INACTIVO : Inactivacion Logica (Preserva Trazabilidad)
     INACTIVO --> ACTIVO : Reactivacion Operativa
     ACTIVO --> [*] : Borrado Fisico (Solo si no tiene relaciones)
-    INACTIVO --> [*] : Borrado Fisico (Solo si no tiene relaciones)
+    INACTIVO --> [*] : Borrado Fisico
+`
+
+#### Activos Fijos y Ciclo de Custodia
+`mermaid
+stateDiagram-v2
+    [*] --> ACTIVO : Alta Patrimonial ACT-YYYY-NNNN + HistorialCustodia ALTA_INICIAL
+    ACTIVO --> ACTIVO : Traslado ACID de Custodio y Departamento + Emision Acta PDF
+    ACTIVO --> EN_MANTENIMIENTO : Envio a Revision Tecnica
+    EN_MANTENIMIENTO --> ACTIVO : Reincorporacion Operativa
+    ACTIVO --> DADO_DE_BAJA : Baja Formal Autorizada por ADMIN
+    EN_MANTENIMIENTO --> DADO_DE_BAJA : Baja por Dano Irreparable ADMIN
+    DADO_DE_BAJA --> [*] : Congelamiento Permanente de Valor en Libros y Custodia
 ```
 
 ### 3.2 High-Level Component Flow
@@ -102,6 +114,13 @@ erDiagram
     departamentos ||--o{ empleados : asigna
     departamentos }o--|| empleados : lidera
     empleados ||--o{ usuarios : vincula
+    tipos_activos ||--o{ activos_fijos : clasifica
+    departamentos ||--o{ activos_fijos : radica
+    empleados ||--o{ activos_fijos : custodia
+    activos_fijos ||--o{ historial_custodia : registra
+    activos_fijos ||--o| historial_bajas : desincorpora
+    usuarios ||--o{ historial_custodia : autoriza_traslado
+    usuarios ||--o{ historial_bajas : autoriza_baja
 
     departamentos {
         uuid id PK
@@ -191,6 +210,53 @@ erDiagram
         boolean utilizado
         timestamptz created_at
     }
+
+    activos_fijos {
+        uuid id PK
+        string codigo UK
+        string descripcion
+        string marca
+        string modelo
+        string numero_serie
+        string color
+        string ubicacion_fisica
+        uuid tipo_activo_id FK
+        uuid departamento_id FK
+        uuid empleado_id FK
+        date fecha_adquisicion
+        decimal costo_adquisicion
+        decimal valor_residual
+        decimal depreciacion_acumulada
+        decimal valor_en_libros
+        string estado
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    historial_custodia {
+        uuid id PK
+        uuid activo_id FK
+        uuid empleado_anterior_id FK
+        uuid empleado_nuevo_id FK
+        uuid departamento_anterior_id FK
+        uuid departamento_nuevo_id FK
+        string motivo
+        string justificacion
+        uuid autorizado_por_id FK
+        timestamptz fecha_cambio
+    }
+
+    historial_bajas {
+        uuid id PK
+        uuid activo_id UK
+        string motivo_baja
+        string justificacion
+        date fecha_baja
+        decimal valor_en_libros_al_baja
+        string numero_acta
+        uuid autorizado_por_id FK
+        timestamptz created_at
+    }
 ```
 
 ### Key Tables & Data Dictionary
@@ -251,6 +317,14 @@ erDiagram
 | PUT | /api/empleados/[id] | Modificación de custodio o estado operativo | CAT_WRITE / ADMIN / OPERADOR | { nombre, apellido, departamentoId, cargo, estado, ... } | { data: { id, codigo, ... } } (200) |
 | DELETE | /api/empleados/[id] | Eliminación o inactivación de custodio | CAT_WRITE / ADMIN / OPERADOR | Ninguno (URL param) | { success: true, message: "Empleado eliminado" } |
 | GET | /api/catalogos/export | Exportación tabular Excel (.xlsx) y CSV | CAT_READ / ADMIN / OPERADOR / AUDITOR | Query: ?catalogo=departamentos&format=xlsx | Archivo binario con cabecera Content-Disposition |
+| GET | /api/activos | Listado paginado y filtrado multicriterio de activos fijos | ACT_READ / ADMIN / OPERADOR / AUDITOR | Query: ?page=1&limit=10&search=&departamentoId=&tipoActivoId=&estado= | { data: [...], pagination: { total, page, limit, totalPages } } |
+| POST | /api/activos | Alta patrimonial con correlativo ACT-YYYY-NNNN y custodia inicial ACID | ACT_OPERATE / ADMIN / OPERADOR | { descripcion, departamentoId, empleadoId, tipoActivoId, costoAdquisicion } | { id, codigo, descripcion } |
+| GET | /api/activos/[id] | Ficha técnica detallada, bitácora de custodia y flag de bloqueo contable | ACT_READ / ADMIN / OPERADOR / AUDITOR | Ninguno | { id, codigo, poseeHistorialDepreciacion, historialCustodia: [...] } |
+| PUT | /api/activos/[id] | Actualización física y financiera protegida por bloqueo contable | ACT_OPERATE / ADMIN / OPERADOR | { descripcion, estado, marca, modelo, numeroSerie, costoAdquisicion } | { id, codigo } |
+| GET | /api/activos/[id]/traslados | Historial cronológico de movimientos de custodia del activo | ACT_READ / ADMIN / OPERADOR / AUDITOR | Ninguno | { data: [...] } |
+| POST | /api/activos/[id]/traslados | Reasignación transaccional ACID de custodio y departamento | ACT_OPERATE / ADMIN / OPERADOR | { departamentoNuevoId, empleadoNuevoId, motivo, justificacion } | { activo, movimientoId } |
+| POST | /api/activos/[id]/baja | Desincorporación formal e irreversible del activo fijo | Exclusivo ADMIN | { motivoBaja, numeroActa, fechaBaja, justificacion } | { activo, baja } |
+| GET | /api/activos/[id]/acta-entrega | Emisión de Acta de Entrega de Custodia en PDF tamaño Carta | ACT_READ / ADMIN / OPERADOR / AUDITOR | Query: ?movimientoId= | Binario application/pdf con membrete UNAPEC y firmas |
 
 ---
 
@@ -317,3 +391,4 @@ erDiagram
 |------|-------------------|-------------------|------------|-------------------|
 | 2026-10-13 | specs/activos-fijos/00-autenticacion-rbac | Certificación formal del Sub-módulo 00: Arquitectura RBAC relacional, autenticación NextAuth v5, suites completas Vitest (92.7%) y Playwright E2E (4/4). | 246837a | Dirección de Tecnología / SDD Build Agent |
 | 2026-10-15 | specs/activos-fijos/01-catalogos-base | Certificación formal del Sub-módulo 01: Catálogos Base (Departamentos, Tipos de Activos DGII, Custodios JCE Módulo 10, exportación Excel/CSV), suite Vitest 100% (123 tests) y suite E2E Playwright 100% (9 tests). | 458ee12 | Dirección de Tecnología & Finanzas / SDD Build Agent |
+| 2026-10-17 | specs/activos-fijos/02-gestion-activos-custodia | Certificación formal del Sub-módulo 02: Gestión de Activos Fijos, Inventario y Custodia (correlativo anual ACT-YYYY-NNNN, bloqueo contable, traslados ACID, Actas PDF con pdf-lib, marbetes imprimibles, bajas formales ADMIN), suite Vitest 93.33% (207 tests) y Playwright E2E (3/3). | cbab636 | JeremyJS / SDD Build Agent |

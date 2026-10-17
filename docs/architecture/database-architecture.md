@@ -1,7 +1,7 @@
 # Database Architecture & Data Model: ActivaCore
 
 > 🗄️ Master Database Architecture Document · Living Data Blueprint
-> 🔄 Last Updated: 2026-10-15 · Status: Active / Production Scheme Certified (Sub-00 & Sub-01)
+> 🔄 Last Updated: 2026-10-17 · Status: Active / Production Scheme Certified (Sub-00, Sub-01 & Sub-02)
 > 👤 Data Authority: Dirección de Tecnología & Finanzas (UNAPEC)
 > 🐘 Engine: PostgreSQL 16 (Neon Serverless PostgreSQL / AWS RDS Multi-AZ) · ORM: Prisma 6.19
 > ⚠️ **MANDATORY QUALITY GATE (Hard Gate 12)**: Este documento detalla exhaustivamente el DDL físico, tipos SQL exactos, restricciones, índices B-Tree y protocolos de migración determinista.
@@ -38,6 +38,13 @@ erDiagram
     departamentos ||--o{ empleados : asigna
     departamentos }o--|| empleados : lidera
     empleados ||--o{ usuarios : vincula
+    tipos_activos ||--o{ activos_fijos : clasifica
+    departamentos ||--o{ activos_fijos : radica
+    empleados ||--o{ activos_fijos : custodia
+    activos_fijos ||--o{ historial_custodia : registra
+    activos_fijos ||--o| historial_bajas : desincorpora
+    usuarios ||--o{ historial_custodia : autoriza_traslado
+    usuarios ||--o{ historial_bajas : autoriza_baja
 
     departamentos {
         uuid id PK
@@ -125,6 +132,53 @@ erDiagram
         string token_hash UK
         timestamptz expires_at
         boolean utilizado
+        timestamptz created_at
+    }
+
+    activos_fijos {
+        uuid id PK
+        string codigo UK
+        string descripcion
+        string marca
+        string modelo
+        string numero_serie
+        string color
+        string ubicacion_fisica
+        uuid tipo_activo_id FK
+        uuid departamento_id FK
+        uuid empleado_id FK
+        date fecha_adquisicion
+        decimal costo_adquisicion
+        decimal valor_residual
+        decimal depreciacion_acumulada
+        decimal valor_en_libros
+        string estado
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    historial_custodia {
+        uuid id PK
+        uuid activo_id FK
+        uuid empleado_anterior_id FK
+        uuid empleado_nuevo_id FK
+        uuid departamento_anterior_id FK
+        uuid departamento_nuevo_id FK
+        string motivo
+        string justificacion
+        uuid autorizado_por_id FK
+        timestamptz fecha_cambio
+    }
+
+    historial_bajas {
+        uuid id PK
+        uuid activo_id UK
+        string motivo_baja
+        string justificacion
+        date fecha_baja
+        decimal valor_en_libros_al_baja
+        string numero_acta
+        uuid autorizado_por_id FK
         timestamptz created_at
     }
 ```
@@ -264,6 +318,71 @@ CREATE TABLE empleados (
 ALTER TABLE departamentos
     ADD CONSTRAINT fk_departamentos_responsable
     FOREIGN KEY (responsable_id) REFERENCES empleados(id) ON DELETE SET NULL;
+
+-- ========================================================
+-- MODULO 02: GESTION DE ACTIVOS FIJOS, INVENTARIO Y CUSTODIA
+-- ========================================================
+
+-- 9. Tabla: activos_fijos
+CREATE TABLE activos_fijos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    codigo VARCHAR(20) NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
+    marca VARCHAR(100),
+    modelo VARCHAR(100),
+    numero_serie VARCHAR(100),
+    color VARCHAR(50),
+    ubicacion_fisica VARCHAR(200),
+    tipo_activo_id UUID NOT NULL,
+    departamento_id UUID NOT NULL,
+    empleado_id UUID NOT NULL,
+    fecha_adquisicion DATE NOT NULL,
+    costo_adquisicion DECIMAL(14, 2) NOT NULL,
+    valor_residual DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    depreciacion_acumulada DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    valor_en_libros DECIMAL(14, 2) NOT NULL,
+    estado VARCHAR(25) NOT NULL DEFAULT 'ACTIVO',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_activos_fijos_codigo UNIQUE (codigo),
+    CONSTRAINT fk_activos_tipo_activo FOREIGN KEY (tipo_activo_id) REFERENCES tipos_activos(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_activos_departamento FOREIGN KEY (departamento_id) REFERENCES departamentos(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_activos_empleado FOREIGN KEY (empleado_id) REFERENCES empleados(id) ON DELETE RESTRICT
+);
+
+-- 10. Tabla: historial_custodia (Append-Only)
+CREATE TABLE historial_custodia (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    activo_id UUID NOT NULL,
+    empleado_anterior_id UUID,
+    empleado_nuevo_id UUID NOT NULL,
+    departamento_anterior_id UUID,
+    departamento_nuevo_id UUID NOT NULL,
+    motivo VARCHAR(30) NOT NULL,
+    justificacion TEXT NOT NULL,
+    autorizado_por_id UUID NOT NULL,
+    fecha_cambio TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_hc_activo FOREIGN KEY (activo_id) REFERENCES activos_fijos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_hc_empleado_nuevo FOREIGN KEY (empleado_nuevo_id) REFERENCES empleados(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_hc_departamento_nuevo FOREIGN KEY (departamento_nuevo_id) REFERENCES departamentos(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_hc_autorizado_por FOREIGN KEY (autorizado_por_id) REFERENCES usuarios(id) ON DELETE RESTRICT
+);
+
+-- 11. Tabla: historial_bajas
+CREATE TABLE historial_bajas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    activo_id UUID NOT NULL,
+    motivo_baja VARCHAR(40) NOT NULL,
+    justificacion TEXT NOT NULL,
+    fecha_baja DATE NOT NULL,
+    valor_en_libros_al_baja DECIMAL(14, 2) NOT NULL,
+    numero_acta VARCHAR(50) NOT NULL,
+    autorizado_por_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_historial_bajas_activo UNIQUE (activo_id),
+    CONSTRAINT fk_hb_activo FOREIGN KEY (activo_id) REFERENCES activos_fijos(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_hb_autorizado_por FOREIGN KEY (autorizado_por_id) REFERENCES usuarios(id) ON DELETE RESTRICT
+);
 ```
 
 ---
@@ -286,6 +405,14 @@ ALTER TABLE departamentos
 | idx_empleados_cedula | empleados | cedula | B-Tree (Unique) | Verificación O(1) de unicidad en padrón JCE y RNC DGII. |
 | idx_empleados_departamento_id | empleados | departamento_id | B-Tree | Joins de empleados adscritos por departamento. |
 | idx_empleados_estado | empleados | estado | B-Tree | Filtrado de colaboradores aptos para asignación de bienes. |
+| idx_activos_fijos_codigo | activos_fijos | codigo | B-Tree (Unique) | Búsqueda O(1) por código correlativo anual ACT-YYYY-NNNN. |
+| idx_activos_fijos_departamento_id | activos_fijos | departamento_id | B-Tree | Filtrado de inventario por centro de costos departamental. |
+| idx_activos_fijos_tipo_activo_id | activos_fijos | tipo_activo_id | B-Tree | Filtrado de bienes por categoría fiscal DGII. |
+| idx_activos_fijos_empleado_id | activos_fijos | empleado_id | B-Tree | Consulta de activos bajo custodia de un empleado. |
+| idx_activos_fijos_estado | activos_fijos | estado | B-Tree | Filtrado rápido por estado operativo o dados de baja. |
+| idx_activos_fijos_numero_serie | activos_fijos | numero_serie | B-Tree | Búsqueda por número de serie de fabricante. |
+| idx_historial_custodia_activo_fecha | historial_custodia | (activo_id, fecha_cambio DESC) | B-Tree (Composite) | Recuperación cronológica de movimientos de custodia. |
+| idx_historial_bajas_fecha_baja | historial_bajas | fecha_baja | B-Tree | Auditoría fiscal de bajas por período contable. |
 
 ---
 
