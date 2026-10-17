@@ -77,9 +77,9 @@ graph TD
 ### Task 1.2: Generador de Código Correlativo y Motor de Bloqueo Contable (~1.5h)
 - **Description:** Implementar la utilidad `app/lib/services/asset-code.service.ts` para generar códigos institucionales atómicos bajo el formato `ACT-YYYY-NNNN` con secuencia correlativa anual protegida contra condiciones de carrera, y la utilidad `app/lib/validators/asset-lock.ts` para verificar si un bien posee períodos contables de depreciación cerrados, bloqueando la alteración de campos financieros críticos.
 - **Acceptance criteria:**
-  - [ ] Función `generarCodigoActivo(tx: PrismaClient): Promise<string>` genera la secuencia correlativa rellenada con 4 ceros (ej. `ACT-2026-0001`) garantizando unicidad.
-  - [ ] Función `validarBloqueoFinanciero(activoId: string): Promise<boolean>` determina si el activo ha sido depreciado previamente.
-  - [ ] Pruebas unitarias comprobando concurrencia de códigos y detección de bloqueo contable.
+  - [x] Función `generarCodigoActivo(tx: PrismaClient): Promise<string>` genera la secuencia correlativa rellenada con 4 ceros (ej. `ACT-2026-0001`) garantizando unicidad.
+  - [x] Función `validarBloqueoFinanciero(activoId: string): Promise<boolean>` determina si el activo ha sido depreciado previamente.
+  - [x] Pruebas unitarias comprobando concurrencia de códigos y detección de bloqueo contable.
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/lib/services/asset-code.service.ts`, `app/lib/validators/asset-lock.ts`
 
