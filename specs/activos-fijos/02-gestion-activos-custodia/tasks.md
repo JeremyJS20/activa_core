@@ -197,10 +197,10 @@ graph TD
 ### Task 4.1: Pruebas Unitarias e Integración con Vitest (~2h)
 - **Description:** Implementar la suite completa de pruebas unitarias para el generador de código correlativo, reglas de bloqueo contable, validaciones Zod y pruebas de integración de los Route Handlers de activos, traslados y bajas.
 - **Acceptance criteria:**
-  - [ ] Pruebas unitarias para `generarCodigoActivo` validan formato `ACT-YYYY-NNNN` y unicidad.
-  - [ ] Pruebas de integración sobre traslados comprueban atomicidad ACID y rechazo de activos dados de baja.
-  - [ ] Pruebas sobre endpoint de baja comprueban restricción estricta de rol `ADMIN` (HTTP 403 para `OPERADOR`).
-  - [ ] Cobertura de código superior al 85% en librerías de servicio y validadores (`app/lib/*`).
+  - [x] Pruebas unitarias para `generarCodigoActivo` validan formato `ACT-YYYY-NNNN` y unicidad.
+  - [x] Pruebas de integración sobre traslados comprueban atomicidad ACID y rechazo de activos dados de baja.
+  - [x] Pruebas sobre endpoint de baja comprueban restricción estricta de rol `ADMIN` (HTTP 403 para `OPERADOR`).
+  - [x] Cobertura de código superior al 85% en librerías de servicio y validadores (`app/lib/*`).
 - **Dependencies:** Task 2.1, Task 2.2, Task 2.3
 - **Files to create/modify:** `app/tests/services/asset.test.ts`, `app/tests/api/activos.test.ts`
 
