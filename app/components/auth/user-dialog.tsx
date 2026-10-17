@@ -59,7 +59,6 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
           }));
           setRoles(mapped);
           if (mapped.length > 0) {
-            // Default to OPERADOR if available, otherwise first role
             const defaultRole = mapped.find((r) => r.codigo === "OPERADOR") || mapped[0];
             setRolId(defaultRole.id);
           }
@@ -124,26 +123,27 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="p-6 bg-slate-50/80 border-b border-slate-100 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#EBF3FC] text-[#003D9B] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#002D62] text-white flex items-center justify-center shadow-xs">
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
               <h2 className="font-display font-bold text-lg text-[#1B2A4A] tracking-tight">
                 Registrar Nuevo Usuario
               </h2>
-              <p className="text-xs text-[#505F76]">
-                Creación de cuenta con rol relacional en UNAPEC
+              <p className="text-xs text-slate-500 mt-0.5">
+                Creación de cuenta institucional con rol relacional en UNAPEC.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#505F76] hover:bg-slate-100 hover:text-[#1B2A4A] transition-colors cursor-pointer"
+            disabled={isSubmitting}
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer"
             aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
@@ -155,7 +155,7 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
           {errorMessage && (
             <div
               role="alert"
-              className="p-3.5 rounded-xl text-xs font-medium bg-[#FFDAD6] text-[#93000A] leading-snug"
+              className="p-3.5 rounded-xl text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200 leading-snug"
             >
               {errorMessage}
             </div>
@@ -164,7 +164,7 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
           <div>
             <label
               htmlFor="nombre"
-              className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#505F76] mb-1.5"
+              className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600 mb-1.5 font-mono"
             >
               Nombre Completo
             </label>
@@ -176,14 +176,14 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="ej. Lic. Pedro Martínez"
-              className="w-full h-11 px-4 bg-[#F2F3FF] text-[#1B2A4A] text-sm rounded-xl outline-none transition-all placeholder:text-[#505F76]/40 focus:bg-white focus:ring-2 focus:ring-[#0052CC] disabled:opacity-50"
+              className="w-full px-3.5 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all disabled:opacity-50"
             />
           </div>
 
           <div>
             <label
               htmlFor="correo"
-              className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#505F76] mb-1.5"
+              className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600 mb-1.5 font-mono"
             >
               Correo Institucional
             </label>
@@ -195,14 +195,14 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               placeholder="pmartinez@unapec.edu.do"
-              className="w-full h-11 px-4 bg-[#F2F3FF] text-[#1B2A4A] text-sm rounded-xl outline-none transition-all placeholder:text-[#505F76]/40 focus:bg-white focus:ring-2 focus:ring-[#0052CC] disabled:opacity-50"
+              className="w-full px-3.5 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all disabled:opacity-50"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#505F76] mb-1.5"
+              className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600 mb-1.5 font-mono"
             >
               Contraseña Inicial
             </label>
@@ -215,19 +215,19 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres, mayús, núm, símbolo"
-                className="w-full h-11 pl-4 pr-11 bg-[#F2F3FF] text-[#1B2A4A] text-sm rounded-xl outline-none transition-all placeholder:text-[#505F76]/40 focus:bg-white focus:ring-2 focus:ring-[#0052CC] disabled:opacity-50 font-mono"
+                className="w-full px-3.5 py-2 pr-10 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all disabled:opacity-50 font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
                 aria-label={showPassword ? "Ocultar clave" : "Ver clave"}
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#505F76] hover:text-[#1B2A4A] cursor-pointer"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-[#505F76] mt-1">
+            <p className="text-[11px] text-slate-500 mt-1 font-mono">
               Debe cumplir: 8+ car., mayúscula, minúscula, número y símbolo.
             </p>
           </div>
@@ -236,7 +236,7 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
             <div>
               <label
                 htmlFor="rolId"
-                className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#505F76] mb-1.5"
+                className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600 mb-1.5 font-mono"
               >
                 Rol Asignado (RBAC)
               </label>
@@ -246,7 +246,7 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
                 disabled={isSubmitting || isLoadingRoles}
                 value={rolId}
                 onChange={(e) => setRolId(e.target.value)}
-                className="w-full h-11 px-3 bg-[#F2F3FF] text-[#1B2A4A] text-sm rounded-xl outline-none transition-all focus:bg-white focus:ring-2 focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
+                className="w-full px-3.5 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all disabled:opacity-50 cursor-pointer"
               >
                 {roles.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -259,7 +259,7 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
             <div>
               <label
                 htmlFor="estado"
-                className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[#505F76] mb-1.5"
+                className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600 mb-1.5 font-mono"
               >
                 Estado Inicial
               </label>
@@ -269,7 +269,7 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
                 disabled={isSubmitting}
                 value={estado}
                 onChange={(e) => setEstado(e.target.value as "ACTIVO" | "INACTIVO")}
-                className="w-full h-11 px-3 bg-[#F2F3FF] text-[#1B2A4A] text-sm rounded-xl outline-none transition-all focus:bg-white focus:ring-2 focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
+                className="w-full px-3.5 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all disabled:opacity-50 cursor-pointer"
               >
                 <option value="ACTIVO">ACTIVO</option>
                 <option value="INACTIVO">INACTIVO</option>
@@ -283,15 +283,14 @@ export function UserDialog({ isOpen, onClose, onUserCreated }: UserDialogProps) 
               type="button"
               disabled={isSubmitting}
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider text-[#505F76] hover:bg-slate-100 transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isLoadingRoles}
-              className="h-11 px-6 text-white font-semibold text-xs tracking-wider uppercase rounded-xl shadow-sm hover:shadow transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-              style={{ background: "linear-gradient(135deg, #003D9B 0%, #0052CC 100%)" }}
+              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-[#003D9B] hover:bg-[#0052CC] active:bg-[#002D62] rounded-xl transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <>
