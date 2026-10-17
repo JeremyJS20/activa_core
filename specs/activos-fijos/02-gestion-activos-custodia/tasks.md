@@ -121,10 +121,10 @@ graph TD
 ### Task 2.2: Servicio Transaccional de Custodia y Endpoint de Traslados (~1.5h)
 - **Description:** Implementar el servicio `app/lib/services/custody-transfer.service.ts` y los Route Handlers `/api/activos/[id]/traslados` para registrar reasignaciones departamentales y de custodio mediante transacción ACID en Prisma (`prisma.$transaction`), bloqueando traslados en activos dados de baja o sin cambios reales de custodia.
 - **Acceptance criteria:**
-  - [ ] `POST /api/activos/[id]/traslados` ejecuta la actualización del activo y la inserción en `HistorialCustodia` en una única transacción atómica.
-  - [ ] Rechaza con HTTP 400 (`ASSET_DISPOSED_CANNOT_TRANSFER`) si el bien está desincorporado.
-  - [ ] Rechaza con HTTP 422 (`NO_CUSTODY_CHANGE_DETECTED`) si el custodio y departamento destino son idénticos a los actuales.
-  - [ ] `GET /api/activos/[id]/traslados` retorna el historial cronológico descendente del activo.
+  - [x] `POST /api/activos/[id]/traslados` ejecuta la actualización del activo y la inserción en `HistorialCustodia` en una única transacción atómica.
+  - [x] Rechaza con HTTP 400 (`ASSET_DISPOSED_CANNOT_TRANSFER`) si el bien está desincorporado.
+  - [x] Rechaza con HTTP 422 (`NO_CUSTODY_CHANGE_DETECTED`) si el custodio y departamento destino son idénticos a los actuales.
+  - [x] `GET /api/activos/[id]/traslados` retorna el historial cronológico descendente del activo.
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/app/api/activos/[id]/traslados/route.ts`, `app/lib/services/custody-transfer.service.ts`
 
