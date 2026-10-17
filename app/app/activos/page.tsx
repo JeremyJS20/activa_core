@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { auth } from "@/auth";
+import { ConsoleShell } from "@/components/layout/console-shell";
 import { ActivosContent } from "@/components/activos/activos-content";
 
 export const metadata: Metadata = {
@@ -12,9 +13,11 @@ export default async function ActivosPage() {
   const session = await auth();
 
   return (
-    <ActivosContent
-      initialRole={session?.user?.rol?.codigo}
-      initialPermisos={session?.user?.permisos}
-    />
+    <ConsoleShell>
+      <ActivosContent
+        initialRole={session?.user?.rol?.codigo}
+        initialPermisos={session?.user?.permisos}
+      />
+    </ConsoleShell>
   );
 }

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { ConsoleShell } from "@/components/layout/console-shell";
 import { AssetTable, AssetRow } from "@/components/activos/asset-table";
 import { AssetDialog } from "@/components/activos/asset-dialog";
 import { TransferDialog } from "@/components/activos/transfer-dialog";
@@ -170,8 +169,8 @@ export function ActivosContent({
     setIsBadgePrintOpen(true);
   };
   return (
-    <ConsoleShell>
-      <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 sm:p-8 lg:p-10">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Toast Notificación */}
         {toast && (
           <div
@@ -190,22 +189,19 @@ export function ActivosContent({
           </div>
         )}
 
-        {/* Encabezado del Módulo */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Encabezado Institucional del Módulo */}
+        <div className="space-y-4">
           <div>
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#002D62] text-white shadow-xs">
-                <Layers className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                  Inventario de Activos Fijos
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  Control de bienes físicos, custodios departamentales, códigos correlativos y categorías fiscales DGII.
-                </p>
-              </div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#003D9B] uppercase tracking-wider font-mono mb-1">
+              <Layers className="w-4 h-4" />
+              <span>Gestión de Bienes Institucionales</span>
             </div>
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#1B2A4A] tracking-tight">
+              Inventario de Activos Fijos
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Control de bienes físicos, custodios departamentales, códigos correlativos y categorías fiscales DGII.
+            </p>
           </div>
         </div>
 
@@ -312,6 +308,7 @@ export function ActivosContent({
           asset={selectedAssetToPrint}
         />
       </div>
-    </ConsoleShell>
+    </div>
+    
   );
 }
