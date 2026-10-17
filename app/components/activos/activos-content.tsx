@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { ConsoleShell } from "@/components/layout/console-shell";
 import { AssetTable, AssetRow } from "@/components/activos/asset-table";
+import { AssetDialog } from "@/components/activos/asset-dialog";
 import { Layers, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export function ActivosContent() {
@@ -25,6 +26,10 @@ export function ActivosContent() {
   const [departamentos, setDepartamentos] = useState<any[]>([]);
   const [tiposActivos, setTiposActivos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Estados de modales
+  const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
+  const [selectedAssetToEdit, setSelectedAssetToEdit] = useState<AssetRow | null>(null);
 
   // Estados de paginación y filtros
   const [page, setPage] = useState(1);
@@ -106,15 +111,28 @@ export function ActivosContent() {
   };
 
   const handleViewDetail = (asset: AssetRow) => {
-    showToast("success", `Consultando ficha técnica del activo ${asset.codigo}...`);
+    setSelectedAssetToEdit(asset);
+    setIsAssetDialogOpen(true);
   };
 
   const handleAddNew = () => {
-    showToast("success", "Apertura de formulario de nuevo activo...");
+    setSelectedAssetToEdit(null);
+    setIsAssetDialogOpen(true);
   };
 
   const handleEdit = (asset: AssetRow) => {
-    showToast("success", `Apertura de edición para el activo ${asset.codigo}...`);
+    setSelectedAssetToEdit(asset);
+    setIsAssetDialogOpen(true);
+  };
+
+  const handleAssetSaved = (savedAsset: any) => {
+    showToast(
+      "success",
+      selectedAssetToEdit
+        ? `Activo ${savedAsset?.codigo || selectedAssetToEdit.codigo} actualizado satisfactoriamente.`
+        : `Activo ${savedAsset?.codigo || ""} registrado satisfactoriamente.`
+    );
+    fetchAssets();
   };
 
   const handleTransfer = (asset: AssetRow) => {
@@ -211,6 +229,19 @@ export function ActivosContent() {
           onPrintMarbete={handlePrintMarbete}
           onDownloadPdf={handleDownloadPdf}
           onRefresh={fetchAssets}
+        />
+
+        {/* Modal de Alta y Edición de Activo Fijo */}
+        <AssetDialog
+          isOpen={isAssetDialogOpen}
+          onClose={() => {
+            setIsAssetDialogOpen(false);
+            setSelectedAssetToEdit(null);
+          }}
+          onSaved={handleAssetSaved}
+          assetToEdit={selectedAssetToEdit}
+          departamentos={departamentos}
+          tiposActivos={tiposActivos}
         />
       </div>
     </ConsoleShell>

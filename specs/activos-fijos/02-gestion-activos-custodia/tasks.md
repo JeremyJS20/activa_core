@@ -164,10 +164,10 @@ graph TD
 ### Task 3.2: Modal de Formulario de Alta y Edición de Activos (~1.5h)
 - **Description:** Implementar el diálogo modal `app/components/activos/asset-dialog.tsx` utilizando React Hook Form y Zod resolver para registrar nuevos activos y editar bienes existentes, con selectores dinámicos para catálogos y bloqueo visual de campos financieros si el activo ya fue depreciado.
 - **Acceptance criteria:**
-  - [ ] Formulario de alta valida en tiempo real importes numéricos y campos obligatorios.
-  - [ ] Selectores alimentados dinámicamente con departamentos, tipos de activo y custodios activos.
-  - [ ] Modo edición deshabilita campos financieros con tooltip explicativo si `poseeHistorialDepreciacion` es verdadero.
-  - [ ] Notificación Toast de confirmación al guardar exitosamente.
+  - [x] Formulario de alta valida en tiempo real importes numéricos y campos obligatorios.
+  - [x] Selectores alimentados dinámicamente con departamentos, tipos de activo y custodios activos.
+  - [x] Modo edición deshabilita campos financieros con tooltip explicativo si `poseeHistorialDepreciacion` es verdadero.
+  - [x] Notificación Toast de confirmación al guardar exitosamente.
 - **Dependencies:** Task 2.1, Task 3.1
 - **Files to create/modify:** `app/components/activos/asset-dialog.tsx`
 

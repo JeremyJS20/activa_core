@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { checkSessionPermission } from "@/lib/auth/rbac";
 import { ExportService, SupportedCatalog, SupportedFormat } from "@/lib/services/export.service";
 
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const result = await ExportService.exportCatalog(catalogo, format);
 
-    return new Response(result.data, {
+    return new Response(typeof result.data === 'string' ? result.data : new Uint8Array(result.data), {
       status: 200,
       headers: {
         "Content-Type": result.contentType,
