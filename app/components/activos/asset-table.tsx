@@ -227,7 +227,7 @@ export function AssetTable({
       {/* Filter and Search Bar */}
       <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Buscador reactivo */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 min-w-[260px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -259,7 +259,7 @@ export function AssetTable({
             <select
               value={departamentoFilter}
               onChange={(e) => onDepartamentoChange(e.target.value)}
-              className="px-3 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              className="px-3 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 max-w-[200px] truncate focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
             >
               <option value="TODOS">Todos los Deptos.</option>
               {departamentos.map((d) => (
@@ -278,7 +278,7 @@ export function AssetTable({
             <select
               value={tipoActivoFilter}
               onChange={(e) => onTipoActivoChange(e.target.value)}
-              className="px-3 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              className="px-3 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 max-w-[200px] truncate focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
             >
               <option value="TODOS">Todas las Categorías DGII</option>
               {tiposActivos.map((t) => (
@@ -297,7 +297,7 @@ export function AssetTable({
             <select
               value={estadoFilter}
               onChange={(e) => onEstadoChange(e.target.value)}
-              className="px-3 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              className="px-3 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 max-w-[200px] truncate focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
             >
               <option value="TODOS">Todos los Estados</option>
               <option value="ACTIVO">Activos</option>
