@@ -1,7 +1,8 @@
-﻿import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { faker } from "@faker-js/faker";
 import { validarCedulaJCE } from "../lib/validators/identity";
+import { seedActivosFijos } from "./seed-activos";
 
 const prisma = new PrismaClient();
 
@@ -374,7 +375,10 @@ async function main() {
   }
 
   console.log("\n===================================================");
-  console.log("✔ Seed de Catálogos y Empleados Completado con Éxito");
+  await seedActivosFijos(prisma, adminUser.id, empleadosCreados, deptosMap);
+
+  console.log("\n===================================================");
+  console.log("✔ Seed de Catálogos, Empleados y Activos Fijos Completado con Éxito");
   console.log("===================================================");
 }
 

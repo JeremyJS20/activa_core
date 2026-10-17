@@ -97,10 +97,10 @@ graph TD
 ### Task 1.4: Extensión de Semillas Deterministas con Faker (`seed.ts`) (~1h)
 - **Description:** Extender `app/prisma/seed.ts` con semilla determinista (`42`) para generar 30 activos institucionales distribuidos entre los departamentos y empleados creados en el Sub-módulo 01, con marcas reales (Dell, HP, Epson, Cisco), números de serie y registros iniciales en `HistorialCustodia`.
 - **Acceptance criteria:**
-  - [ ] Script registra 30 activos fijos en estado `ACTIVO` con códigos `ACT-2026-0001` a `ACT-2026-0030`.
-  - [ ] Cada activo cuenta con su respectiva entrada en `HistorialCustodia` con motivo 'ALTA_INICIAL'.
-  - [ ] Se incluye al menos 1 activo en estado `DADO_DE_BAJA` con su respectivo `HistorialBaja` de prueba.
-  - [ ] Comando `pnpm prisma db seed` ejecuta la inserción sin errores de integridad referencial.
+  - [x] Script registra 30 activos fijos en estado `ACTIVO` con códigos `ACT-2026-0001` a `ACT-2026-0030`.
+  - [x] Cada activo cuenta con su respectiva entrada en `HistorialCustodia` con motivo 'ALTA_INICIAL'.
+  - [x] Se incluye al menos 1 activo en estado `DADO_DE_BAJA` con su respectivo `HistorialBaja` de prueba.
+  - [x] Comando `pnpm prisma db seed` ejecuta la inserción sin errores de integridad referencial.
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/prisma/seed.ts`
 
