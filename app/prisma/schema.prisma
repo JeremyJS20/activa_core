@@ -48,20 +48,22 @@ model RolPermiso {
 }
 
 model Usuario {
-  id            String               @id @default(uuid()) @db.VarChar(36)
-  nombre        String               @db.VarChar(120)
-  correo        String               @unique @db.VarChar(150)
-  passwordHash  String               @map("password_hash") @db.VarChar(255)
-  rolId         String               @map("rol_id") @db.VarChar(36)
-  empleadoId    String?              @map("empleado_id") @db.VarChar(36)
-  estado        String               @default("ACTIVO") @db.VarChar(10)
-  ultimoLoginAt DateTime?            @map("ultimo_login_at") @db.Timestamptz
-  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  id                             String               @id @default(uuid()) @db.VarChar(36)
+  nombre                         String               @db.VarChar(120)
+  correo                         String               @unique @db.VarChar(150)
+  passwordHash                   String               @map("password_hash") @db.VarChar(255)
+  rolId                          String               @map("rol_id") @db.VarChar(36)
+  empleadoId                     String?              @map("empleado_id") @db.VarChar(36)
+  estado                         String               @default("ACTIVO") @db.VarChar(10)
+  ultimoLoginAt                  DateTime?            @map("ultimo_login_at") @db.Timestamptz
+  createdAt                      DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                      DateTime             @updatedAt @map("updated_at") @db.Timestamptz
 
-  rol           Rol                  @relation(fields: [rolId], references: [id], onDelete: Restrict)
-  empleado      Empleado?            @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
-  resetTokens   PasswordResetToken[]
+  rol                            Rol                  @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  empleado                       Empleado?            @relation(fields: [empleadoId], references: [id], onDelete: SetNull)
+  resetTokens                    PasswordResetToken[]
+  historialesCustodiaAutorizados HistorialCustodia[]
+  historialesBajasAutorizados    HistorialBaja[]
 
   @@index([correo])
   @@index([empleadoId])
@@ -84,16 +86,19 @@ model PasswordResetToken {
 }
 
 model Departamento {
-  id            String       @id @default(uuid()) @db.VarChar(36)
-  codigo        String       @unique @db.VarChar(10)
-  descripcion   String       @db.VarChar(120)
-  responsableId String?      @map("responsable_id") @db.VarChar(36)
-  estado        String       @default("ACTIVO") @db.VarChar(10)
-  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  id                          String              @id @default(uuid()) @db.VarChar(36)
+  codigo                      String              @unique @db.VarChar(10)
+  descripcion                 String              @db.VarChar(120)
+  responsableId               String?             @map("responsable_id") @db.VarChar(36)
+  estado                      String              @default("ACTIVO") @db.VarChar(10)
+  createdAt                   DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                   DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
-  responsable   Empleado?    @relation("DepartamentoResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
-  empleados     Empleado[]   @relation("DepartamentoEmpleados")
+  responsable                 Empleado?           @relation("DepartamentoResponsable", fields: [responsableId], references: [id], onDelete: SetNull)
+  empleados                   Empleado[]          @relation("DepartamentoEmpleados")
+  activos                     ActivoFijo[]
+  historialesCustodiaAnterior HistorialCustodia[] @relation("CustodiaDepartamentoAnterior")
+  historialesCustodiaNuevo    HistorialCustodia[] @relation("CustodiaDepartamentoNuevo")
 
   @@index([codigo])
   @@index([estado])
@@ -101,9 +106,9 @@ model Departamento {
 }
 
 model TipoActivo {
-  id                         String       @id @default(uuid()) @db.VarChar(36)
-  codigo                    String       @unique @db.VarChar(10)
-  descripcion                String       @db.VarChar(150)
+  id                          String       @id @default(uuid()) @db.VarChar(36)
+  codigo                      String       @unique @db.VarChar(10)
+  descripcion                 String       @db.VarChar(150)
   cuentaContableCompra        String       @map("cuenta_contable_compra") @db.VarChar(20)
   cuentaContableDepreciacion  String       @map("cuenta_contable_depreciacion") @db.VarChar(20)
   metodoDepreciacion          String       @default("LINEA_RECTA") @map("metodo_depreciacion") @db.VarChar(20)
@@ -113,34 +118,116 @@ model TipoActivo {
   createdAt                   DateTime     @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
+  activos                     ActivoFijo[]
+
   @@index([codigo])
   @@index([estado])
   @@map("tipos_activos")
 }
 
 model Empleado {
-  id                        String         @id @default(uuid()) @db.VarChar(36)
-  codigo                    String         @unique @db.VarChar(10)
-  nombre                    String         @db.VarChar(100)
-  apellido                  String         @db.VarChar(100)
-  tipoPersona               String         @default("FISICA") @map("tipo_persona") @db.VarChar(10)
-  cedula                    String         @unique @db.VarChar(15)
-  departamentoId            String         @map("departamento_id") @db.VarChar(36)
-  cargo                     String         @db.VarChar(100)
-  correo                    String?        @db.VarChar(150)
-  telefono                  String?        @db.VarChar(20)
-  fechaIngreso              DateTime       @map("fecha_ingreso") @db.Date
-  estado                    String         @default("ACTIVO") @db.VarChar(10)
-  createdAt                 DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt                 DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  id                          String              @id @default(uuid()) @db.VarChar(36)
+  codigo                      String              @unique @db.VarChar(10)
+  nombre                      String              @db.VarChar(100)
+  apellido                    String              @db.VarChar(100)
+  tipoPersona                 String              @default("FISICA") @map("tipo_persona") @db.VarChar(10)
+  cedula                      String              @unique @db.VarChar(15)
+  departamentoId              String              @map("departamento_id") @db.VarChar(36)
+  cargo                       String              @db.VarChar(100)
+  correo                      String?             @db.VarChar(150)
+  telefono                    String?             @db.VarChar(20)
+  fechaIngreso                DateTime            @map("fecha_ingreso") @db.Date
+  estado                      String              @default("ACTIVO") @db.VarChar(10)
+  createdAt                   DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                   DateTime            @updatedAt @map("updated_at") @db.Timestamptz
 
-  departamento              Departamento   @relation("DepartamentoEmpleados", fields: [departamentoId], references: [id], onDelete: Restrict)
-  departamentosResponsable  Departamento[] @relation("DepartamentoResponsable")
-  usuarios                  Usuario[]
+  departamento                Departamento        @relation("DepartamentoEmpleados", fields: [departamentoId], references: [id], onDelete: Restrict)
+  departamentosResponsable    Departamento[]      @relation("DepartamentoResponsable")
+  usuarios                    Usuario[]
+  activos                     ActivoFijo[]
+  historialesCustodiaAnterior HistorialCustodia[] @relation("CustodiaEmpleadoAnterior")
+  historialesCustodiaNuevo    HistorialCustodia[] @relation("CustodiaEmpleadoNuevo")
 
   @@index([codigo])
   @@index([cedula])
   @@index([departamentoId])
   @@index([estado])
   @@map("empleados")
+}
+
+model ActivoFijo {
+  id                    String              @id @default(uuid()) @db.VarChar(36)
+  codigo                String              @unique @db.VarChar(20)
+  descripcion           String              @db.VarChar(255)
+  tipoActivoId          String              @map("tipo_activo_id") @db.VarChar(36)
+  departamentoId        String              @map("departamento_id") @db.VarChar(36)
+  empleadoId            String              @map("empleado_id") @db.VarChar(36)
+  fechaAdquisicion      DateTime            @map("fecha_adquisicion") @db.Date
+  costoAdquisicion      Decimal             @map("costo_adquisicion") @db.Decimal(14, 2)
+  valorResidual         Decimal             @default(0.00) @map("valor_residual") @db.Decimal(14, 2)
+  depreciacionAcumulada Decimal             @default(0.00) @map("depreciacion_acumulada") @db.Decimal(14, 2)
+  valorEnLibros         Decimal             @map("valor_en_libros") @db.Decimal(14, 2)
+  estado                String              @default("ACTIVO") @db.VarChar(20)
+  marca                 String?             @db.VarChar(100)
+  modelo                String?             @db.VarChar(100)
+  numeroSerie           String?             @map("numero_serie") @db.VarChar(100)
+  ubicacionFisica       String?             @map("ubicacion_fisica") @db.VarChar(255)
+  color                 String?             @db.VarChar(50)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  tipoActivo            TipoActivo          @relation(fields: [tipoActivoId], references: [id], onDelete: Restrict)
+  departamento          Departamento        @relation(fields: [departamentoId], references: [id], onDelete: Restrict)
+  empleado              Empleado            @relation(fields: [empleadoId], references: [id], onDelete: Restrict)
+  historialesCustodia   HistorialCustodia[]
+  historialBaja         HistorialBaja?
+
+  @@index([codigo])
+  @@index([departamentoId])
+  @@index([empleadoId])
+  @@index([tipoActivoId])
+  @@index([estado])
+  @@index([numeroSerie])
+  @@map("activos_fijos")
+}
+
+model HistorialCustodia {
+  id                     String        @id @default(uuid()) @db.VarChar(36)
+  activoId               String        @map("activo_id") @db.VarChar(36)
+  empleadoAnteriorId     String?       @map("empleado_anterior_id") @db.VarChar(36)
+  empleadoNuevoId        String        @map("empleado_nuevo_id") @db.VarChar(36)
+  departamentoAnteriorId String?       @map("departamento_anterior_id") @db.VarChar(36)
+  departamentoNuevoId    String        @map("departamento_nuevo_id") @db.VarChar(36)
+  motivo                 String        @db.VarChar(30)
+  justificacion          String        @db.Text
+  autorizadoPorId        String        @map("autorizado_por_id") @db.VarChar(36)
+  createdAt              DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  activo                 ActivoFijo    @relation(fields: [activoId], references: [id], onDelete: Cascade)
+  empleadoAnterior       Empleado?     @relation("CustodiaEmpleadoAnterior", fields: [empleadoAnteriorId], references: [id], onDelete: Restrict)
+  empleadoNuevo          Empleado      @relation("CustodiaEmpleadoNuevo", fields: [empleadoNuevoId], references: [id], onDelete: Restrict)
+  departamentoAnterior   Departamento? @relation("CustodiaDepartamentoAnterior", fields: [departamentoAnteriorId], references: [id], onDelete: Restrict)
+  departamentoNuevo      Departamento  @relation("CustodiaDepartamentoNuevo", fields: [departamentoNuevoId], references: [id], onDelete: Restrict)
+  autorizadoPor          Usuario       @relation(fields: [autorizadoPorId], references: [id], onDelete: Restrict)
+
+  @@index([activoId, createdAt(sort: Desc)])
+  @@map("historial_custodia")
+}
+
+model HistorialBaja {
+  id                  String     @id @default(uuid()) @db.VarChar(36)
+  activoId            String     @unique @map("activo_id") @db.VarChar(36)
+  motivoBaja          String     @map("motivo_baja") @db.VarChar(30)
+  justificacion       String     @db.Text
+  numeroActa          String     @map("numero_acta") @db.VarChar(50)
+  fechaBaja           DateTime   @map("fecha_baja") @db.Date
+  valorEnLibrosAlBaja Decimal    @map("valor_en_libros_al_baja") @db.Decimal(14, 2)
+  autorizadoPorId     String     @map("autorizado_por_id") @db.VarChar(36)
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz
+
+  activo              ActivoFijo @relation(fields: [activoId], references: [id], onDelete: Restrict)
+  autorizadoPor       Usuario    @relation(fields: [autorizadoPorId], references: [id], onDelete: Restrict)
+
+  @@index([activoId])
+  @@map("historial_bajas")
 }

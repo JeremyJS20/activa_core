@@ -67,10 +67,10 @@ graph TD
 ### Task 1.1: Esquema de Base de Datos Prisma (`schema.prisma`) y Migración DDL (~1.5h)
 - **Description:** Extender el esquema Prisma (`app/prisma/schema.prisma`) incorporando los modelos `ActivoFijo`, `HistorialCustodia` e `HistorialBaja`, definiendo claves foráneas hacia `TipoActivo`, `Departamento`, `Empleado` y `Usuario`, tipos monetarios `Decimal(14,2)` y los 8 índices B-Tree de consulta rápida.
 - **Acceptance criteria:**
-  - [ ] Modelo `ActivoFijo` implementado con campos obligatorios (`codigo`, `descripcion`, `costoAdquisicion`, `valorResidual`, `depreciacionAcumulada`, `valorEnLibros`, `estado`) y metadatos físicos (`marca`, `modelo`, `numeroSerie`).
-  - [ ] Modelo `HistorialCustodia` implementado con estructura append-only (`empleadoAnteriorId`, `empleadoNuevoId`, `departamentoAnteriorId`, `departamentoNuevoId`, `motivo`, `justificacion`, `autorizadoPorId`).
-  - [ ] Modelo `HistorialBaja` implementado con `activoId` único, `motivoBaja`, `justificacion`, `numeroActa`, `fechaBaja` y `autorizadoPorId`.
-  - [ ] Migración generada y aplicada con éxito (`prisma migrate dev --name add_gestion_activos_custodia`).
+  - [x] Modelo `ActivoFijo` implementado con campos obligatorios (`codigo`, `descripcion`, `costoAdquisicion`, `valorResidual`, `depreciacionAcumulada`, `valorEnLibros`, `estado`) y metadatos físicos (`marca`, `modelo`, `numeroSerie`).
+  - [x] Modelo `HistorialCustodia` implementado con estructura append-only (`empleadoAnteriorId`, `empleadoNuevoId`, `departamentoAnteriorId`, `departamentoNuevoId`, `motivo`, `justificacion`, `autorizadoPorId`).
+  - [x] Modelo `HistorialBaja` implementado con `activoId` único, `motivoBaja`, `justificacion`, `numeroActa`, `fechaBaja` y `autorizadoPorId`.
+  - [x] Migración generada y aplicada con éxito (`prisma migrate dev --name add_gestion_activos_custodia`).
 - **Dependencies:** Sub-módulo 00 (Prisma & DB setup) y Sub-módulo 01 (Catálogos base)
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 
