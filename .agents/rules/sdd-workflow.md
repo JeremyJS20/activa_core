@@ -135,20 +135,26 @@ The agent detects what phase of work it is in:
    - **Stack & Architecture Decision**:
      - Based on the elicited domain, propose the optimal stack (Frontend, Backend, Database, Cloud/Infra) and folder conventions.
      - Present pros/cons and justifications.
+     - **UI / UX Design System Definition (MANDATORY for frontend projects)**:
+       - Propose the design persona, theme narrative (e.g. Institutional Authority), dual-mode tokens, typographic triad, and console layout shell.
+       - Author master `DESIGN.md` in repository root (or `docs/architecture/design-system.md`) based on `specs/_templates/design-system-template.md`.
+       - Await explicit human approval of the visual identity before scaffolding Wave 0.
      - On human approval, record as a `Decision` entity in `server-memory`.
-2. **Initial Spec Creation**:
-   - Follow `spec-generation-protocol.md` Mode 1 (Forward Spec) under `specs/initial-setup/` or `specs/{AB#id-setup}/`:
-   - `requirements.md`: Core MVP requirements, actors, scope.
-   - `design.md`: Architecture, project folder structure, database schema, deployment strategy.
-   - `tasks.md`: Broken down into Waves:
-     - **Wave 0 (Scaffolding / Subfolder Isolation)**: Framework init into a dedicated subfolder (`app/` or `apps/{name}/`), linters, TypeScript config, testing setup, preserve SDD root files, CI/CD pipeline setup, configure `app_dir` in `.sdd-config.json`.
-     - **Wave 1**: Core data models & migrations.
-     - **Wave 2**: Core backend services / APIs.
-     - **Wave 3**: Core UI layout / screens.
+2. **Scope Classification & Modular Decomposition (MANDATORY GATE 11)**:
+   - **Single Feature vs. Multi-Workflow System Check**: Evaluate whether the greenfield project is a single-purpose utility/tool or a multi-workflow business system (e.g. Fixed Assets, Payroll, Invoicing, ERP, E-commerce, Inventory).
+   - **Anti-Monolith Mandate**: For Multi-Workflow Systems, the agent is **STRICTLY FORBIDDEN** from dumping all MVP requirements into a single monolithic spec (e.g. `specs/initial-setup/requirements.md`, `specs/mvp/requirements.md`, or `specs/{system}-core/requirements.md`).
+   - **Protocol for Multi-Workflow Systems**:
+     1. Propose the modular sub-feature breakdown: `specs/{system}/01-{submodule}/`, `specs/{system}/02-{submodule}/`, etc.
+     2. Await explicit human approval of the modular architecture.
+     3. Initialize `docs/modules/{system}.md` documenting the full domain architecture, ERD, state machines, and capability matrix.
+     4. Scaffold Wave 0 (Application Subfolder Scaffolding in `app/`).
+     5. Author `requirements.md` ONLY for Sub-module 01 (`specs/{system}/01-{submodule}/requirements.md`).
+   - **Protocol for Single-Purpose Utilities**: Author `specs/{feature}/requirements.md` using standard template.
 3. **Scaffolding Execution (Wave 0 & Subfolder Isolation)**:
    - **Application Subfolder Isolation**: To avoid mixing SDD orchestration files (`.agents/`, `.opencode/`, `specs/`, `docs/`, `.sdd-memory/`, `.sdd-*`, `sdd-init.sh`) with application source code and runtime dependencies (`node_modules/`, `.venv/`, `dist/`), the application SHALL be scaffolded inside a dedicated application directory (e.g. `app/`, `apps/{name}/`, or `{app-name}/`).
    - Run framework setup commands targeting the subfolder (e.g. `npx create-next-app@latest app`, `npm create vite@latest app`, `nest new app`, `cargo new app`) with explicit human approval.
    - Configure `"app_dir": "app"` in `.sdd-config.json` so prechecks, linters, and start commands know where the application root resides.
+   - Wire design tokens into `app/tailwind.config.ts` and global CSS (`app/globals.css`) matching the approved `DESIGN.md` specification.
    - Preserve existing root `.gitignore`, SDD rules, and configuration during scaffolding.
 4. **Codebase Indexing**:
    - Immediately run `codebase-memory index_repository` on the newly scaffolded codebase.
@@ -191,7 +197,7 @@ specs/
 ```
 
 ### B. Modular Macro-Feature / Full Domain Module
-When a module covers multiple distinct workflows, screens, or regulatory domains (e.g. Payroll, Billing), it SHALL be decomposed into modular sub-specs:
+When a module covers multiple distinct workflows, screens, or regulatory domains (e.g. Payroll, Billing, Fixed Assets, Inventory), it SHALL be decomposed into modular sub-specs:
 ```text
 specs/payroll/
 ├── 01-cycles-and-calculation/
@@ -208,6 +214,10 @@ specs/payroll/
 │   └── tasks.md
 └── ...
 ```
+
+> ⚠️ **STRICT PROHIBITION (Hard Gate 11)**:
+> Creating monolithic folders such as `specs/{module}-core/`, `specs/mvp/`, or `specs/{system}/` containing a single `requirements.md` that aggregates all entities and workflows of a multi-capability system is a CRITICAL VIOLATION of Hard Gate 11.
+> The agent MUST decompose into sequential numbered sub-features (`01-...`, `02-...`), obtain approval for the breakdown, and author specs strictly one sub-feature at a time.
 
 ## Template usage (MANDATORY)
 Every spec file MUST be based on the corresponding template:
@@ -403,12 +413,14 @@ When a feature or sub-feature specification is completed and approved:
 | 8 | Create tasks.md for a Bug (bugs don't need tasks) | BLOCK |
 | 9 | Link Bug Work Item as the parent Feature/Spec ID in requirements.md or design.md | BLOCK |
 | 10 | Advance to next spec phase (design.md / tasks.md) without explicit human approval | BLOCK |
-| 11 | Dump a multi-workflow Macro-Feature into a single monolithic spec without decomposition | BLOCK |
+| 11 | Dump a multi-workflow Macro-Feature into a single monolithic spec (e.g. *-core/, mvp/, all-in-one) without modular decomposition | BLOCK |
 | 12 | Generate superficial, brief, or placeholder-ridden documentation without exhaustive technical detail | BLOCK |
 | 13 | Create downstream artifact (design.md / tasks.md / code) while upstream artifact header still contains "[pending]" | BLOCK |
 | 14 | Cascade a single approval across multiple artifacts, or stamp approval on an artifact not explicitly named by the user | BLOCK |
 | 15 | Corrupt file encoding or introduce mojibake via non-UTF-8 tools (e.g. raw PowerShell redirection) | BLOCK |
 | 16 | Update docs/modules/{module}.md without synchronizing all 3 master diagrams (State Machine, Component Flow, ERD) or leaving corrupted table rows | BLOCK |
+| 17 | Implement UI components or frontend screens without a defined design system (DESIGN.md), producing generic boilerplate, or introducing AI UI slop clichés | BLOCK |
+| 18 | Propose or begin subsequent task while current task in tasks.md remains unchecked [ ] or uncommitted (batch closing anti-pattern) | BLOCK |
 
 ## What happens when a block is triggered
 1. STOP immediately — do not proceed
@@ -427,12 +439,14 @@ When a feature or sub-feature specification is completed and approved:
 - Gate 8: Bugs don't need tasks.md — go directly to fix
 - Gate 9: Specs are ONLY for Features, Epics, or User Stories/PBIs. NEVER put Bug IDs as the primary Work Item of a spec. If no Feature/PBI exists in ADO, set "Work Item: Pending (No PBI/Feature assigned in ADO yet)". Historical bugs found in Git history belong only in a dedicated "Historical Bugs Resolved" context section.
 - Gate 10: Wait for explicit approval from the user ("Approved", "Aprobado", "Proceed"). NEVER advance if the user made a question, complaint, or continuation without explicit approval.
-- Gate 11: Decompose the macro-feature into modular sub-features under `specs/{module}/{sub-feature}/`. Propose the breakdown first and tackle one sub-feature at a time.
+- Gate 11: Stop immediately and delete/split the monolithic spec. Classify the system into domain sub-modules under `specs/{module}/01-{submodule}/`, `02-{submodule}/`, etc. Propose the decomposition breakdown to the user, obtain explicit approval, initialize `docs/modules/{module}.md`, and author requirements ONLY for Sub-module 01.
 - Gate 12: Redraft documentation with exhaustive technical depth: full DDL schemas with column types, nullability, constraints; complete API contracts with real request/response JSONs and HTTP error codes; exact mathematical formulas; and rendered Mermaid diagrams. Ban 'etc.', 'TODO', or summarized placeholders.
 - Gate 13: Stamp the upstream artifact's header with the formal human approval (`> ✅ Approved by: [Approver Name / Role] · [YYYY-MM-DD]`) BEFORE creating or proposing the downstream artifact. Never leave `[pending]` in an approved artifact.
 - Gate 14: Obtain explicit, independent approval for EACH artifact individually. Approval for requirements.md NEVER authorizes design.md. Approval for design.md NEVER authorizes tasks.md. Colloquial words ("dale", "continúa", "ok") apply ONLY to the single artifact currently under review.
 - Gate 15: Restore clean UTF-8 encoding and use safe tools (replace_file_content, write_to_file, or Node.js UTF-8) for all file mutations. Ban raw PowerShell stream redirection.
 - Gate 16: Fully synchronize all 3 master diagrams (Section 3.1 stateDiagram-v2, Section 3.2 flowchart, Section 4 erDiagram) in docs/modules/{module}.md to reflect certified sub-module changes (new sub-states, engines/resolvers, entities), and eliminate empty lines or malformed rows in Markdown tables.
+- Gate 17: Establish a formal Design System specification (`DESIGN.md` in repository root or `docs/architecture/design-system.md` using `design-system-template.md`). Define the aesthetic theme narrative, dual-mode color tokens (Canvas, Surface, Inset, Text, Ghost Borders), the "No-Line" spatial layout rule, the typographic triad (Display, Sans, Monospace for codes/numbers), and interactive component states before implementing frontend code. Mandate shared domain layout shells (e.g. `(auth)/layout.tsx`) for multi-page flows to prevent layout drift between sibling routes. Ban generic unstyled Bootstrap/shadcn boilerplate and strictly prohibit AI UI clichés (fake security badges, redundant input icons, demo credential boxes, centered card in a void, border obsession, OS dark mode desync).
+- Gate 18: Immediately complete the atomic Definition of Done (DoD) for the active task: execute automated verification/tests, mark all acceptance criteria `[x]` in `tasks.md`, set status to `COMPLETED`, and create the Git commit BEFORE proposing or starting the next task. Never defer task closing to the end of waves.
 
 ## What NEVER to do
 - DO NOT bypass gates even if the user says "just do it"

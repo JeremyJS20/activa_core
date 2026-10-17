@@ -1,8 +1,10 @@
 {
   "role": "developer",
-  "ides": ["antigravity"],
+  "ides": [
+    "antigravity"
+  ],
   "spec_prefix": "AB#",
-  "app_dir": "",
+  "app_dir": "app",
   "host": "none",
   "project_host": "none",
   "azure_devops_org": "",
@@ -37,9 +39,21 @@
     "initial_version": "1.0.0"
   },
   "environments": {
-    "local": { "url": "", "start_command": "" },
-    "dev":   { "branch": "develop", "url": "" },
-    "qa":    { "branch": "qa",      "url": "" },
-    "prod":  { "branch": "main",    "url": "" }
+    "local": {
+      "url": "",
+      "start_command": ""
+    },
+    "dev": {
+      "branch": "develop",
+      "url": ""
+    },
+    "qa": {
+      "branch": "qa",
+      "url": ""
+    },
+    "prod": {
+      "branch": "main",
+      "url": ""
+    }
   }
 }

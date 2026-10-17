@@ -19,3 +19,7 @@ coverage/
 app/coverage/
 .DS_Store
 Thumbs.db
+
+app/.env
+app/.env*
+!app/.env.example

@@ -1,0 +1,314 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { AssetTable, AssetRow } from "@/components/activos/asset-table";
+import { AssetDialog } from "@/components/activos/asset-dialog";
+import { TransferDialog } from "@/components/activos/transfer-dialog";
+import { DisposalDialog } from "@/components/activos/disposal-dialog";
+import { AssetBadgePrint } from "@/components/activos/asset-badge-print";
+import { Layers, AlertCircle, CheckCircle2 } from "lucide-react";
+
+export interface ActivosContentProps {
+  initialRole?: string;
+  initialPermisos?: string[];
+}
+
+export function ActivosContent({
+  initialRole,
+  initialPermisos = [],
+}: ActivosContentProps = {}) {
+  const { data: session } = useSession();
+  const userPermisos = session?.user?.permisos || initialPermisos;
+  const userRole = session?.user?.rol?.codigo || initialRole;
+
+  const canOperate =
+    userRole === "ADMIN" ||
+    userPermisos.includes("USER_ADMIN") ||
+    userPermisos.includes("ACT_OPERATE") ||
+    userPermisos.includes("ACT_CREATE");
+
+  const canDispose =
+    userRole === "ADMIN" || userPermisos.includes("USER_ADMIN");
+
+  // Estados de datos
+  const [assets, setAssets] = useState<AssetRow[]>([]);
+  const [departamentos, setDepartamentos] = useState<any[]>([]);
+  const [tiposActivos, setTiposActivos] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Estados de modales
+  const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
+  const [selectedAssetToEdit, setSelectedAssetToEdit] = useState<AssetRow | null>(null);
+
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [selectedAssetToTransfer, setSelectedAssetToTransfer] = useState<AssetRow | null>(null);
+
+  const [isDisposalDialogOpen, setIsDisposalDialogOpen] = useState(false);
+  const [selectedAssetToDispose, setSelectedAssetToDispose] = useState<AssetRow | null>(null);
+
+  const [isBadgePrintOpen, setIsBadgePrintOpen] = useState(false);
+  const [selectedAssetToPrint, setSelectedAssetToPrint] = useState<AssetRow | null>(null);
+
+  // Estados de paginación y filtros
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [departamentoFilter, setDepartamentoFilter] = useState("TODOS");
+  const [tipoActivoFilter, setTipoActivoFilter] = useState("TODOS");
+  const [estadoFilter, setEstadoFilter] = useState("TODOS");
+
+  // Toast local de notificación
+  const [toast, setToast] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const showToast = (type: "success" | "error", text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // Cargar catálogos base para los filtros
+  useEffect(() => {
+    async function loadCatalogs() {
+      try {
+        const [resDept, resTipos] = await Promise.all([
+          fetch("/api/departamentos?limit=100&estado=ACTIVO"),
+          fetch("/api/tipos-activos?limit=100&estado=ACTIVO"),
+        ]);
+        if (resDept.ok) {
+          const json = await resDept.json();
+          setDepartamentos(json.data || []);
+        }
+        if (resTipos.ok) {
+          const json = await resTipos.json();
+          setTiposActivos(json.data || []);
+        }
+      } catch (err) {
+        console.error("Error al cargar catálogos auxiliares:", err);
+      }
+    }
+    loadCatalogs();
+  }, []);
+
+  // Cargar inventario de activos fijos
+  const fetchAssets = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("pageSize", String(pageSize));
+      if (search.trim()) params.set("search", search.trim());
+      if (departamentoFilter !== "TODOS") params.set("departamentoId", departamentoFilter);
+      if (tipoActivoFilter !== "TODOS") params.set("tipoActivoId", tipoActivoFilter);
+      if (estadoFilter !== "TODOS") params.set("estado", estadoFilter);
+
+      const res = await fetch("/api/activos?" + params.toString());
+      if (!res.ok) throw new Error("No fue posible cargar el inventario de activos.");
+
+      const json = await res.json();
+      setAssets(json.data || []);
+      setTotalCount(json.pagination?.total || 0);
+      setTotalPages(json.pagination?.totalPages || 1);
+    } catch (err: any) {
+      console.error("[ACTIVOS_FETCH] Error:", err);
+      showToast("error", err.message || "Error al consultar activos fijos.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, pageSize, search, departamentoFilter, tipoActivoFilter, estadoFilter]);
+
+  useEffect(() => {
+    fetchAssets();
+  }, [fetchAssets]);
+
+  // Manejadores de acciones
+  const handleDownloadPdf = (asset: AssetRow) => {
+    const url = `/api/activos/${asset.id}/acta-entrega`;
+    window.open(url, "_blank");
+    showToast("success", `Iniciando descarga de Acta de Entrega para ${asset.codigo}...`);
+  };
+
+  const handleViewDetail = (asset: AssetRow) => {
+    setSelectedAssetToEdit(asset);
+    setIsAssetDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setSelectedAssetToEdit(null);
+    setIsAssetDialogOpen(true);
+  };
+
+  const handleEdit = (asset: AssetRow) => {
+    setSelectedAssetToEdit(asset);
+    setIsAssetDialogOpen(true);
+  };
+
+  const handleAssetSaved = (savedAsset: any) => {
+    showToast(
+      "success",
+      selectedAssetToEdit
+        ? `Activo ${savedAsset?.codigo || selectedAssetToEdit.codigo} actualizado satisfactoriamente.`
+        : `Activo ${savedAsset?.codigo || ""} registrado satisfactoriamente.`
+    );
+    fetchAssets();
+  };
+
+  const handleTransfer = (asset: AssetRow) => {
+    setSelectedAssetToTransfer(asset);
+    setIsTransferDialogOpen(true);
+  };
+
+  const handleDispose = (asset: AssetRow) => {
+    setSelectedAssetToDispose(asset);
+    setIsDisposalDialogOpen(true);
+  };
+
+  const handlePrintMarbete = (asset: AssetRow) => {
+    setSelectedAssetToPrint(asset);
+    setIsBadgePrintOpen(true);
+  };
+  return (
+    <div className="p-6 sm:p-8 lg:p-10">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Toast Notificación */}
+        {toast && (
+          <div
+            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg border flex items-center gap-3 text-sm animate-in fade-in slide-in-from-bottom-4 duration-200 ${
+              toast.type === "success"
+                ? "bg-emerald-50 text-emerald-900 border-emerald-200"
+                : "bg-rose-50 text-rose-900 border-rose-200"
+            }`}
+          >
+            {toast.type === "success" ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            )}
+            <span className="font-medium">{toast.text}</span>
+          </div>
+        )}
+
+        {/* Encabezado Institucional del Módulo */}
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#003D9B] uppercase tracking-wider font-mono mb-1">
+              <Layers className="w-4 h-4" />
+              <span>Gestión de Bienes Institucionales</span>
+            </div>
+            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#1B2A4A] tracking-tight">
+              Inventario de Activos Fijos
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Control de bienes físicos, custodios departamentales, códigos correlativos y categorías fiscales DGII.
+            </p>
+          </div>
+        </div>
+
+        {/* Grilla Principal de Inventario */}
+        <AssetTable
+          assets={assets}
+          isLoading={isLoading}
+          totalCount={totalCount}
+          page={page}
+          pageSize={pageSize}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          searchValue={search}
+          onSearchChange={(s) => {
+            setSearch(s);
+            setPage(1);
+          }}
+          departamentos={departamentos}
+          tiposActivos={tiposActivos}
+          departamentoFilter={departamentoFilter}
+          onDepartamentoChange={(dept) => {
+            setDepartamentoFilter(dept);
+            setPage(1);
+          }}
+          tipoActivoFilter={tipoActivoFilter}
+          onTipoActivoChange={(tipo) => {
+            setTipoActivoFilter(tipo);
+            setPage(1);
+          }}
+          estadoFilter={estadoFilter}
+          onEstadoChange={(est) => {
+            setEstadoFilter(est);
+            setPage(1);
+          }}
+          onAddNew={handleAddNew}
+          canOperate={canOperate}
+          canDispose={canDispose}
+          onViewDetail={handleViewDetail}
+          onTransfer={handleTransfer}
+          onEdit={handleEdit}
+          onDispose={handleDispose}
+          onPrintMarbete={handlePrintMarbete}
+          onDownloadPdf={handleDownloadPdf}
+          onRefresh={fetchAssets}
+        />
+
+        {/* Modal de Alta y Edición de Activo Fijo */}
+        <AssetDialog
+          isOpen={isAssetDialogOpen}
+          onClose={() => {
+            setIsAssetDialogOpen(false);
+            setSelectedAssetToEdit(null);
+          }}
+          onSaved={handleAssetSaved}
+          assetToEdit={selectedAssetToEdit}
+          departamentos={departamentos}
+          tiposActivos={tiposActivos}
+        />
+
+        {/* Modal de Traslado de Custodia y Asignación Departamental */}
+        <TransferDialog
+          isOpen={isTransferDialogOpen}
+          onClose={() => {
+            setIsTransferDialogOpen(false);
+            setSelectedAssetToTransfer(null);
+          }}
+          onSuccess={() => {
+            showToast(
+              "success",
+              `Traslado de custodia para ${selectedAssetToTransfer?.codigo || "activo"} completado satisfactoriamente.`
+            );
+            fetchAssets();
+          }}
+          asset={selectedAssetToTransfer}
+          departamentos={departamentos}
+        />
+
+        {/* Modal de Desincorporación y Baja Formal */}
+        <DisposalDialog
+          isOpen={isDisposalDialogOpen}
+          onClose={() => {
+            setIsDisposalDialogOpen(false);
+            setSelectedAssetToDispose(null);
+          }}
+          onSuccess={() => {
+            showToast(
+              "success",
+              `El activo ${selectedAssetToDispose?.codigo || ""} ha sido dado de baja formalmente.`
+            );
+            fetchAssets();
+          }}
+          asset={selectedAssetToDispose}
+          canDispose={canDispose}
+        />
+
+        {/* Modal y Vista de Impresión de Marbete Físico */}
+        <AssetBadgePrint
+          isOpen={isBadgePrintOpen}
+          onClose={() => {
+            setIsBadgePrintOpen(false);
+            setSelectedAssetToPrint(null);
+          }}
+          asset={selectedAssetToPrint}
+        />
+      </div>
+    </div>
+    
+  );
+}

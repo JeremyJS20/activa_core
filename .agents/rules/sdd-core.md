@@ -18,12 +18,14 @@ trigger: always_on
 8. No editing protected files (.agents/mcp_config.json, .sdd-config.json, .sdd-credentials.json, etc.)
 9. Bug != Feature — different flows, never put bug IDs as spec identity
 10. Requirements from Functional Package (primary) or ADO (fallback)
-11. Anti-Monolith — decompose macro-features into modular sub-features
+11. Anti-Monolith — decompose macro-features into modular sub-features (specs/{module}/01-..., 02-...). NEVER create a single monolithic requirements.md (e.g. *-core or mvp) for a multi-workflow system. Propose breakdown first, approve, then author Sub-module 01.
 12. Anti-Superficiality — documentation must have exhaustive engineering depth (no 'etc.', no placeholders, full DDL/APIs/formulas)
 13. Approval Stamp — Upstream artifact must be stamped with approver name and date before generating downstream artifact
 14. Anti-Cascading Approval — 1:1 approval per artifact, approval for requirements NEVER implies approval for design or tasks
 15. UTF-8 Clean Encoding — all file mutations must use UTF-8, no raw PowerShell stream redirection
 16. Living Master Diagram Sync — Module master diagrams (State Machine, Flowchart, ERD) must evolve when sub-modules are integrated
+17. Anti-Generic UI — frontend applications must define a formal design system (DESIGN.md) with dual-mode tokens, No-Line layout, and typographic triad. Multi-page flows MUST use shared layout shells (e.g. (auth)/layout.tsx) to prevent layout drift. Generic unstyled Bootstrap/shadcn and AI UI clichés (fake security badges, redundant input icons, demo credential boxes, centered card in a void, border obsession, OS dark mode desync) are strictly forbidden.
+18. Atomic Task Closing — tasks must be verified, checked [x] in tasks.md, and committed immediately before proposing the next task. Batch closing at the end of waves is strictly forbidden.
 
 ## MCP checkpoints (MANDATORY — full detail in sdd-tool-protocol)
 - Session start: server-memory read → report "🧠 Memoria: …"; codebase-memory index check → report "🗺️ Grafo: …"
