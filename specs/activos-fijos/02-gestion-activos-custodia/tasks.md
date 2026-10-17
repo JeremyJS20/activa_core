@@ -154,10 +154,10 @@ graph TD
 ### Task 3.1: Vista Principal de Inventario de Activos Fijos (`/activos`) (~2h)
 - **Description:** Desarrollar la interfaz principal de inventario en `app/app/activos/page.tsx`, utilizando la tabla de datos reutilizable con barra de búsqueda instantánea (debounce de 200ms), filtros combinados por Departamento, Tipo de Activo, Custodio y Estado, badges de estado de color diferenciado, paginador server-side y botones de acción.
 - **Acceptance criteria:**
-  - [ ] Ruta `/activos` renderiza la grilla de inventario con paginación server-side reactiva.
-  - [ ] Búsqueda por texto filtra en tiempo real por código, descripción o número de serie.
-  - [ ] Badges visuales identifican claramente estados (`ACTIVO` en verde, `EN_MANTENIMIENTO` en amarillo, `DADO_DE_BAJA` en rojo).
-  - [ ] Menú de acciones por fila permite: Ver Detalle, Editar, Trasladar, Imprimir Marbete y Dar de Baja (condicional a rol).
+  - [x] Ruta `/activos` renderiza la grilla de inventario con paginación server-side reactiva.
+  - [x] Búsqueda por texto filtra en tiempo real por código, descripción o número de serie.
+  - [x] Badges visuales identifican claramente estados (`ACTIVO` en verde, `EN_MANTENIMIENTO` en amarillo, `DADO_DE_BAJA` en rojo).
+  - [x] Menú de acciones por fila permite: Ver Detalle, Editar, Trasladar, Imprimir Marbete y Dar de Baja (condicional a rol).
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/app/activos/page.tsx`, `app/components/activos/asset-table.tsx`
 
