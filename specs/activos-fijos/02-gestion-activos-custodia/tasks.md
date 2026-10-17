@@ -111,10 +111,10 @@ graph TD
 ### Task 2.1: Endpoints API de Gestión de Activos Fijos (`/api/activos`) (~2h)
 - **Description:** Implementar los Route Handlers para operaciones CRUD de activos fijos, integrando paginación server-side, búsqueda instantánea por código, descripción o número de serie, filtrado multicriterio por departamento, tipo, custodio y estado, creación con código correlativo automático y actualización con bloqueo contable.
 - **Acceptance criteria:**
-  - [ ] `GET /api/activos` retorna listado paginado con relaciones embebidas y filtros combinados.
-  - [ ] `POST /api/activos` valida payload con Zod, crea el activo e inserta la primera entrada en `HistorialCustodia` bajo transacción atómica.
-  - [ ] `GET /api/activos/[id]` retorna ficha técnica completa y bandera `poseeHistorialDepreciacion`.
-  - [ ] `PUT /api/activos/[id]` actualiza metadatos físicos y rechaza con 409 Conflict si se intentan modificar campos financieros en un activo depreciado.
+  - [x] `GET /api/activos` retorna listado paginado con relaciones embebidas y filtros combinados.
+  - [x] `POST /api/activos` valida payload con Zod, crea el activo e inserta la primera entrada en `HistorialCustodia` bajo transacción atómica.
+  - [x] `GET /api/activos/[id]` retorna ficha técnica completa y bandera `poseeHistorialDepreciacion`.
+  - [x] `PUT /api/activos/[id]` actualiza metadatos físicos y rechaza con 409 Conflict si se intentan modificar campos financieros en un activo depreciado.
 - **Dependencies:** Task 1.1, Task 1.2, Task 1.3
 - **Files to create/modify:** `app/app/api/activos/route.ts`, `app/app/api/activos/[id]/route.ts`
 

@@ -1,4 +1,4 @@
-﻿import NextAuth from "next-auth";
+import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import { NextResponse } from "next/server";
 
@@ -17,17 +17,17 @@ export default auth((req) => {
     nextUrl.pathname.startsWith("/restablecer-contrasena") ||
     nextUrl.pathname.startsWith("/restablecer-clave");
 
-  // 1. Eximir rutas internas de autenticación de Auth.js
+  // 1. Eximir rutas internas de autenticacion de Auth.js
   if (isApiAuthRoute) {
     return NextResponse.next();
   }
 
-  // 2. Redirigir al dashboard si el usuario ya está autenticado e intenta acceder a login
+  // 2. Redirigir al dashboard si el usuario ya esta autenticado e intenta acceder a login
   if (isLoggedIn && isPublicRoute) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  // 3. Permitir rutas públicas para usuarios no autenticados
+  // 3. Permitir rutas publicas para usuarios no autenticados
   if (isPublicRoute) {
     return NextResponse.next();
   }
@@ -38,7 +38,7 @@ export default auth((req) => {
       return NextResponse.json(
         {
           error: "UNAUTHORIZED",
-          message: "Autenticación requerida para acceder a este recurso institucional.",
+          message: "Autenticacion requerida para acceder a este recurso institucional.",
         },
         { status: 401 }
       );
@@ -47,7 +47,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL(`/login?callbackUrl=${callbackUrl}`, nextUrl));
   }
 
-  // 5. Validación RBAC para APIs de administración de usuarios y roles
+  // 5. Validacion RBAC para APIs de administracion de usuarios y roles
   if (
     nextUrl.pathname.startsWith("/api/usuarios") ||
     nextUrl.pathname.startsWith("/admin/usuarios")
@@ -66,7 +66,7 @@ export default auth((req) => {
     }
   }
 
-  // 6. Validación RBAC para mutaciones en Catálogos Base
+  // 6. Validacion RBAC para mutaciones en Catalogos Base
   if (
     (nextUrl.pathname.startsWith("/api/departamentos") ||
       nextUrl.pathname.startsWith("/api/empleados") ||
@@ -77,19 +77,27 @@ export default auth((req) => {
       return NextResponse.json(
         {
           error: "FORBIDDEN",
-          message: "No posee privilegios de mutación en catálogos (requiere permiso CAT_WRITE).",
+          message: "No posee privilegios de mutacion en catalogos (requiere permiso CAT_WRITE).",
         },
         { status: 403 }
       );
     }
   }
 
-  // 7. Validación RBAC para mutaciones en Activos Fijos
+  // 7. Validacion RBAC para mutaciones en Activos Fijos
   if (
     nextUrl.pathname.startsWith("/api/activos") &&
     ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)
   ) {
-    if (!userPermisos.includes("ACT_OPERATE") && !userPermisos.includes("USER_ADMIN")) {
+    const hasAssetPermission =
+      userPermisos.includes("ACT_OPERATE") ||
+      userPermisos.includes("ACT_CREATE") ||
+      userPermisos.includes("ACT_UPDATE") ||
+      userPermisos.includes("ACT_TRANSFER") ||
+      userPermisos.includes("ACT_DISPOSE") ||
+      userPermisos.includes("USER_ADMIN");
+
+    if (!hasAssetPermission) {
       return NextResponse.json(
         {
           error: "FORBIDDEN",
@@ -100,7 +108,7 @@ export default auth((req) => {
     }
   }
 
-  // 8. Validación RBAC para ejecución contable o de depreciación
+  // 8. Validacion RBAC para ejecucion contable o de depreciacion
   if (
     (nextUrl.pathname.startsWith("/api/depreciaciones") ||
       nextUrl.pathname.startsWith("/api/contabilidad")) &&
@@ -114,7 +122,7 @@ export default auth((req) => {
       return NextResponse.json(
         {
           error: "FORBIDDEN",
-          message: "No posee privilegios para cálculo de depreciación o asientos contables.",
+          message: "No posee privilegios para calculo de depreciacion o asientos contables.",
         },
         { status: 403 }
       );
@@ -126,6 +134,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
