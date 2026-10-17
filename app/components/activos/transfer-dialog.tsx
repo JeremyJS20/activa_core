@@ -80,7 +80,7 @@ export function TransferDialog({
     async function loadEmpleados() {
       setIsLoadingEmpleados(true);
       try {
-        const res = await fetch("/api/empleados?limit=200&estado=ACTIVO");
+        const res = await fetch("/api/empleados?limit=100&estado=ACTIVO");
         if (res.ok) {
           const json = await res.json();
           if (isMounted) {

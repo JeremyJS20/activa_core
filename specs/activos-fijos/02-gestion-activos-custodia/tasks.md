@@ -207,9 +207,9 @@ graph TD
 ### Task 4.2: Pruebas End-to-End de Humo con Playwright (~2h)
 - **Description:** Desarrollar pruebas E2E de humo en Playwright simulando el flujo operativo completo: alta de un activo institucional, búsqueda y filtrado en la grilla de inventario, reasignación de custodio con descarga de acta PDF, e intento y ejecución de baja formal por un administrador.
 - **Acceptance criteria:**
-  - [ ] Flujo E2E de registro de activo y verificación en tabla ejecutando en modo headless.
-  - [ ] Prueba de traslado valida actualización inmediata del custodio y verifica respuesta del PDF.
-  - [ ] Prueba de baja valida bloqueo permanente del activo y cambio visual del badge a 'DADO_DE_BAJA'.
+  - [x] Flujo E2E de registro de activo y verificación en tabla ejecutando en modo headless.
+  - [x] Prueba de traslado valida actualización inmediata del custodio y verifica respuesta del PDF.
+  - [x] Prueba de baja valida bloqueo permanente del activo y cambio visual del badge a 'DADO_DE_BAJA'.
 - **Dependencies:** Task 3.2, Task 3.3, Task 3.4
 - **Files to create/modify:** `app/e2e/activos-custodia-smoke.spec.ts`
 

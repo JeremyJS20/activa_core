@@ -89,7 +89,7 @@ export function AssetDialog({
     async function loadEmpleados() {
       setIsLoadingEmpleados(true);
       try {
-        const res = await fetch("/api/empleados?limit=200&estado=ACTIVO");
+        const res = await fetch("/api/empleados?limit=100&estado=ACTIVO");
         if (res.ok) {
           const json = await res.json();
           if (isMounted) {
@@ -173,7 +173,16 @@ export function AssetDialog({
       setPoseeHistorialDepreciacion(false);
       setIsLoadingDetail(false);
     }
-  }, [isOpen, assetToEdit, departamentos, tiposActivos]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, assetToEdit]);
+
+  // Preseleccionar primer departamento y tipo de activo si aún estaban cargando al abrir en modo creación
+  useEffect(() => {
+    if (isOpen && !assetToEdit) {
+      if (!departamentoId && departamentos.length > 0) setDepartamentoId(departamentos[0].id);
+      if (!tipoActivoId && tiposActivos.length > 0) setTipoActivoId(tiposActivos[0].id);
+    }
+  }, [isOpen, assetToEdit, departamentos, tiposActivos, departamentoId, tipoActivoId]);
 
   // Filtrado de custodios por departamento seleccionado para facilitar asignación rápida
   const empleadosFiltrados = useMemo(() => {
