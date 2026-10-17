@@ -174,10 +174,10 @@ graph TD
 ### Task 3.3: Modal Transaccional de Traslado y Descarga de Acta PDF (~1.5h)
 - **Description:** Construir el modal de reasignación de custodia `app/components/activos/transfer-dialog.tsx` que permite seleccionar el nuevo custodio y departamento, ingresar la justificación obligatoria y, tras confirmar la transacción, ofrece la descarga inmediata del acta de entrega en PDF.
 - **Acceptance criteria:**
-  - [ ] Muestra custodio y departamento actual como referencia en modo solo lectura.
-  - [ ] Valida que el nuevo custodio o departamento difiera del actual y que la justificación tenga al menos 10 caracteres.
-  - [ ] Al completar el traslado, despliega botón directo 'Descargar Acta de Entrega (PDF)'.
-  - [ ] Refresca la tabla de inventario automáticamente.
+  - [x] Muestra custodio y departamento actual como referencia en modo solo lectura.
+  - [x] Valida que el nuevo custodio o departamento difiera del actual y que la justificación tenga al menos 10 caracteres.
+  - [x] Al completar el traslado, despliega botón directo 'Descargar Acta de Entrega (PDF)'.
+  - [x] Refresca la tabla de inventario automáticamente.
 - **Dependencies:** Task 2.2, Task 2.4, Task 3.1
 - **Files to create/modify:** `app/components/activos/transfer-dialog.tsx`
 

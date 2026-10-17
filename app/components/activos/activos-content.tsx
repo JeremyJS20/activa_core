@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { ConsoleShell } from "@/components/layout/console-shell";
 import { AssetTable, AssetRow } from "@/components/activos/asset-table";
 import { AssetDialog } from "@/components/activos/asset-dialog";
+import { TransferDialog } from "@/components/activos/transfer-dialog";
 import { Layers, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export function ActivosContent() {
@@ -30,6 +31,8 @@ export function ActivosContent() {
   // Estados de modales
   const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
   const [selectedAssetToEdit, setSelectedAssetToEdit] = useState<AssetRow | null>(null);
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [selectedAssetToTransfer, setSelectedAssetToTransfer] = useState<AssetRow | null>(null);
 
   // Estados de paginación y filtros
   const [page, setPage] = useState(1);
@@ -136,7 +139,8 @@ export function ActivosContent() {
   };
 
   const handleTransfer = (asset: AssetRow) => {
-    showToast("success", `Apertura de traslado para el activo ${asset.codigo}...`);
+    setSelectedAssetToTransfer(asset);
+    setIsTransferDialogOpen(true);
   };
 
   const handleDispose = (asset: AssetRow) => {
@@ -242,6 +246,24 @@ export function ActivosContent() {
           assetToEdit={selectedAssetToEdit}
           departamentos={departamentos}
           tiposActivos={tiposActivos}
+        />
+
+        {/* Modal de Traslado de Custodia y Asignación Departamental */}
+        <TransferDialog
+          isOpen={isTransferDialogOpen}
+          onClose={() => {
+            setIsTransferDialogOpen(false);
+            setSelectedAssetToTransfer(null);
+          }}
+          onSuccess={() => {
+            showToast(
+              "success",
+              `Traslado de custodia para ${selectedAssetToTransfer?.codigo || "activo"} completado satisfactoriamente.`
+            );
+            fetchAssets();
+          }}
+          asset={selectedAssetToTransfer}
+          departamentos={departamentos}
         />
       </div>
     </ConsoleShell>
