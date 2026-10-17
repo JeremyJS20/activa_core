@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { auth } from "@/auth";
 import { ActivosContent } from "@/components/activos/activos-content";
 
 export const metadata: Metadata = {
@@ -7,6 +8,13 @@ export const metadata: Metadata = {
     "Control de bienes institucionales, custodia departamental, clasificaciones fiscales DGII y actas de entrega.",
 };
 
-export default function ActivosPage() {
-  return <ActivosContent />;
+export default async function ActivosPage() {
+  const session = await auth();
+
+  return (
+    <ActivosContent
+      initialRole={session?.user?.rol?.codigo}
+      initialPermisos={session?.user?.permisos}
+    />
+  );
 }

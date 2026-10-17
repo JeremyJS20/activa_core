@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Inter, JetBrains_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/providers/session-provider";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -40,7 +41,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-canvas-base text-text-primary font-sans">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

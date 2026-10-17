@@ -10,10 +10,18 @@ import { DisposalDialog } from "@/components/activos/disposal-dialog";
 import { AssetBadgePrint } from "@/components/activos/asset-badge-print";
 import { Layers, AlertCircle, CheckCircle2 } from "lucide-react";
 
-export function ActivosContent() {
+export interface ActivosContentProps {
+  initialRole?: string;
+  initialPermisos?: string[];
+}
+
+export function ActivosContent({
+  initialRole,
+  initialPermisos = [],
+}: ActivosContentProps = {}) {
   const { data: session } = useSession();
-  const userPermisos = session?.user?.permisos || [];
-  const userRole = session?.user?.rol?.codigo;
+  const userPermisos = session?.user?.permisos || initialPermisos;
+  const userRole = session?.user?.rol?.codigo || initialRole;
 
   const canOperate =
     userRole === "ADMIN" ||
