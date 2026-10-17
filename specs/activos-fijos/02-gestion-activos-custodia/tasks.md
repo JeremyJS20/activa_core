@@ -86,11 +86,11 @@ graph TD
 ### Task 1.3: Schemas de Validación Zod y Tipos DTO Compartidos (~1h)
 - **Description:** Diseñar los schemas de validación Zod en `app/lib/schemas/asset.schema.ts` para la creación, actualización física, traslados de custodia y desincorporación formal de activos, integrando validación de importes positivos, longitud mínima de justificaciones y reglas de fechas no futuras.
 - **Acceptance criteria:**
-  - [ ] `CreateAssetSchema` valida costo > 0, valor residual <= costo y fechaAdquisicion no futura.
-  - [ ] `UpdateAssetSchema` restringe campos modificables a metadatos físicos y ubicación.
-  - [ ] `TransferCustodySchema` exige nuevo custodio o departamento y justificación >= 10 caracteres.
-  - [ ] `DisposeAssetSchema` exige motivo válido, número de acta y justificación >= 20 caracteres.
-  - [ ] Tipos TypeScript inferidos (`CreateAssetDTO`, `TransferCustodyDTO`, etc.) exportados.
+  - [x] `CreateAssetSchema` valida costo > 0, valor residual <= costo y fechaAdquisicion no futura.
+  - [x] `UpdateAssetSchema` restringe campos modificables a metadatos físicos y ubicación.
+  - [x] `TransferCustodySchema` exige nuevo custodio o departamento y justificación >= 10 caracteres.
+  - [x] `DisposeAssetSchema` exige motivo válido, número de acta y justificación >= 20 caracteres.
+  - [x] Tipos TypeScript inferidos (`CreateAssetDTO`, `TransferCustodyDTO`, etc.) exportados.
 - **Dependencies:** None
 - **Files to create/modify:** `app/lib/schemas/asset.schema.ts`
 
