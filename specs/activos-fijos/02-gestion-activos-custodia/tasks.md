@@ -131,10 +131,10 @@ graph TD
 ### Task 2.3: Endpoint de Desincorporación y Baja Formal de Activo Fijo (~1.5h)
 - **Description:** Implementar el Route Handler `POST /api/activos/[id]/baja` para la desincorporación formal de bienes institucionales, restringiendo la operación exclusivamente a usuarios con rol `ADMIN`, actualizando el estado de forma irreversible a `DADO_DE_BAJA` y generando el registro en `HistorialBaja`.
 - **Acceptance criteria:**
-  - [ ] Verifica que el usuario autenticado posea rol `ADMIN` (rechaza con HTTP 403 Forbidden para otros roles).
-  - [ ] Valida payload con `DisposeAssetSchema` (motivo válido, número de acta y justificación >= 20 caracteres).
-  - [ ] Actualiza estado a `DADO_DE_BAJA` y registra `HistorialBaja` en transacción ACID.
-  - [ ] Rechaza con HTTP 409 Conflict si el activo ya fue desincorporado previamente.
+  - [x] Verifica que el usuario autenticado posea rol `ADMIN` (rechaza con HTTP 403 Forbidden para otros roles).
+  - [x] Valida payload con `DisposeAssetSchema` (motivo válido, número de acta y justificación >= 20 caracteres).
+  - [x] Actualiza estado a `DADO_DE_BAJA` y registra `HistorialBaja` en transacción ACID.
+  - [x] Rechaza con HTTP 409 Conflict si el activo ya fue desincorporado previamente.
 - **Dependencies:** Task 1.1, Task 1.3
 - **Files to create/modify:** `app/app/api/activos/[id]/baja/route.ts`
 
