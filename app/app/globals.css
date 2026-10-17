@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --canvas-base: #F9F9FF;
@@ -32,6 +32,7 @@
   --background: var(--canvas-base);
   --foreground: var(--text-primary);
 }
+
 @theme inline {
   --color-canvas-base: var(--canvas-base);
   --color-surface-card: var(--surface-card);
@@ -43,14 +44,14 @@
   --color-brand-navy: var(--brand-navy);
   --color-brand-crimson: var(--brand-crimson);
   --color-ghost-border: var(--ghost-border);
-  --font-display: var(--font-display);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-display: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 body {
   background-color: var(--canvas-base);
   color: var(--text-primary);
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
