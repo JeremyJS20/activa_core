@@ -616,7 +616,7 @@ export const INVENTARIO_REPORT_COLUMNS: ReportColumn[] = [
 export const DEPRECIACION_REPORT_COLUMNS: ReportColumn[] = [
   { header: "Código", key: "codigo", width: 16 },
   { header: "Descripción", key: "descripcion", width: 38 },
-  { header: "Categoría DGII", key: "categoriaDgii", width: 14, align: "center" },
+  { header: "Vida Útil (meses)", key: "vidaUtilMeses", width: 16, align: "center" },
   { header: "Costo Original", key: "costoOriginal", width: 20, money: true },
   { header: "Cuota del Mes", key: "cuotaMes", width: 18, money: true },
   { header: "Depreciación Acumulada", key: "depreciacionAcumulada", width: 22, money: true },

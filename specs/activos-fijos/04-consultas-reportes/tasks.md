@@ -151,12 +151,12 @@ graph TD
 - **Dependencies:** Task 1.1, T1.3, T2.1 (comparte service y patrón de handler)
 - **Files to create/modify:** `app/lib/services/report.service.ts`, `app/app/api/reportes/depreciacion/route.ts`, `app/app/api/reportes/activos/[id]/kardex/route.ts`, `app/tests/api/reports-depreciacion.test.ts`, `app/tests/api/reports-kardex.test.ts`
 
-### Task 2.3: `GET /api/reportes/export` — XLSX/CSV + Auditoría No-Bloqueante (~1.5h)
+### Task 2.3: `GET /api/reportes/export` — XLSX/CSV + Auditoría No-Bloqueante (~1.5h) [COMPLETED 2026-10-21]
 - **Description:** Handler `app/app/api/reportes/export/route.ts`: reutiliza el set completo de filtros del reporte origen (`reporte=inventario|depreciacion`) + `formato=xlsx|csv`. Con `?precheck=true` devuelve JSON `{ avisoTruncamiento, totalFiltrado }` cuando el resultado supera `MAX_EXPORT_ROWS = 10000` (la UI avisará antes de descargar — REQ-REP-007); caso normal devuelve el binario con `Content-Disposition` y Content-Type correcto. Genera un INSERT en `bitacora_exportaciones` con usuario, IP (`x-forwarded-for` → fallback `x-real-ip`), user_agent, filtros en JSONB y filas emitidas — pero si el INSERT falla, la descarga NO se cancela (catch + log interno).
 - **Acceptance criteria:**
-  - [ ] `app/tests/api/reports-export.test.ts` (≥ 10 casos): buffers correctos por reporte/formato, headers `Content-Disposition` con filename legible, `precheck` devuelve aviso con dataset reducido simulado, registro en bitácora con los filtros exactos aplicados, INSERT fallido no rompe la descarga (mock de fallo).
-  - [ ] Caracteres con acentos y `RD$` sin mojibake en el CSV (verificación de bytes UTF-8/BOM).
-  - [ ] `pnpm test tests/api/reports-export` en verde.
+  - [x] `app/tests/api/reports-export.test.ts` (≥ 10 casos): buffers correctos por reporte/formato, headers `Content-Disposition` con filename legible, `precheck` devuelve aviso con dataset reducido simulado, registro en bitácora con los filtros exactos aplicados, INSERT fallido no rompe la descarga (mock de fallo). **✅ 12 tests (firma ZIP del XLSX, BOM del CSV, precheck 14,382 filas, auditoría y fallo no bloqueante)**
+  - [x] Caracteres con acentos y `RD$` sin mojibake en el CSV (verificación de bytes UTF-8/BOM). **✅ BOM `EF BB BF` + "María Rodríguez" íntegro**
+  - [x] `pnpm test tests/api/reports-export` en verde. **✅ 12/12 · suite total 312/312 en 25 archivos**
 - **Dependencies:** Task 1.4, T2.1, T2.2
 - **Files to create/modify:** `app/app/api/reportes/export/route.ts`, `app/lib/services/export.service.ts`, `app/tests/api/reports-export.test.ts`
 

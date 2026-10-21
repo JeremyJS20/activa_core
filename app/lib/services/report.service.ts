@@ -455,3 +455,143 @@ export async function consultarKardex(activoId: string): Promise<KardexResult | 
     })),
   };
 }
+
+// ============================================================================
+// Exportación (REQ-REP-006 / REQ-REP-007) — snapshots sin paginar
+// ============================================================================
+
+export interface ExportSnapshot<T> {
+  rows: T[];
+  totalFiltrado: number;
+  truncated: boolean;
+}
+
+/** Trae el snapshot del inventario filtrado (hasta `maxRows`) + KPIs del total. */
+export async function consultarInventarioExport(
+  query: InventarioQuery,
+  maxRows: number
+): Promise<ExportSnapshot<InventarioRow> & { kpis: InventarioKpis }> {
+  const where = buildInventarioWhere(query);
+
+  const [rows, aggregate] = await prisma.$transaction([
+    prisma.activoFijo.findMany({
+      where,
+      take: maxRows,
+      orderBy: buildInventarioOrderBy(query.sort, query.dir),
+      include: {
+        tipoActivo: { select: { id: true, descripcion: true, vidaUtilMeses: true } },
+        departamento: { select: { id: true, descripcion: true } },
+        empleado: { select: { id: true, nombre: true, apellido: true, cedula: true } },
+      },
+    }),
+    prisma.activoFijo.aggregate({
+      where,
+      _count: { _all: true },
+      _sum: { costoAdquisicion: true, depreciacionAcumulada: true },
+    }),
+  ]);
+
+  const totalFiltrado = aggregate._count?._all ?? 0;
+  const costoTotal = Number(aggregate._sum?.costoAdquisicion ?? 0);
+  const depreciacionTotal = Number(aggregate._sum?.depreciacionAcumulada ?? 0);
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id,
+      codigo: row.codigo,
+      descripcion: row.descripcion,
+      numeroSerie: row.numeroSerie,
+      fechaAdquisicion: toIsoDateString(row.fechaAdquisicion),
+      costoAdquisicion: moneyToString(row.costoAdquisicion),
+      depreciacionAcumulada: moneyToString(row.depreciacionAcumulada),
+      valorEnLibros: moneyToString(row.valorEnLibros),
+      estado: row.estado,
+      tipoActivo: row.tipoActivo
+        ? {
+            id: row.tipoActivo.id,
+            descripcion: row.tipoActivo.descripcion,
+            vidaUtilMeses: row.tipoActivo.vidaUtilMeses,
+          }
+        : null,
+      departamento: row.departamento
+        ? { id: row.departamento.id, descripcion: row.departamento.descripcion }
+        : null,
+      custodio: row.empleado
+        ? {
+            id: row.empleado.id,
+            nombre: `${row.empleado.nombre} ${row.empleado.apellido}`.trim(),
+            cedula: row.empleado.cedula,
+          }
+        : null,
+    })),
+    kpis: {
+      cantidadActivos: totalFiltrado,
+      costoTotalAdquisicion: moneyToString(costoTotal),
+      depreciacionAcumulada: moneyToString(depreciacionTotal),
+      valorEnLibrosTotal: moneyToString(costoTotal - depreciacionTotal),
+    },
+    totalFiltrado,
+    truncated: totalFiltrado > maxRows,
+  };
+}
+
+/** Trae el snapshot de depreciación del período (hasta `maxRows`) + totales. */
+export async function consultarDepreciacionExport(
+  query: {
+    periodo: string;
+    cuentaCompra?: string;
+    cuentaDepreciacion?: string;
+  },
+  maxRows: number
+): Promise<ExportSnapshot<DepreciacionRow> & { totales: DepreciacionResult["totales"] }> {
+  const where: Prisma.DepreciacionMensualWhereInput = { periodoFiscal: query.periodo };
+  if (query.cuentaCompra) where.cuentaCompra = query.cuentaCompra;
+  if (query.cuentaDepreciacion) where.cuentaDepreciacion = query.cuentaDepreciacion;
+
+  const [rows, aggregate] = await prisma.$transaction([
+    prisma.depreciacionMensual.findMany({
+      where,
+      take: maxRows,
+      orderBy: [{ activo: { codigo: "asc" } }, { activoId: "asc" }],
+      include: {
+        activo: {
+          select: {
+            codigo: true,
+            descripcion: true,
+            costoAdquisicion: true,
+            tipoActivo: { select: { vidaUtilMeses: true } },
+          },
+        },
+      },
+    }),
+    prisma.depreciacionMensual.aggregate({
+      where,
+      _count: { _all: true },
+      _sum: { cuotaMes: true, depreciacionAcumuladaPost: true, valorEnLibrosPost: true },
+    }),
+  ]);
+
+  const totalFiltrado = aggregate._count?._all ?? 0;
+
+  return {
+    rows: rows.map((row) => ({
+      activoId: row.activoId,
+      codigo: row.activo.codigo,
+      descripcion: row.activo.descripcion,
+      vidaUtilMeses: row.activo.tipoActivo?.vidaUtilMeses ?? null,
+      costoOriginal: moneyToString(row.activo.costoAdquisicion),
+      cuotaMes: moneyToString(row.cuotaMes),
+      depreciacionAcumuladaHistorica: moneyToString(row.depreciacionAcumuladaPost),
+      valorEnLibros: moneyToString(row.valorEnLibrosPost),
+      cuentaCompra: row.cuentaCompra,
+      cuentaDepreciacion: row.cuentaDepreciacion,
+    })),
+    totales: {
+      cuotaTotalMes: moneyToString(aggregate._sum?.cuotaMes),
+      depreciacionAcumuladaTotal: moneyToString(aggregate._sum?.depreciacionAcumuladaPost),
+      valorEnLibrosTotal: moneyToString(aggregate._sum?.valorEnLibrosPost),
+    },
+    totalFiltrado,
+    truncated: totalFiltrado > maxRows,
+  };
+}
