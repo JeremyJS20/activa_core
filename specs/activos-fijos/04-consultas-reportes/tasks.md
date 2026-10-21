@@ -132,13 +132,13 @@ graph TD
 
 ## Wave 2: Core Implementation — Endpoints de Consulta (~8h)
 
-### Task 2.1: `GET /api/reportes/inventario` con Filtros AND + KPIs en una Respuesta (~3h)
+### Task 2.1: `GET /api/reportes/inventario` con Filtros AND + KPIs en una Respuesta (~3h) [COMPLETED 2026-10-21]
 - **Description:** Crear `app/lib/services/report.service.ts` con `consultarInventario(query)`: WHERE construido con AND componible en Prisma (fechas, montos, FKs de depto/tipo, custodio por nombre O cédula parcial, estados multi-select, `search` OR sobre codigo/descripcion/`numeroSerie` — campo real de Sub-02); de la misma transacción Prisma `$transaction([findMany(include tipo/depto/custodio), aggregate(_count, _sum)])` se matriculan filas + KPIs; orden por whitelist; paginación skip/take; respuesta JSON con la forma exacta del design.md (cifras numéricas como strings de 2 decimales). Handler en `app/app/api/reportes/inventario/route.ts` con `GET` + validación Zod + guard `REP_READ` reutilizando el patrón de Sub-01.
 - **Acceptance criteria:**
-  - [ ] `app/tests/api/reports-inventario.test.ts` (≥ 18 casos): combinación de filtros simple y múltiple, rango de montos cerrado inclusivo, paginación `page=2` sobre resultset de 47 con pageSize 25 (retorna 22), sort asc/desc por los 4 campos, clamp de página fuera de rango a la última válida, búsqueda parcial por custodio y por código.
-  - [ ] KPIs calculados sobre el TOTAL del filtrado (no la página): caso aritmético exacto del REQ-REP-002 (3 activos → RD$ 400,000 / RD$ 40,000 / RD$ 360,000).
-  - [ ] `fechaFin < fechaInicio` y `montoMin > montoMax` responden `400 VALIDATION_ERROR` RFC 7807 con `errors` en español.
-  - [ ] `pnpm test tests/api/reports-inventario` verde y suite total Vitest sin regresiones.
+  - [x] `app/tests/api/reports-inventario.test.ts` (≥ 18 casos): combinación de filtros simple y múltiple, rango de montos cerrado inclusivo, paginación `page=2` sobre resultset de 47 con pageSize 25 (retorna 22), sort asc/desc por los 4 campos, clamp de página fuera de rango a la última válida, búsqueda parcial por custodio y por código. **✅ 27 tests**
+  - [x] KPIs calculados sobre el TOTAL del filtrado (no la página): caso aritmético exacto del REQ-REP-002 (3 activos → RD$ 400,000 / RD$ 40,000 / RD$ 360,000). **✅ verificado**
+  - [x] `fechaFin < fechaInicio` y `montoMin > montoMax` responden `400 VALIDATION_ERROR` RFC 7807 con `errors` en español. **✅ + sort fuera de whitelist, pageSize y estados inválidos**
+  - [x] `pnpm test tests/api/reports-inventario` verde y suite total Vitest sin regresiones. **✅ 278/278 tests en 22 archivos**
 - **Dependencies:** Task 1.1, T1.2, T1.3
 - **Files to create/modify:** `app/lib/services/report.service.ts`, `app/app/api/reportes/inventario/route.ts`, `app/tests/api/reports-inventario.test.ts`
 

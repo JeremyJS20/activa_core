@@ -73,9 +73,10 @@ export const EstadoActivoReporteSchema = z.enum(["ACTIVO", "EN_MANTENIMIENTO", "
 /** Acepta `estados=ACTIVO,EN_MANTENIMIENTO` o múltiples valores repetidos en la URL. */
 export function parseEstadosParam(raw: unknown): string[] | undefined {
   if (raw === undefined || raw === null) return undefined;
-  const values = Array.isArray(raw) ? raw : String(raw).split(",");
+  const values = Array.isArray(raw) ? raw : [raw];
   const limpios = values
-    .map((value) => String(value).trim().toUpperCase())
+    .flatMap((value) => String(value).split(","))
+    .map((value) => value.trim().toUpperCase())
     .filter((value) => value.length > 0);
   return limpios.length > 0 ? limpios : undefined;
 }
