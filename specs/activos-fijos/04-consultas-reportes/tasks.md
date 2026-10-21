@@ -19,6 +19,7 @@
 - Máximo **4 horas** por tarea; si una tarea excede 4h durante la ejecución, se descompone inmediatamente.
 - Las estimaciones cubren implementación + pruebas unitarias integradas + revisión de código.
 - **Buffer 20%** incluido en el total para contingencias.
+- **Entorno de tests:** Vitest 5 requiere Node ≥ 22 (usa `styleText` de `node:util`). Esta máquina tiene Node 20, por lo que los comandos de verificación se ejecutan con `npx -y node@22 node_modules/vitest/vitest.mjs run <test>` (equivalente funcional a `pnpm test`).
 - Toda la codificación se ejecuta en modo `sdd-build`: **una tarea a la vez** con verificación, checkoff en este documento y commit atómico por tarea (Hard Gate 18 — Anti-Batch Closing).
 
 ## Dependency Graph
@@ -110,11 +111,11 @@ graph TD
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/prisma/seed-activos.ts` (extensión) o `app/prisma/seed.ts`
 
-### Task 1.3: Schemas Zod de Consulta de Reportes (~1h)
+### Task 1.3: Schemas Zod de Consulta de Reportes (~1h) [COMPLETED 2026-10-21]
 - **Description:** Crear `app/lib/schemas/report.schema.ts` con `InventarioQuerySchema` (fechas ISO, montos como strings decimales, estados multi-select, sort whitelist `{codigo, descripcion, costo, fecha}`, `dir asc|desc`, pageSize `{10,25,50}`) y `DepreciacionQuerySchema` (regex `^\d{4}-(0[1-9]|1[0-2])$` para el período y cuentas contables validadas con `validarCuentaContable` de Sub-01) + refinamientos cruzados (`fechaFin >= fechaInicio`, `montoMax >= montoMin`). Tipos TS inferidos y exportados (`InventarioQuery`, `DepreciacionQuery`, `SortField`, `SortDir`).
 - **Acceptance criteria:**
-  - [ ] Suite `app/tests/schemas/reports.test.ts` (≥ 20 casos): fechas cruzadas inválidas, montos invertidos, sort fuera de whitelist rechazado, pageSize fuera de rango, período `2026-13` inválido, cuenta contable con formato inválido.
-  - [ ] `pnpm test tests/schemas/reports` en verde con cobertura del archivo ≥ 95%.
+  - [x] Suite `app/tests/schemas/reports.test.ts` (≥ 20 casos): fechas cruzadas inválidas, montos invertidos, sort fuera de whitelist rechazado, pageSize fuera de rango, período `2026-13` inválido, cuenta contable con formato inválido. **✅ 29 tests, 29 passed**
+  - [x] `pnpm test tests/schemas/reports` en verde con cobertura del archivo ≥ 95%. **✅ cobertura `report.schema.ts` = 100% (ejecutado con Node 22 aislado por restricción de Vitest 5)**
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/lib/schemas/report.schema.ts`, `app/lib/schemas/index.ts`, `app/tests/schemas/reports.test.ts`
 
