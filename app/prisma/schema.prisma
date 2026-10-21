@@ -64,6 +64,7 @@ model Usuario {
   resetTokens                    PasswordResetToken[]
   historialesCustodiaAutorizados HistorialCustodia[]
   historialesBajasAutorizados    HistorialBaja[]
+  exportacionesBitacora          BitacoraExportacion[]
 
   @@index([correo])
   @@index([empleadoId])
@@ -181,6 +182,7 @@ model ActivoFijo {
   empleado              Empleado            @relation(fields: [empleadoId], references: [id], onDelete: Restrict)
   historialesCustodia   HistorialCustodia[]
   historialBaja         HistorialBaja?
+  depreciacionesMensual DepreciacionMensual[] @relation("DepreciacionesActivo")
 
   @@index([codigo])
   @@index([departamentoId])
@@ -188,6 +190,9 @@ model ActivoFijo {
   @@index([tipoActivoId])
   @@index([estado])
   @@index([numeroSerie])
+  // Índices aditivos Sub-04 (consultas multicriterio por rango de fechas y montos)
+  @@index([fechaAdquisicion])
+  @@index([costoAdquisicion])
   @@map("activos_fijos")
 }
 
@@ -230,4 +235,52 @@ model HistorialBaja {
 
   @@index([activoId])
   @@map("historial_bajas")
+}
+
+// ============================================================================
+// CONTRATO PROVISIONAL — Sub-módulo 04 (depreciaciones_mensual)
+// ⚠️ GOBERNANZA: dominio RECLAMADO por el Sub-módulo 03 (Motor de Depreciación
+// DGII). Cuando Sub-03 entregue su migración oficial, esta tabla provisional
+// debe REEMPLAZARSE por la real (drop + recidivencia de seed). Sub-04 solo la
+// lee: nunca inserta, actualiza ni recalcula cuotas.
+// ============================================================================
+model DepreciacionMensual {
+  id                        String   @id @default(uuid()) @db.VarChar(36)
+  activoId                  String   @map("activo_id") @db.VarChar(36)
+  periodoFiscal             String   @map("periodo_fiscal") @db.Char(7)
+  cuotaMes                  Decimal  @map("cuota_mes") @db.Decimal(14, 2)
+  depreciacionAcumuladaPost Decimal  @map("depreciacion_acumulada_post") @db.Decimal(14, 2)
+  valorEnLibrosPost         Decimal  @map("valor_en_libros_post") @db.Decimal(14, 2)
+  cuentaCompra              String   @map("cuenta_compra") @db.VarChar(20)
+  cuentaDepreciacion        String   @map("cuenta_depreciacion") @db.VarChar(20)
+  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  activo ActivoFijo @relation("DepreciacionesActivo", fields: [activoId], references: [id], onDelete: Restrict)
+
+  @@unique([activoId, periodoFiscal])
+  @@index([periodoFiscal, activoId])
+  @@map("depreciaciones_mensual")
+}
+
+// ============================================================================
+// SUB-MÓDULO 04 EXCLUSIVO — bitacora_exportaciones
+// Auditoría de exportaciones financieras (NFR-REP-005): registra quién
+// descargó qué reporte y con qué filtros. Solo Sub-04 inserta aquí.
+// ============================================================================
+model BitacoraExportacion {
+  id               String   @id @default(uuid()) @db.VarChar(36)
+  usuarioId        String   @map("usuario_id") @db.VarChar(36)
+  correoUsuario    String   @map("correo_usuario") @db.VarChar(255)
+  ipAddress        String   @map("ip_address") @db.VarChar(45)
+  userAgent        String?  @map("user_agent") @db.VarChar(400)
+  formato          String   @db.VarChar(10)
+  reporte          String   @db.VarChar(30)
+  filtrosAplicados Json     @map("filtros_aplicados")
+  filasExportadas  Int      @map("filas_exportadas")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([usuarioId, createdAt(sort: Desc)])
+  @@map("bitacora_exportaciones")
 }

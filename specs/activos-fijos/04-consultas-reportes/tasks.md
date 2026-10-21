@@ -24,42 +24,63 @@
 ## Dependency Graph
 ```mermaid
 graph TD
-    classDef fdnStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e
-    classDef coreStyle fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534
-    classDef uiStyle fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#6b21a8
-    classDef testStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b
+    classDef fdnStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
+    classDef coreStyle fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#166534;
+    classDef uiStyle fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#6b21a8;
+    classDef testStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b;
 
-    T1_1["Task 1.1: Migración Provisional DDL + bitácora"]:::fdnStyle --> T1_2["Task 1.2: Seed Demo Activos/Custodias/Cuotas"]:::fdnStyle
-    T1_1 --> T1_3["Task 1.3: Schemas Zod de Reportes"]:::fdnStyle
-    T1_1 --> T1_4["Task 1.4: Extensión export.service + formato RD$"]:::fdnStyle
+    T1_1["Task 1.1: Migracion Read-Contract y bitacora"]:::fdnStyle;
+    T1_2["Task 1.2: Seed Cuotas Sinteticas"]:::fdnStyle;
+    T1_3["Task 1.3: Schemas Zod de Reportes"]:::fdnStyle;
+    T1_4["Task 1.4: Extension export.service"]:::fdnStyle;
+
+    T2_1["Task 2.1: API Inventario y KPIs"]:::coreStyle;
+    T2_2["Task 2.2: API Depreciacion y Kardex"]:::coreStyle;
+    T2_3["Task 2.3: API Export y Bitacora"]:::coreStyle;
+    T2_4["Task 2.4: RBAC dual-check"]:::coreStyle;
+
+    T3_1["Task 3.1: Shell y Pestanas"]:::uiStyle;
+    T3_2["Task 3.2: Toolbar y KPI Cards"]:::uiStyle;
+    T3_3["Task 3.3: Tabla y Pills"]:::uiStyle;
+    T3_4["Task 3.4: Pagina Depreciacion"]:::uiStyle;
+    T3_5["Task 3.5: Kardex Modal"]:::uiStyle;
+    T3_6["Task 3.6: Export Buttons y Print"]:::uiStyle;
+
+    T4_1["Task 4.1: E2E Playwright"]:::testStyle;
+    T4_2["Task 4.2: Certificacion Suite"]:::testStyle;
+    T4_3["Task 4.3: Docs Vivas Sync"]:::testStyle;
+
+    T1_1 --> T1_2
+    T1_1 --> T1_3
+    T1_1 --> T1_4
     T1_2 --> T1_3
     T1_2 --> T1_4
 
-    T1_3 --> T2_1["Task 2.1: GET /api/reportes/inventario + KPIs"]:::coreStyle
-    T1_3 --> T2_2["Task 2.2: GET depreciacion + kardex"]:::coreStyle
+    T1_3 --> T2_1
+    T1_3 --> T2_2
     T1_1 --> T2_2
-    T1_4 --> T2_3["Task 2.3: GET /api/reportes/export + bitácora"]:::coreStyle
+    T1_4 --> T2_3
     T1_3 --> T2_3
-    T2_2 --> T2_4["Task 2.4: RBAC dual-check + GET-only"]:::coreStyle
     T2_1 --> T2_4
+    T2_2 --> T2_4
     T2_3 --> T2_4
 
-    T2_1 --> T3_1["Task 3.1: Shell /reportes + pestañas + breadcrumb"]:::uiStyle
-    T2_1 --> T3_2["Task 3.2: filters-toolbar + kpi-cards"]:::uiStyle
-    T2_1 --> T3_3["Task 3.3: report-data-table + pills + empty-state"]:::uiStyle
-    T2_2 --> T3_4["Task 3.4: Página Depreciación"]:::uiStyle
+    T2_1 --> T3_1
+    T2_1 --> T3_2
+    T2_1 --> T3_3
+    T2_2 --> T3_4
     T3_3 --> T3_4
-    T2_2 --> T3_5["Task 3.5: kardex-modal"]:::uiStyle
-    T2_3 --> T3_6["Task 3.6: export-buttons + @media print"]:::uiStyle
+    T2_2 --> T3_5
+    T2_3 --> T3_6
     T3_2 --> T3_6
     T3_4 --> T3_6
 
-    T3_3 --> T4_1["Task 4.1: E2E Playwright /reportes"]:::testStyle
+    T3_3 --> T4_1
     T3_4 --> T4_1
     T3_5 --> T4_1
     T3_6 --> T4_1
-    T2_4 --> T4_2["Task 4.2: Suite completa lint+test+build"]:::testStyle
-    T4_1 --> T4_3["Task 4.3: Docs vivas sync (Gate 16)"]:::testStyle
+    T2_4 --> T4_2
+    T4_1 --> T4_3
     T4_2 --> T4_3
 ```
 
@@ -67,16 +88,16 @@ graph TD
 
 ## Wave 1: Foundation — Datos Provisionales + Servicios (~5.5h)
 
-### Task 1.1: Migración de Read-Contract — `DepreciacionMensual` (provisional) + `BitacoraExportacion` + índices aditivos (~1.5h)
+### Task 1.1: Migración de Read-Contract — `DepreciacionMensual` (provisional) + `BitacoraExportacion` + índices aditivos (~1.5h) [COMPLETED 2026-10-21]
 - **Description:** Añadir en `app/prisma/schema.prisma`:
   - `DepreciacionMensual` como **contrato provisional de Sub-03** (marcado con comentario de gobernanza `// CONTRATO PROVISIONAL — dominio reclamado por Sub-03`), con los campos del design.md (`periodo_fiscal CHAR(7)` con CHECK de patrón, `NUMERIC(14,2)`, snapshot de cuentas contables, UNIQUE `(activo_id, periodo_fiscal)`).
   - `BitacoraExportacion` (propia de Sub-04, FK → usuarios, CHECKs de formato/reporte, JSONB de filtros).
   - 2 índices **aditivos sobre la tabla REAL `activos_fijos` de Sub-02** (NO se toca ninguna columna): `fecha_adquisicion` y `costo_adquisicion`.
 - **Acceptance criteria:**
-  - [ ] `pnpm prisma migrate dev --name add_reportes_read_contract` aplica sin errores contra Neon (migración aditiva — no drop ni alter destructivo).
-  - [ ] `pnpm prisma validate` y `pnpm exec tsc --noEmit` pasan.
-  - [ ] Los modelos `ActivoFijo`, `HistorialCustodia`, `HistorialBaja` de Sub-02 quedan intactos (diff de migración sin alter sobre ellos).
-  - [ ] Comentario de gobernanza en `DepreciacionMensual` indica que Sub-03 la reemplazará.
+  - [x] `pnpm prisma migrate dev --name add_reportes_read_contract` aplica sin errores contra Neon (migración aditiva — no drop ni alter destructivo). **✅ migración `20261021225507_add_reportes_read_contract` aplicada 2026-10-21**
+  - [x] `pnpm prisma validate` y `pnpm exec tsc --noEmit` pasan. **✅ verificado 2026-10-21**
+  - [x] Los modelos `ActivoFijo`, `HistorialCustodia`, `HistorialBaja` de Sub-02 quedan intactos (diff de migración sin alter sobre ellos). **✅ solo CREATE TABLE/INDEX aditivos**
+  - [x] Comentario de gobernanza en `DepreciacionMensual` indica que Sub-03 la reemplazará. **✅**
 - **Dependencies:** None (rama `feature/activos-fijos-04-consultas-reportes` creada desde `origin/dev` @ e254113)
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 
