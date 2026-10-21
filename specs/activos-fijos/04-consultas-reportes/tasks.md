@@ -160,12 +160,12 @@ graph TD
 - **Dependencies:** Task 1.4, T2.1, T2.2
 - **Files to create/modify:** `app/app/api/reportes/export/route.ts`, `app/lib/services/export.service.ts`, `app/tests/api/reports-export.test.ts`
 
-### Task 2.4: Seguridad RBAC — Dual-check + GET-only sobre `/api/reportes/*` (~1h)
+### Task 2.4: Seguridad RBAC — Dual-check + GET-only sobre `/api/reportes/*` (~1h) [COMPLETED 2026-10-21]
 - **Description:** Añadir matcher de `proxy.ts` para `/api/reportes/:path*` con `requirePermission('REP_READ')` reutilizando el patrón de `/api/catalogos/*`; en cada handler un helper único `app/lib/guards/reportes-guard.ts` que verifica: 401 (sin sesión válida) → 403 (sin permiso) → 405 (`Allow: GET` para cualquier otro método). Queda prohibida cualquier mutación sobre el dominio de reportes (lectura pura).
 - **Acceptance criteria:**
-  - [ ] `app/tests/api/reports-security.test.ts` (≥ 6 casos): 401 sin sesión, 403 con sesión sin `REP_READ` (fixture de rol sin el permiso), 405 para POST/PUT/DELETE/PATCH en los 4 endpoints, 200 con rol ADMIN.
-  - [ ] Ningún endpoint del sub-módulo registra éxito en POST/PUT/DELETE/PATCH — el test lo garantiza explícitamente.
-  - [ ] `pnpm test tests/api/reports-security` en verde y suite total Vitest sin regresiones.
+  - [x] `app/tests/api/reports-security.test.ts` (≥ 6 casos): 401 sin sesión, 403 con sesión sin `REP_READ` (fixture de rol sin el permiso), 405 para POST/PUT/DELETE/PATCH en los 4 endpoints, 200 con rol ADMIN. **✅ 17 tests (4 endpoints × 4 métodos = 16 casos de 405)**
+  - [x] Ningún endpoint del sub-módulo registra éxito en POST/PUT/DELETE/PATCH — el test lo garantiza explícitamente. **✅ guard único `requireReportesPermission` + gate de borde en `middleware.ts`**
+  - [x] `pnpm test tests/api/reports-security` en verde y suite total Vitest sin regresiones. **✅ 17/17 · suite 329/329 en 26 archivos**
 - **Dependencies:** Task 2.1, T2.2, T2.3
 - **Files to create/modify:** `app/proxy.ts`, `app/lib/guards/reportes-guard.ts` (nuevo), handlers existentes (integración del guard), `app/tests/api/reports-security.test.ts`
 

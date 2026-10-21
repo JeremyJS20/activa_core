@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkSessionPermission } from "@/lib/auth/rbac";
+import { requireReportesPermission } from "@/lib/guards/reportes-guard";
 import { consultarKardex } from "@/lib/services/report.service";
 import { KardexParamsSchema } from "@/lib/schemas/report.schema";
 
@@ -8,8 +8,8 @@ import { KardexParamsSchema } from "@/lib/schemas/report.schema";
  * Solo lectura: alta inicial, movimientos de custodia y cuotas de depreciación
  * (REQ-REP-005). No expone ninguna acción de mutación.
  */
-export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const { authorized, response } = await checkSessionPermission("REP_READ");
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { authorized, response } = await requireReportesPermission(req);
   if (!authorized) return response;
 
   const { id } = await context.params;

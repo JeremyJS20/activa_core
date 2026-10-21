@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkSessionPermission } from "@/lib/auth/rbac";
+import { requireReportesPermission } from "@/lib/guards/reportes-guard";
 import { consultarDepreciacion } from "@/lib/services/report.service";
 import { DepreciacionQuerySchema } from "@/lib/schemas/report.schema";
 
@@ -9,7 +9,7 @@ import { DepreciacionQuerySchema } from "@/lib/schemas/report.schema";
  * NO recalcula cuotas, solo las consulta (REQ-REP-004).
  */
 export async function GET(req: NextRequest) {
-  const { authorized, response } = await checkSessionPermission("REP_READ");
+  const { authorized, response } = await requireReportesPermission(req);
   if (!authorized) return response;
 
   const { searchParams } = new URL(req.url);

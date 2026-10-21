@@ -129,6 +129,34 @@ export default auth((req) => {
     }
   }
 
+  // 9. Reportes (Sub-04): SOLO LECTURA con permiso REP_READ
+  if (nextUrl.pathname.startsWith("/api/reportes")) {
+    if (req.method !== "GET") {
+      return NextResponse.json(
+        {
+          type: "https://activacore.unapec.edu.do/problems/method-not-allowed",
+          title: "METHOD_NOT_ALLOWED",
+          status: 405,
+          detail: "El sub-modulo de reportes es de solo lectura: solo se permite GET.",
+        },
+        { status: 405, headers: { Allow: "GET", "Content-Type": "application/problem+json" } }
+      );
+    }
+
+    const isSuperAdmin = req.auth?.user?.rol?.codigo === "ADMIN" || userPermisos.includes("USER_ADMIN");
+    if (!isSuperAdmin && !userPermisos.includes("REP_READ")) {
+      return NextResponse.json(
+        {
+          type: "https://activacore.unapec.edu.do/problems/forbidden",
+          title: "FORBIDDEN",
+          status: 403,
+          detail: "Acceso denegado. Permisos insuficientes (requiere REP_READ).",
+        },
+        { status: 403, headers: { "Content-Type": "application/problem+json" } }
+      );
+    }
+  }
+
   return NextResponse.next();
 });
 

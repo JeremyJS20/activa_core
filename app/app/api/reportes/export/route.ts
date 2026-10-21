@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkSessionPermission } from "@/lib/auth/rbac";
+import { requireReportesPermission } from "@/lib/guards/reportes-guard";
 import { prisma } from "@/lib/prisma";
 import {
   consultarDepreciacionExport,
@@ -26,7 +26,7 @@ import {
  * - Si la auditoría falla, la descarga NO se cancela (NFR-REP-005).
  */
 export async function GET(req: NextRequest) {
-  const { authorized, response, session } = await checkSessionPermission("REP_READ");
+  const { authorized, response, session } = await requireReportesPermission(req);
   if (!authorized) return response;
 
   const { searchParams } = new URL(req.url);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkSessionPermission } from "@/lib/auth/rbac";
+import { requireReportesPermission } from "@/lib/guards/reportes-guard";
 import { consultarInventario } from "@/lib/services/report.service";
 import { InventarioQuerySchema, parseEstadosParam } from "@/lib/schemas/report.schema";
 
@@ -13,7 +13,7 @@ import { InventarioQuerySchema, parseEstadosParam } from "@/lib/schemas/report.s
  * tipoActivoId, custodio, estados (csv o repetido), search, sort, dir, page, pageSize.
  */
 export async function GET(req: NextRequest) {
-  const { authorized, response } = await checkSessionPermission("REP_READ");
+  const { authorized, response } = await requireReportesPermission(req);
   if (!authorized) return response;
 
   const { searchParams } = new URL(req.url);
