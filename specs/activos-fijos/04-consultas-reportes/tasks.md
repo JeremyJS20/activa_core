@@ -142,12 +142,12 @@ graph TD
 - **Dependencies:** Task 1.1, T1.2, T1.3
 - **Files to create/modify:** `app/lib/services/report.service.ts`, `app/app/api/reportes/inventario/route.ts`, `app/tests/api/reports-inventario.test.ts`
 
-### Task 2.2: `GET /api/reportes/depreciacion` + `GET /api/reportes/activos/[id]/kardex` (~2.5h)
+### Task 2.2: `GET /api/reportes/depreciacion` + `GET /api/reportes/activos/[id]/kardex` (~2.5h) [COMPLETED 2026-10-21]
 - **Description:** Depreciación: `report.service.ts` añade `consultarDepreciacion({ periodo, cuentaCompra, cuentaDepreciacion, page, pageSize })` — SELECT sobre `depreciaciones_mensual` + activo con filtros de cuenta, totales del período vía aggregate y bandera `sinProceso: true` con `data: []` si el período no tiene cuotas registradas. Kardex: `consultarKardex(activoId)` compone la timeline (alta inicial + traslados desde `historial_custodia` REAL en orden cronológico descendente) y las `cuotas` ordenadas por período descendente; `bajaInfo` poblada desde la tabla REAL `historial_bajas` cuando `estado = DADO_DE_BAJA`. Handlers en `app/app/api/reportes/depreciacion/route.ts` y `app/app/api/reportes/activos/[id]/kardex/route.ts` con `404 ASSET_NOT_FOUND` cuando el id no existe.
 - **Acceptance criteria:**
-  - [ ] `app/tests/api/reports-depreciacion.test.ts` (≥ 10 casos): período con datos, `sinProceso` para período vacío (nunca 404/500), filtro por cuenta contable (una y ambas), totales exactos del período.
-  - [ ] `app/tests/api/reports-kardex.test.ts` (≥ 8 casos): timeline cronológica descendente exacta, cuotas descendentes, activo con 2 traslados completa su trayectoria, activo dado de baja incluye `bajaInfo` (la UI dibuja el banner), 404 con id inexistente, solo métodos GET.
-  - [ ] `pnpm test tests/api/reports-depreciacion tests/api/reports-kardex` en verde.
+  - [x] `app/tests/api/reports-depreciacion.test.ts` (≥ 10 casos): período con datos, `sinProceso` para período vacío (nunca 404/500), filtro por cuenta contable (una y ambas), totales exactos del período. **✅ 11 tests**
+  - [x] `app/tests/api/reports-kardex.test.ts` (≥ 8 casos): timeline cronológica descendente exacta, cuotas descendentes, activo con 2 traslados completa su trayectoria, activo dado de baja incluye `bajaInfo` (la UI dibuja el banner), 404 con id inexistente, solo métodos GET. **✅ 11 tests (bajaInfo desde `historial_bajas` real)**
+  - [x] `pnpm test tests/api/reports-depreciacion tests/api/reports-kardex` en verde. **✅ 22/22 · suite total 300/300 en 24 archivos**
 - **Dependencies:** Task 1.1, T1.3, T2.1 (comparte service y patrón de handler)
 - **Files to create/modify:** `app/lib/services/report.service.ts`, `app/app/api/reportes/depreciacion/route.ts`, `app/app/api/reportes/activos/[id]/kardex/route.ts`, `app/tests/api/reports-depreciacion.test.ts`, `app/tests/api/reports-kardex.test.ts`
 
