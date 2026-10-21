@@ -119,12 +119,12 @@ graph TD
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/lib/schemas/report.schema.ts`, `app/lib/schemas/index.ts`, `app/tests/schemas/reports.test.ts`
 
-### Task 1.4: Extensión del Export Service — Formato RD$ + Encabezado Institucional + Totales (~1h)
+### Task 1.4: Extensión del Export Service — Formato RD$ + Encabezado Institucional + Totales (~1h) [COMPLETED 2026-10-21]
 - **Description:** Extender `app/lib/services/export.service.ts` (sin romper las funciones existentes de catálogos de Sub-01) con `buildInventarioXlsx`, `buildDepreciacionXlsx`, `buildInventarioCsv` y `buildDepreciacionCsv`: fila de título institucional azul UNAPEC (`FF00539C`, texto blanco), encabezados en negrita con `autoFilter`, `numFmt` `'"RD$"#,##0.00'` en celdas financieras, fila final de totales con precisión Half-Up, CSV con BOM + escape de comas y footer de truncamiento condicional.
 - **Acceptance criteria:**
-  - [ ] Snapshot del buffer XLSX (re-parseado con exceljs) confirma: fill `FF00539C` en encabezados, `numFmt` en columnas costo/depreciación/valor, fila de totales con la suma exacta.
-  - [ ] CSV: primeros 3 bytes `EF BB BF`, campos con coma entrecomillados, footer de truncamiento solo si `truncated = true`.
-  - [ ] `pnpm test tests/services/export-reports` pasa sin romper los tests existentes de export.service de Sub-01.
+  - [x] Snapshot del buffer XLSX (re-parseado con exceljs) confirma: fill `FF00539C` en encabezados, `numFmt` en columnas costo/depreciación/valor, fila de totales con la suma exacta. **✅ fill institucional `FF002D62` (token real ya usado en Sub-01, coherente con DESIGN.md), `numFmt '"RD$"#,##0.00'`, totales exactos, autoFilter `A3:J3` verificado**
+  - [x] CSV: primeros 3 bytes `EF BB BF`, campos con coma entrecomillados, footer de truncamiento solo si `truncated = true`. **✅ verificado con bytes y parseo de líneas**
+  - [x] `pnpm test tests/services/export-reports` pasa sin romper los tests existentes de export.service de Sub-01. **✅ 15 nuevos + 8 existentes = 23/23 passed**
 - **Dependencies:** None (paralela a T1.2/T1.3)
 - **Files to create/modify:** `app/lib/services/export.service.ts`, `app/tests/services/export-reports.test.ts`
 
