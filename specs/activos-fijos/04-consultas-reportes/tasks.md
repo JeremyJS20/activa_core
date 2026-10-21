@@ -101,12 +101,12 @@ graph TD
 - **Dependencies:** None (rama `feature/activos-fijos-04-consultas-reportes` creada desde `origin/dev` @ e254113)
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/*`
 
-### Task 1.2: Seed de Cuotas de Depreciación (Sintético, determinista) sobre el Inventario Real (~1h)
-- **Description:** Los **activos ya existen** (30 activos reales de `seed-activos.ts` de Sub-02 ✅). Extender el seeding para poblar SOLO `depreciaciones_mensual`: 6 cuotas por cada activo en estado `ACTIVO`/`EN_MANTENIMIENTO` (períodos recientes `YYYY-MM` deterministas), con cifras derivadas de la fórmula línea recta DGII de cada `TipoActivo` real (`(costo − residual) / vida_util_meses`), y las columnas snapshot `cuenta_compra`/`cuenta_depreciacion` tomadas del tipo de activo real. NO re-crud activos ni custodias (pertenecen a Sub-02).
+### Task 1.2: Seed de Cuotas de Depreciación (Sintético, determinista) sobre el Inventario Real (~1h) [COMPLETED 2026-10-21]
+- **Description:** Los **activos ya existen** (31 activos reales + 2 bajas formales de `seed-activos.ts` de Sub-02 ✅). Extender el seeding para poblar SOLO `depreciaciones_mensual`: 6 cuotas por cada activo en estado `ACTIVO`/`EN_MANTENIMIENTO` (períodos deterministas 2025-11, 2025-12, 2026-04, 2026-05, 2026-09, 2026-10), con cifras derivadas de la fórmula línea recta DGII de cada `TipoActivo` real (`(costo − residual) / vida_util_meses`), y las columnas snapshot `cuenta_compra`/`cuenta_depreciacion` tomadas del tipo de activo real. NO re-crud activos ni custodias (pertenecen a Sub-02).
 - **Acceptance criteria:**
-  - [ ] `pnpm prisma db seed` (o `tsx prisma/seed-activos.ts` extendido) ejecuta de forma idempotente.
-  - [ ] Cada cuota cumple: `valor_en_libros_post = costo − depreciacion_acumulada_post` a 2 decimales exactos, y `depreciacion_acumulada_post` = suma de cuotas previas.
-  - [ ] Los 30 activos reales de Sub-02 quedan intactos tras el seed (no se insertan/reemplazan activos).
+  - [x] `pnpm prisma db seed` (o `tsx prisma/seed-activos.ts` extendido) ejecuta de forma idempotente. **✅ 2 corridas consecutivas = 174 cuotas ambas (29 elegibles × 6 períodos)**
+  - [x] Cada cuota cumple: `valor_en_libros_post = costo − depreciacion_acumulada_post` a 2 decimales exactos, y `depreciacion_acumulada_post` = suma de cuotas previas. **✅ script de verificación: 0 inconsistencias en 174 filas**
+  - [x] Los activos reales de Sub-02 quedan intactos tras el seed (no se insertan/reemplazan activos; solo se sincronizan `depreciacion_acumulada`/`valor_en_libros`). **✅ upsert-only + update de acumulados**
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/prisma/seed-activos.ts` (extensión) o `app/prisma/seed.ts`
 

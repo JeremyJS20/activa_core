@@ -625,3 +625,74 @@ export async function seedActivosFijos(
   console.log(`✔ Activos fijos registrados y vinculados: ${activosInsertados} (incluye 1 baja formal con dictamen técnico)`);
   return activosInsertados;
 }
+
+// ============================================================================
+// PROVISIONAL — Sub-módulo 04 (cuotas de depreciación sintéticas)
+// ⚠️ GOBERNANZA: pertenece al domino del Sub-módulo 03 (Motor de Depreciación
+// DGII). Sub-03 deberá reemplazar esta siembra sintética por su propio motor.
+// La tabla `depreciaciones_mensual` es el contrato provisional de lectura
+// definido en specs/activos-fijos/04-consultas-reportes/design.md.
+// Datos DETERMINISTAS: cuota = (costo − residual) / vida_util_meses del
+// TipoActivo REAL, redondeo Half-Up a 2 decimales, acumulados = suma exacta.
+// NO crea/muta activos, custodias ni bajas (esos pertenecen a Sub-02).
+// ============================================================================
+export async function seedCuotasDepreciacion(prisma: PrismaClient): Promise<number> {
+  // Períodos con corte reciente determinista: 2025-05 .. 2026-10 excluyendo huecos arbitrarios.
+  // Se eligen 6 períodos fijos del calendario reciente.
+  const periodos = ["2025-11", "2025-12", "2026-04", "2026-05", "2026-09", "2026-10"];
+
+  const activosEligibles = await prisma.activoFijo.findMany({
+    where: { estado: { in: ["ACTIVO", "EN_MANTENIMIENTO"] } },
+    include: {
+      tipoActivo: {
+        select: {
+          cuentaContableCompra: true,
+          cuentaContableDepreciacion: true,
+          vidaUtilMeses: true,
+        },
+      },
+    },
+    orderBy: { codigo: "asc" },
+  });
+
+  const halfUp = (v: number): number => Math.round((v + Number.EPSILON) * 100) / 100;
+
+  let cuotasCreadas = 0;
+  for (const activo of activosEligibles) {
+    const { cuentaContableCompra, cuentaContableDepreciacion, vidaUtilMeses } = activo.tipoActivo;
+    const baseDepreciable = Number(activo.costoAdquisicion) - Number(activo.valorResidual);
+    const cuota = halfUp(baseDepreciable / Math.max(vidaUtilMeses, 1));
+
+    // Idempotencia: reinicia las cuotas provisionales de este activo (NO toca activos).
+    await prisma.depreciacionMensual.deleteMany({ where: { activoId: activo.id } });
+
+    let acumulado = 0.0;
+    for (const periodo of periodos) {
+      acumulado = halfUp(acumulado + cuota);
+      const valorEnLibros = halfUp(Number(activo.costoAdquisicion) - acumulado);
+      await prisma.depreciacionMensual.create({
+        data: {
+          activoId: activo.id,
+          periodoFiscal: periodo,
+          cuotaMes: cuota,
+          depreciacionAcumuladaPost: acumulado,
+          valorEnLibrosPost: valorEnLibros,
+          cuentaCompra: cuentaContableCompra,
+          cuentaDepreciacion: cuentaContableDepreciacion,
+        },
+      });
+      cuotasCreadas++;
+    }
+    // Sincroniza el acumulado real del activo para que KPIs / reportes sean coherentes.
+    await prisma.activoFijo.update({
+      where: { id: activo.id },
+      data: {
+        depreciacionAcumulada: acumulado,
+        valorEnLibros: halfUp(Number(activo.costoAdquisicion) - acumulado),
+      },
+    });
+  }
+
+  console.log(`✔ Cuotas de depreciación sembradas (próximas a Sub-03): ${cuotasCreadas} sobre ${activosEligibles.length} activos en ${periodos.length} períodos de corte.`);
+  return cuotasCreadas;
+}
