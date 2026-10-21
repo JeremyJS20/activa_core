@@ -19,6 +19,7 @@ const ROUTE_MAP: Record<string, RouteInfo> = {
   "/activos": { section: "Gestión de Activos", page: "Activos Fijos" },
   "/depreciacion": { section: "Gestión de Activos", page: "Depreciación" },
   "/reportes": { section: "Gestión de Activos", page: "Reportes DGII" },
+  "/reportes/depreciacion": { section: "Reportes DGII", page: "Depreciación Fiscal" },
 };
 
 export function ConsoleBreadcrumb() {

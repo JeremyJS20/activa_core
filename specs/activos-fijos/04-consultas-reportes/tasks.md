@@ -173,12 +173,12 @@ graph TD
 
 ## Wave 3: UI — Consola de Reportes `/reportes` (~6h)
 
-### Task 3.1: Shell de la consola (`layout.tsx` + pestañas + breadcrumb) (~1h)
+### Task 3.1: Shell de la consola (`layout.tsx` + pestañas + breadcrumb) (~1h) [COMPLETED 2026-10-21]
 - **Description:** Crear `app/app/reportes/layout.tsx` (título, breadcrumb "Gestión de Activos → Reportes DGII"), `app/components/reportes/reportes-nav.tsx` (pestañas Inventario / Depreciación con indicador activo de 4px, tokens del DESIGN.md), `app/app/reportes/page.tsx` (vista de inventario por defecto) y `app/app/reportes/depreciacion/page.tsx` (placeholder listo para T3.4).
 - **Acceptance criteria:**
-  - [ ] Ambas rutas responden 200 autenticado con rol ADMIN y redirigen a `/login?callbackUrl=/reportes` sin sesión.
-  - [ ] El shell respeta la No-Line Rule (separación tonal, sin bordes duros) y reutiliza los tokens del console shell.
-  - [ ] `pnpm lint` limpio en los archivos nuevos.
+  - [x] Ambas rutas responden 200 autenticado con rol ADMIN y redirigen a `/login?callbackUrl=/reportes` sin sesión. **✅ 200 + h1 "Reportes DGII" en ambas rutas; 307 → /login sin sesión**
+  - [x] El shell respeta la No-Line Rule (separación tonal, sin bordes duros) y reutiliza los tokens del console shell. **✅ surface blanca + sombra difusa, sin divisores negros**
+  - [x] `pnpm lint` limpio en los archivos nuevos. **✅ eslint sin errores en los 5 archivos (el lint global conserva 262 errores preexistentes de Sub-02, fuera de este alcance)**
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/app/reportes/layout.tsx`, `app/app/reportes/page.tsx`, `app/app/reportes/depreciacion/page.tsx`, `app/components/reportes/reportes-nav.tsx`, `app/components/layout/console-breadcrumb.tsx` (nueva entrada)
 
