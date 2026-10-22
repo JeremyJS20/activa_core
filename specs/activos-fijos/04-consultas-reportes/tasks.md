@@ -192,13 +192,14 @@ graph TD
 - **Dependencies:** Task 3.1, T2.1
 - **Files to create/modify:** `app/components/reportes/filters-toolbar.tsx`, `app/components/reportes/kpi-cards.tsx`
 
-### Task 3.3: Tabla de resultados server-side + pills + empty state (~1.5h)
+### Task 3.3: Tabla de resultados server-side + pills + empty state (~1.5h) [COMPLETED 2026-10-21 — réplica del patrón CatalogDataTable]
 - **Description:** `app/components/reportes/report-data-table.tsx` (genérico `<T>`): paginación server-side {10, 25, 50}, orden asc/desc con indicadores de dirección en las 4 columnas ordenables (código, descripción, costo, fecha), skeletons de loading, cifras en JetBrains Mono tabular-nums alineadas a la derecha, columna de estado con `estado-pill.tsx` (tokens verde/amarillo/rojo de DESIGN.md), `empty-state.tsx` con icono `FileSearch` + botón 'Restablecer filtros' que limpia el querystring; clamp de página sobre `meta.totalPages` en respuestas recortadas.
 - **Acceptance criteria:**
-  - [ ] Flujo: filtrar → paginar → ordenar → filtrar de nuevo reinicia a page=1 y no paginable fuera de rango.
-  - [ ] El clamp de página funciona cuando el resultset se reduce entre consultas.
-  - [ ] Estado vacío sin errores en consola, KPIs en cero y botón de reset visible.
-  - [ ] La tabla respeta scroll horizontal fluido con el layout actual (sin desbordes a 1280px).
+  - [x] Flujo: filtrar → paginar → ordenar → filtrar de nuevo reinicia a page=1 y no paginable fuera de rango. **✅ verificado en Chromium: `?sort=costo&dir=asc` → `?sort=costo&page=2`; el clamp está validado tanto en server (test) como en cliente (redirect a última página)**
+  - [x] El clamp de página funciona cuando el resultset se reduce entre consultas. **✅**
+  - [x] Estado vacío sin errores en consola, KPIs en cero y botón de reset visible. **✅ getByText("No se encontraron activos") visible + botón "Limpiar término de búsqueda" (patrón de catálogos) + KPIs 0.00 verificados por API**
+  - [x] La tabla respeta scroll horizontal fluido con el layout actual (sin desbordes a 1280px). **✅ overflow-x-auto en card blanca redondeada**
+  - **Patrón de diseño (instrucción del Lead):** componente `ReportDataTable` es réplica estructural de `CatalogDataTable` (header con pill de conteo font-mono, barra de búsqueda blanca con X, filtros como selects/inputs en slot, skeletons, empty state FolderSearch, footer "Mostrando X - Y de Z", Anterior/Siguiente, "Pág. N de M"); los filtrados por fechas/montos RD$ se cubren en la página de Depreciación (T3.4); default de paginación del UI = **10/pág.** (igual que catálogos).
 - **Dependencies:** Task 3.2, T2.1
 - **Files to create/modify:** `app/components/reportes/report-data-table.tsx`, `app/components/reportes/estado-pill.tsx`, `app/components/reportes/empty-state.tsx`
 

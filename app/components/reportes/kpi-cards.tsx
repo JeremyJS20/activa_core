@@ -41,13 +41,13 @@ export function KpiCards({ kpis, isLoading = false }: KpiCardsProps) {
         return (
           <article
             key={card.key}
-            className="rounded-2xl bg-white p-5 shadow-[0_1px_3px_rgba(27,42,74,0.06),0_4px_12px_rgba(27,42,74,0.04)]"
+            className="rounded-xl bg-white p-5 border border-slate-200/90 shadow-2xs"
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#505F76]">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 font-mono">
                 {card.label}
               </p>
-              <span className="p-1.5 rounded-lg bg-[#F2F3FF] text-[#003D9B]" aria-hidden="true">
+              <span className="p-1.5 rounded-lg bg-[#003D9B]/10 text-[#003D9B]" aria-hidden="true">
                 <Icon className="w-4 h-4" />
               </span>
             </div>
@@ -58,7 +58,7 @@ export function KpiCards({ kpis, isLoading = false }: KpiCardsProps) {
                 aria-hidden="true"
               />
             ) : (
-              <p className="mt-2 font-display font-extrabold text-2xl text-[#1B2A4A] font-mono tabular-nums">
+              <p className="mt-2 font-display font-bold text-2xl text-slate-900 font-mono tabular-nums">
                 {kpis ? card.format(kpis) : "—"}
               </p>
             )}
