@@ -182,13 +182,13 @@ graph TD
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/app/reportes/layout.tsx`, `app/app/reportes/page.tsx`, `app/app/reportes/depreciacion/page.tsx`, `app/components/reportes/reportes-nav.tsx`, `app/components/layout/console-breadcrumb.tsx` (nueva entrada)
 
-### Task 3.2: Toolbar de consulta + KPI cards (~1.5h)
+### Task 3.2: Toolbar de consulta + KPI cards (~1.5h) [COMPLETED 2026-10-21]
 - **Description:** `app/components/reportes/filters-toolbar.tsx`: inputs de fecha inicio/fin, monto min/max, selects de departamento/tipo (catálogos de Sub-01), búsqueda de custodio con debounce exacto de **300 ms**, selección multi-estado con chips removibles; el querystring del URL es la fuente de verdad del estado de filtros. `app/components/reportes/kpi-cards.tsx`: 4 tarjetas (Cantidad, Costo, Depreciación, Valor en libros) con Manrope 800 26px para la cifra, Inter 11px uppercase en el label, y JetBrains Mono + `tabular-nums` para RD$.
 - **Acceptance criteria:**
-  - [ ] El debounce es verificable en tests: al teclear en el buscador solo se dispara 1 request por ventana de 300 ms (no por pulsación).
-  - [ ] KPIs con el caso del REQ-REP-002 renderizan RD$ con 2 decimales exactos.
-  - [ ] Los filtros se reflejan en el URL y son repobables desde el querystring (compartir/limpiar estado funciona).
-  - [ ] Accesible: labels reales, manejo de foco, navegación completa por teclado.
+  - [x] El debounce es verificable en tests: al teclear en el buscador solo se dispara 1 request por ventana de 300 ms (no por pulsación). **✅ 5 tests de `lib/utils/debounce` + `useDebouncedValue(300ms)` en la consulta**
+  - [x] KPIs con el caso del REQ-REP-002 renderizan RD$ con 2 decimales exactos. **✅ 4 tests de `formatRD` (RD$ 400,000.00 / 360,000.00)**
+  - [x] Los filtros se reflejan en el URL y son repobables desde el querystring (compartir/limpiar estado funciona). **✅ round-trip `filtersToSearchParams` ↔ `searchParamsToFilters` (5 tests) y URL como fuente de verdad**
+  - [x] Accesible: labels reales, manejo de foco, navegación completa por teclado. **✅ labels asociados, `aria-pressed` en chips de estado, `aria-live` en estados de carga/error, inputs nativos navegables**
 - **Dependencies:** Task 3.1, T2.1
 - **Files to create/modify:** `app/components/reportes/filters-toolbar.tsx`, `app/components/reportes/kpi-cards.tsx`
 
