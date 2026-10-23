@@ -53,7 +53,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-[#0F172A] text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800/80 min-h-screen sticky top-0 z-30 select-none hidden md:flex">
+    <aside className="no-print w-64 bg-[#0F172A] text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800/80 min-h-screen sticky top-0 z-30 select-none hidden md:flex">
       {/* Brand Header */}
       <div>
         <div className="h-16 px-6 flex items-center border-b border-slate-800/60">

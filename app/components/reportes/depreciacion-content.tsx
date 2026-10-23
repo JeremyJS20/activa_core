@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { ReportDataTable } from "@/components/reportes/report-data-table";
+import { PrintHeader } from "@/components/reportes/export-buttons";
 import { useDebouncedValue } from "@/components/reportes/use-debounced-value";
 import {
   formatRD,
@@ -246,6 +247,23 @@ export function DepreciacionContent({
   const periodoServidor = data?.meta.periodo ?? periodoValue;
 
   const filtraCuentas = Boolean(cuentaCompraValue || cuentaDepreciacionValue);
+
+  // Querystring del snapshot exportable (mismo período/cuentas que la pantalla).
+  const exportQuery = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("periodo", periodo);
+    if (cuentaCompra) params.set("cuentaCompra", cuentaCompra);
+    if (cuentaDepreciacion) params.set("cuentaDepreciacion", cuentaDepreciacion);
+    return params.toString();
+  }, [periodo, cuentaCompra, cuentaDepreciacion]);
+
+  // Filtros legibles para el membrete de impresión.
+  const printFilters = useMemo(() => {
+    const items = [`Período: ${periodoServidor}`];
+    if (cuentaCompra) items.push(`Cta. compra: ${cuentaCompra}`);
+    if (cuentaDepreciacion) items.push(`Cta. depreciación: ${cuentaDepreciacion}`);
+    return items;
+  }, [periodoServidor, cuentaCompra, cuentaDepreciacion]);
   const emptyTitle =
     total === 0 && !filtraCuentas
       ? `No existe depreciación procesada para el período ${periodoServidor}`
@@ -257,6 +275,9 @@ export function DepreciacionContent({
 
   return (
     <div className="space-y-6">
+      {/* Membrete institucional (solo impresión, REQ-REP-008) */}
+      <PrintHeader title="Depreciación Fiscal por Período" filters={printFilters} />
+
       {error && (
         <div
           role="alert"
@@ -284,6 +305,7 @@ export function DepreciacionContent({
         limit={data?.meta.pageSize ?? requestedLimit}
         totalPages={totalPages}
         onPageChange={changePage}
+        exportQuery={exportQuery}
         emptyTitle={emptyTitle}
         emptyDescription={emptyDescription}
         onResetEmpty={resetFilters}

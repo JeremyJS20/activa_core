@@ -33,7 +33,7 @@ export function ReportesNav() {
   const pathname = usePathname();
 
   return (
-    <div className="border-b border-slate-200/90 w-full overflow-x-auto">
+    <div className="border-b border-slate-200/90 w-full overflow-x-auto no-print">
       <nav className="flex gap-2 sm:gap-6 min-w-max" aria-label="Reportes">
         {TABS.map((tab) => {
           const Icon = tab.icon;

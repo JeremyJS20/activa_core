@@ -8,7 +8,7 @@ interface ConsoleShellProps {
 
 function NavbarSkeleton() {
   return (
-    <header className="h-16 w-full bg-white border-b border-slate-200/80 sticky top-0 z-20 px-6 sm:px-8 flex items-center justify-between shadow-xs">
+    <header className="no-print h-16 w-full bg-white border-b border-slate-200/80 sticky top-0 z-20 px-6 sm:px-8 flex items-center justify-between shadow-xs">
       <div className="w-48 h-4 rounded-md bg-slate-100 animate-pulse" />
       <div className="w-28 h-8 rounded-xl bg-slate-100 animate-pulse" />
     </header>

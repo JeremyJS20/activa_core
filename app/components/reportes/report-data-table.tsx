@@ -4,18 +4,12 @@ import React, { useState, useEffect } from "react";
 import {
   Search,
   RefreshCw,
-  FileSpreadsheet,
-  FileText,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   FolderSearch,
-  Loader2,
   X,
-  Download,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
+import { ExportButtons } from "@/components/reportes/export-buttons";
 
 export interface ReportDataTableProps {
   title: string;
@@ -38,6 +32,8 @@ export interface ReportDataTableProps {
   emptyDescription?: string;
   /** Acción de recuperación mostrada en el estado vacío (p. ej. restablecer filtros). */
   onResetEmpty?: () => void;
+  /** Querystring con los filtros activos que se reenvía a la exportación. */
+  exportQuery?: string;
   children: React.ReactNode;
 }
 
@@ -65,14 +61,12 @@ export function ReportDataTable({
   emptyTitle = "No se encontraron registros",
   emptyDescription = "No hay registros que coincidan con los criterios de búsqueda o filtros seleccionados.",
   onResetEmpty,
+  exportQuery = "",
   children,
 }: ReportDataTableProps) {
   // Input local para debounce fluido de 300ms (REP-REP-001)
   const [localSearch, setLocalSearch] = useState(searchValue);
   const [prevSearchValue, setPrevSearchValue] = useState(searchValue);
-  const [isExportOpen, setIsExportOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Sincronizar input local si cambia el estado padre (patrón derivado de props,
   // sin setState síncrono dentro de un efecto).
@@ -92,73 +86,13 @@ export function ReportDataTable({
     return () => clearTimeout(handler);
   }, [localSearch, searchValue, onSearchChange]);
 
-  const showToast = (type: "success" | "error", text: string) => {
-    setToastMessage({ type, text });
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  const handleExport = async (formato: "xlsx" | "csv") => {
-    setIsExportOpen(false);
-    setIsExporting(true);
-
-    try {
-      const res = await fetch(`/api/reportes/export?reporte=${reporteKey}&formato=${formato}`);
-      if (!res.ok) {
-        throw new Error("Error al generar la exportación");
-      }
-
-      const blob = await res.blob();
-      const contentDisposition = res.headers.get("Content-Disposition");
-      let filename = `reporte_${reporteKey}_${Date.now()}.${formato}`;
-
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) filename = match[1];
-      }
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      showToast("success", `Reporte exportado exitosamente a formato ${formato.toUpperCase()}`);
-    } catch (err) {
-      console.error("Export error:", err);
-      showToast("error", "No fue posible exportar el reporte. Intente de nuevo.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const startRecord = totalCount === 0 ? 0 : (page - 1) * limit + 1;
   const endRecord = Math.min(page * limit, totalCount);
 
   return (
     <div className="space-y-4">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-lg text-sm font-medium border animate-in slide-in-from-bottom-3 duration-200 ${
-            toastMessage.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
-        >
-          {toastMessage.type === "success" ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-          )}
-          <span>{toastMessage.text}</span>
-        </div>
-      )}
-
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-display">
@@ -183,61 +117,17 @@ export function ReportDataTable({
             </button>
           )}
 
-          {/* Export Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setIsExportOpen(!isExportOpen)}
-              disabled={isExporting || totalCount === 0}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50"
-            >
-              {isExporting ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#003D9B]" />
-              ) : (
-                <Download className="w-4 h-4 text-slate-500" />
-              )}
-              <span>Exportar</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
-
-            {isExportOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsExportOpen(false)}
-                />
-                <div className="absolute right-0 mt-1.5 w-52 bg-white rounded-lg shadow-lg border border-slate-200 py-1.5 z-50 text-sm animate-in fade-in-50 zoom-in-95">
-                  <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                    Formato de Archivo
-                  </div>
-                  <button
-                    onClick={() => handleExport("xlsx")}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                    <div>
-                      <span className="font-medium block leading-none">Libro Excel (.xlsx)</span>
-                      <span className="text-[11px] text-slate-400">Formato RD$ UNAPEC</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleExport("csv")}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    <FileText className="w-4 h-4 text-sky-600" />
-                    <div>
-                      <span className="font-medium block leading-none">Archivo CSV (.csv)</span>
-                      <span className="text-[11px] text-slate-400">UTF-8 BOM (Windows)</span>
-                    </div>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {/* Exportación (precheck + descarga) e impresión institucional */}
+          <ExportButtons
+            reporteKey={reporteKey}
+            exportQuery={exportQuery}
+            disabled={isLoading || totalCount === 0}
+          />
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="no-print bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         {showSearch && (
           <div className="relative flex-1 min-w-[260px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -318,7 +208,7 @@ export function ReportDataTable({
 
         {/* Server-Side Pagination Footer */}
         {!isLoading && totalCount > 0 && (
-          <div className="px-4 py-3 bg-slate-50/70 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="no-print px-4 py-3 bg-slate-50/70 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
             <div>
               Mostrando <span className="font-semibold text-slate-800">{startRecord}</span> -{" "}
               <span className="font-semibold text-slate-800">{endRecord}</span> de{" "}

@@ -214,7 +214,7 @@ graph TD
   - `ReportDataTable` se extendió con `showSearch?: boolean` (el endpoint de depreciación no soporta `search`) y `onResetEmpty?: () => void` (botón "Restablecer filtros" del empty state, exigido por DESIGN §Empty).
   - El período por defecto se resuelve en el server component con lectura directa a `depreciaciones_mensual` (sin endpoint nuevo ni cambio de contrato); `dynamic = "force-dynamic"` no es válido con `cacheComponents` de Next 16 → se retiró.
   - Selector de cuentas poblado desde `/api/tipos-activos` (cuentas únicas de compra/depreciación), preservando en el `<select>` una cuenta de URL aunque no esté en el catálogo.
-  - **Pendiente T3.6:** el botón Exportar aún no reenvía `periodo`/cuentas al endpoint de exportación (hoy responde 400 "El período fiscal es obligatorio…"); se resuelve en la Task 3.6 junto con el flujo de precheck.
+  - **Pendiente T3.6 (RESUELTO 2026-10-23):** el botón Exportar no reenviaba `periodo`/cuentas al endpoint de exportación (400 "El período fiscal es obligatorio…"); T3.6 añadió `exportQuery` por página y el flujo de precheck. Archivo real verificado: `depreciacion-2026-10-2026-10-23.xlsx`.
 - **Dependencies:** Task 3.3, T2.2
 - **Files to create/modify:** `app/app/reportes/depreciacion/page.tsx`, `app/components/reportes/depreciacion-content.tsx`, `app/components/reportes/report-data-table.tsx`, `app/components/reportes/reportes-types.ts`
 
@@ -231,14 +231,19 @@ graph TD
 - **Dependencies:** Task 3.3, T2.2
 - **Files to create/modify:** `app/components/reportes/kardex-modal.tsx`, `app/components/reportes/inventario-content.tsx`, `app/components/reportes/reportes-types.ts`
 
-### Task 3.6: Botones de exportación + vista de impresión (`@media print`) (~0.5h)
+### Task 3.6: Botones de exportación + vista de impresión (`@media print`) (~0.5h) [COMPLETED 2026-10-23]
 - **Description:** `app/components/reportes/export-buttons.tsx`: flujo de 2 pasos — precheck `GET /api/reportes/export?precheck=true`; si `avisoTruncamiento` aplica, modal de aviso del corte (10,000) antes de descargar; botones 'Excel', 'CSV' e 'Imprimir'. CSS en `app/app/reportes/reportes-print.css` con `@media print` que oculta `.no-print` (sidebar, topbar, toolbar, paginación, botones, pestañas) y muestra membrete UNAPEC + usuario emisor + fecha/hora + filtros activos como texto plano.
 - **Acceptance criteria:**
-  - [ ] La descarga solo ocurre si el precheck no marca truncamiento (o el usuario lo acepta tras el aviso).
-  - [ ] Ctrl+P / botón Imprimir: el preview nunca muestra sidebar, toolbar, botones ni paginación, y sí membrete + filtros + tabla.
-  - [ ] La acción de impresión queda bloqueada hasta que los datos están cargados (nunca hoja en blanco).
+  - [x] La descarga solo ocurre si el precheck no marca truncamiento (o el usuario lo acepta tras el aviso). **✅ Chromium: toda exportación emite `precheck=true` y luego la descarga auditada; con truncamiento simulado (15,000 > 10,000) se abre el aviso con ambos montos, NO hay descarga hasta pulsar "Continuar y descargar" (archivo `inventario-truncado.csv`, 45 B).**
+  - [x] Ctrl+P / botón Imprimir: el preview nunca muestra sidebar, toolbar, botones ni paginación, y sí membrete + filtros + tabla. **✅ `emulateMedia(print)`: `aside`, `header`, tabs y paginación con `display:none`; membrete "UNIVERSIDAD APEC · UNAPEC" en la primera línea, "Filtros activos: Monto mín. RD$ 100000", emisor y timestamp visibles; `page.pdf()` generó **286,102 B** (`artifacts/reportes-print.pdf`).**
+  - [x] La acción de impresión queda bloqueada hasta que los datos están cargados (nunca hoja en blanco). **✅ Con `?search=zzz-sin-resultados` (0 filas) los botones Imprimir y Exportar quedan `disabled`. Durante `isLoading` también.**
+- **Notas de implementación:**
+  - `ExportButtons` + `PrintHeader` extraídos; `ReportDataTable` conserva el shell y recibe `exportQuery` con los filtros activos (inventario: 6 filtros + `sort`/`dir`; depreciación: `periodo` + cuentas).
+  - **Cierra el pendiente de T3.4:** exportación de depreciación reenvía `periodo=2026-10` → archivo real `depreciacion-2026-10-2026-10-23.xlsx` (10,261 B) sin 400.
+  - Descargas reales verificadas: `inventario-activos-2026-10-23.xlsx` (9,641 B) y `.csv` (4,432 B) con `montoMin=100000` reenviado.
+  - Clases `no-print` añadidas al chasis (`app-sidebar`, `top-navbar`, `NavbarSkeleton`) y a `ReportesNav`; `reportes-print.css` fija A4 horizontal, repite `thead` y evita cortes de fila.
 - **Dependencies:** Task 3.2, T3.4, T2.3
-- **Files to create/modify:** `app/components/reportes/export-buttons.tsx`, `app/app/reportes/reportes-print.css`
+- **Files to create/modify:** `app/components/reportes/export-buttons.tsx`, `app/app/reportes/reportes-print.css`, `app/components/reportes/report-data-table.tsx`, `app/components/reportes/inventario-content.tsx`, `app/components/reportes/depreciacion-content.tsx`, `app/components/layout/*`, `app/app/reportes/layout.tsx`
 
 ---
 

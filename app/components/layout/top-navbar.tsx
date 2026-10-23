@@ -8,7 +8,7 @@ export async function TopNavbar() {
   const user = session?.user;
 
   return (
-    <header className="h-16 w-full bg-white border-b border-slate-200/80 sticky top-0 z-20 px-6 sm:px-8 flex items-center justify-between shadow-xs">
+    <header className="no-print h-16 w-full bg-white border-b border-slate-200/80 sticky top-0 z-20 px-6 sm:px-8 flex items-center justify-between shadow-xs">
       {/* Rutas Breadcrumb a la izquierda */}
       <ConsoleBreadcrumb />
 

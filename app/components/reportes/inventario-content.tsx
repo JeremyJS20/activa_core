@@ -8,6 +8,7 @@ import { KpiCards } from "@/components/reportes/kpi-cards";
 import { EstadoPill } from "@/components/reportes/estado-pill";
 import { EmptyState } from "@/components/reportes/empty-state";
 import { KardexModal } from "@/components/reportes/kardex-modal";
+import { PrintHeader } from "@/components/reportes/export-buttons";
 import { useDebouncedValue } from "@/components/reportes/use-debounced-value";
 import {
   EMPTY_FILTERS,
@@ -162,6 +163,41 @@ export function InventarioContent() {
 
   const estadoSingle = filters.estados.length === 0 ? "TODOS" : filters.estados[0];
 
+  // Querystring del snapshot exportable: mismos filtros y orden que la pantalla.
+  const exportQuery = useMemo(() => {
+    const params = filtersToSearchParams(filters);
+    if (sort !== "codigo") params.set("sort", sort);
+    if (dir !== "asc") params.set("dir", dir);
+    return params.toString();
+  }, [filters, sort, dir]);
+
+  // Etiquetas legibles de los filtros activos para el membrete de impresión.
+  const printFilters = useMemo(() => {
+    const items: string[] = [];
+    if (filters.fechaInicio) items.push(`Desde ${filters.fechaInicio}`);
+    if (filters.fechaFin) items.push(`Hasta ${filters.fechaFin}`);
+    if (filters.montoMin) items.push(`Monto mín. RD$ ${filters.montoMin}`);
+    if (filters.montoMax) items.push(`Monto máx. RD$ ${filters.montoMax}`);
+
+    const departamento = departamentos.find((d) => d.id === filters.departamentoId);
+    if (departamento) items.push(`Departamento: ${departamento.label}`);
+
+    const tipo = tiposActivos.find((t) => t.id === filters.tipoActivoId);
+    if (tipo) items.push(`Tipo: ${tipo.label}`);
+
+    if (filters.custodio) items.push(`Custodio: ${filters.custodio}`);
+
+    if (filters.estados.length > 0) {
+      const labels = ESTADOS_ACTIVO.filter((estado) =>
+        filters.estados.includes(estado.value)
+      ).map((estado) => estado.label);
+      items.push(`Estado: ${labels.join(", ")}`);
+    }
+
+    if (filters.search) items.push(`Búsqueda: "${filters.search}"`);
+    return items;
+  }, [filters, departamentos, tiposActivos]);
+
   // Ref sincrónico: evita merges stale mientras `router.replace` aún no ha
   // propagado el nuevo querystring (varios filtros aplicados en ráfaga).
   const filtersRef = useRef<ReportFilters>(filters);
@@ -234,6 +270,9 @@ export function InventarioContent() {
 
   return (
     <div className="space-y-6">
+      {/* Membrete institucional (solo impresión, REQ-REP-008) */}
+      <PrintHeader title="Inventario de Activos Fijos" filters={printFilters} />
+
       {/* KPI metric cards (sobre el conjunto filtrado — REQ-REP-002) */}
       <KpiCards kpis={data?.kpis ?? null} isLoading={isLoading} />
 
@@ -264,6 +303,7 @@ export function InventarioContent() {
         limit={data?.meta.pageSize ?? requestedLimit}
         totalPages={totalPages}
         onPageChange={changePage}
+        exportQuery={exportQuery}
         emptyTitle="No se encontraron activos"
         emptyDescription="Ningún activo coincide con los filtros seleccionados. Ajuste los criterios o restablezca la consulta."
         filters={

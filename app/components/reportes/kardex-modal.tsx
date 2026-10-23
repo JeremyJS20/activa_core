@@ -229,7 +229,7 @@ export function KardexModal({ activoId, onClose }: KardexModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 no-print bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
