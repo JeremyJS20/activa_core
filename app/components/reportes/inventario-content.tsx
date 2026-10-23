@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { User, ArrowDown, ArrowUp, ArrowUpDown, AlertCircle } from "lucide-react";
 import { ReportDataTable } from "@/components/reportes/report-data-table";
@@ -160,17 +160,26 @@ export function InventarioContent() {
 
   const estadoSingle = filters.estados.length === 0 ? "TODOS" : filters.estados[0];
 
+  // Ref sincrónico: evita merges stale mientras `router.replace` aún no ha
+  // propagado el nuevo querystring (varios filtros aplicados en ráfaga).
+  const filtersRef = useRef<ReportFilters>(filters);
+
+  useEffect(() => {
+    filtersRef.current = searchParamsToFilters(new URLSearchParams(queryString));
+  }, [queryString]);
+
   // Cambiar cualquier filtro reinicia a la página 1 (patrón de catálogos).
   const applyFilters = useCallback(
     (patch: Partial<ReportFilters>) => {
-      const next: ReportFilters = { ...filters, ...patch };
+      const next: ReportFilters = { ...filtersRef.current, ...patch };
+      filtersRef.current = next;
       const params = filtersToSearchParams(next);
       if (dir !== "asc") params.set("dir", dir);
       if (sort !== "codigo") params.set("sort", sort);
       if (requestedLimit !== 10) params.set("pageSize", String(requestedLimit));
       replaceQuery(params);
     },
-    [filters, dir, sort, requestedLimit, replaceQuery]
+    [dir, sort, requestedLimit, replaceQuery]
   );
 
   const resetFilters = useCallback(() => {
@@ -179,26 +188,26 @@ export function InventarioContent() {
 
   const changePage = useCallback(
     (nextPage: number) => {
-      const params = filtersToSearchParams(filters);
+      const params = filtersToSearchParams(filtersRef.current);
       if (sort !== "codigo") params.set("sort", sort);
       if (dir !== "asc") params.set("dir", dir);
       if (nextPage > 1) params.set("page", String(nextPage));
       if (requestedLimit !== 10) params.set("pageSize", String(requestedLimit));
       replaceQuery(params);
     },
-    [filters, sort, dir, requestedLimit, replaceQuery]
+    [sort, dir, requestedLimit, replaceQuery]
   );
 
   const toggleSort = useCallback(
     (field: SortField) => {
       const nextDir: SortDir = sort === field && dir === "asc" ? "desc" : "asc";
-      const params = filtersToSearchParams(filters);
+      const params = filtersToSearchParams(filtersRef.current);
       params.set("sort", field);
       params.set("dir", nextDir);
       if (requestedLimit !== 10) params.set("pageSize", String(requestedLimit));
       replaceQuery(params);
     },
-    [filters, sort, dir, requestedLimit, replaceQuery]
+    [sort, dir, requestedLimit, replaceQuery]
   );
 
   const total = data?.meta.total ?? 0;
@@ -249,6 +258,60 @@ export function InventarioContent() {
         emptyDescription="Ningún activo coincide con los filtros seleccionados. Ajuste los criterios o restablezca la consulta."
         filters={
           <div className="flex items-center gap-3 flex-wrap">
+            {/* Filtro Rango de fechas de adquisición (REQ-REP-001) */}
+            <label className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500 font-mono">Desde:</span>
+              <input
+                type="date"
+                value={filters.fechaInicio}
+                onChange={(e) => applyFilters({ fechaInicio: e.target.value })}
+                className="px-2.5 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              />
+            </label>
+
+            <label className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500 font-mono">Hasta:</span>
+              <input
+                type="date"
+                value={filters.fechaFin}
+                onChange={(e) => applyFilters({ fechaFin: e.target.value })}
+                className="px-2.5 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              />
+            </label>
+
+            {/* Filtro Rango de costo de adquisición en RD$ (REQ-REP-001) */}
+            <label className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500 font-mono whitespace-nowrap">
+                RD$ mín:
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={filters.montoMin}
+                onChange={(e) => applyFilters({ montoMin: e.target.value })}
+                className="px-2.5 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 w-28 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              />
+            </label>
+
+            <label className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500 font-mono whitespace-nowrap">
+                RD$ máx:
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="Sin límite"
+                value={filters.montoMax}
+                onChange={(e) => applyFilters({ montoMax: e.target.value })}
+                className="px-2.5 py-1.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 w-28 focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] transition-colors"
+              />
+            </label>
+
             {/* Filtro Departamento */}
             <div className="flex items-center gap-1.5">
               <label className="text-xs font-semibold text-slate-500 font-mono">Depto:</label>
