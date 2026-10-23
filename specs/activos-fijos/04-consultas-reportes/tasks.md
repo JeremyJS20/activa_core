@@ -218,14 +218,18 @@ graph TD
 - **Dependencies:** Task 3.3, T2.2
 - **Files to create/modify:** `app/app/reportes/depreciacion/page.tsx`, `app/components/reportes/depreciacion-content.tsx`, `app/components/reportes/report-data-table.tsx`, `app/components/reportes/reportes-types.ts`
 
-### Task 3.5: Modal Kardex del Activo (~0.5h)
+### Task 3.5: Modal Kardex del Activo (~0.5h) [COMPLETED 2026-10-23]
 - **Description:** `app/components/reportes/kardex-modal.tsx`: dialog de shadcn/ui con rounded-3xl, timeline vertical inmutable (dot indicators, tipo `ALTA_INICIAL`/`TRASLADO`/`BAJA`, justificación, usuario responsable, custodios y departamentos origen/destino), grilla de cuotas con las columnas del reporte de depreciación, y banner 'ACTIVO DESINCORPORADO — FUERA DE SERVICIO' cuando `bajaInfo != null`; se abre desde el icono de detalle en cada fila del inventario.
 - **Acceptance criteria:**
-  - [ ] Apertura por teclado (Enter sobre fila) y cierre por ESC/overlay con focus trap correcto.
-  - [ ] Activo inexistente (404) muestra el `detail` RFC 7807 sin romper el modal ni la tabla.
-  - [ ] Ningún registro del timeline ofrece acción de mutación (lectura pura real).
+  - [x] Apertura por teclado (Enter sobre fila) y cierre por ESC/overlay con focus trap correcto. **✅ Chromium: fila `tabIndex=0` + Enter (y Espacio) abre el modal; foco inicial en "Cerrar Kardex"; 6 Tabs consecutivos permanecen dentro de `[role="dialog"]`; ESC cierra y devuelve el foco a "Ver Kardex de ACT-2026-0001"; clic en overlay cierra.**
+  - [x] Activo inexistente (404) muestra el `detail` RFC 7807 sin romper el modal ni la tabla. **✅ Interceptando 404: "El activo solicitado no existe o fue eliminado." visible, el diálogo permanece abierto y la tabla conserva sus 10 filas al cerrar.**
+  - [x] Ningún registro del timeline ofrece acción de mutación (lectura pura real). **✅ El diálogo solo expone 2 botones: "Cerrar Kardex" (X) y "Cerrar"; 0 botones Editar/Eliminar. Timeline renderizado en el orden recibido (descendente).**
+- **Notas de implementación:**
+  - Sin dependencia de shadcn/ui (no está instalado en el proyecto): dialog propio con `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, focus trap manual y bloqueo del scroll del body. Se respetó el token `rounded-3xl + shadow-2xl` del DESIGN.
+  - Datos por apertura (`GET /api/reportes/activos/[id]/kardex`) con `AbortController`; estados loading (skeleton), error y datos.
+  - Verificación con fixture de 2 traslados + 5 cuotas: orden `TRASLADO (20/06) → TRASLADO (02/05) → ALTA_INICIAL (10/01)` y cuotas `2026-10 → 2026-09 → 2026-05 → 2026-04 → 2025-12`. Activo real `ACT-2026-0030` (DADO_DE_BAJA): banner en índice 0 del cuerpo, antes de la ficha (índice 1).
 - **Dependencies:** Task 3.3, T2.2
-- **Files to create/modify:** `app/components/reportes/kardex-modal.tsx`
+- **Files to create/modify:** `app/components/reportes/kardex-modal.tsx`, `app/components/reportes/inventario-content.tsx`, `app/components/reportes/reportes-types.ts`
 
 ### Task 3.6: Botones de exportación + vista de impresión (`@media print`) (~0.5h)
 - **Description:** `app/components/reportes/export-buttons.tsx`: flujo de 2 pasos — precheck `GET /api/reportes/export?precheck=true`; si `avisoTruncamiento` aplica, modal de aviso del corte (10,000) antes de descargar; botones 'Excel', 'CSV' e 'Imprimir'. CSS en `app/app/reportes/reportes-print.css` con `@media print` que oculta `.no-print` (sidebar, topbar, toolbar, paginación, botones, pestañas) y muestra membrete UNAPEC + usuario emisor + fecha/hora + filtros activos como texto plano.

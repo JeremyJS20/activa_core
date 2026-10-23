@@ -65,6 +65,50 @@ export interface DepreciacionResponse {
   data: DepreciacionRow[];
 }
 
+export interface KardexTimelineEntry {
+  tipo: string;
+  fecha: string;
+  custodioAnterior: string | null;
+  custodioNuevo: string | null;
+  departamentoAnterior: string | null;
+  departamentoNuevo: string | null;
+  justificacion: string;
+  usuario: string;
+}
+
+export interface KardexCuotaRow {
+  periodo: string;
+  cuotaMes: string;
+  depreciacionAcumulada: string;
+  valorEnLibros: string;
+}
+
+export interface KardexResponse {
+  activo: {
+    id: string;
+    codigo: string;
+    descripcion: string;
+    estado: string;
+    numeroSerie: string | null;
+    fechaAdquisicion: string;
+    costoAdquisicion: string;
+    depreciacionAcumulada: string;
+    valorEnLibros: string;
+    tipoActivo: string | null;
+    departamento: string | null;
+    custodio: string | null;
+    bajaInfo: {
+      motivoBaja: string;
+      justificacion: string;
+      numeroActa: string;
+      fechaBaja: string;
+      valorEnLibrosAlBaja: string;
+    } | null;
+  };
+  timeline: KardexTimelineEntry[];
+  cuotas: KardexCuotaRow[];
+}
+
 export type EstadoActivoFiltro = "ACTIVO" | "EN_MANTENIMIENTO" | "DADO_DE_BAJA";
 
 export interface ReportFilters {

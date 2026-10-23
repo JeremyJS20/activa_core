@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { User, ArrowDown, ArrowUp, ArrowUpDown, AlertCircle } from "lucide-react";
+import { User, ArrowDown, ArrowUp, ArrowUpDown, AlertCircle, Eye } from "lucide-react";
 import { ReportDataTable } from "@/components/reportes/report-data-table";
 import { KpiCards } from "@/components/reportes/kpi-cards";
 import { EstadoPill } from "@/components/reportes/estado-pill";
 import { EmptyState } from "@/components/reportes/empty-state";
+import { KardexModal } from "@/components/reportes/kardex-modal";
 import { useDebouncedValue } from "@/components/reportes/use-debounced-value";
 import {
   EMPTY_FILTERS,
@@ -51,6 +52,7 @@ export function InventarioContent() {
   const [data, setData] = useState<InventarioResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [kardexActivoId, setKardexActivoId] = useState<string | null>(null);
 
   const [departamentos, setDepartamentos] = useState<CatalogoOption[]>([]);
   const [tiposActivos, setTiposActivos] = useState<CatalogoOption[]>([]);
@@ -185,6 +187,14 @@ export function InventarioContent() {
   const resetFilters = useCallback(() => {
     replaceQuery(filtersToSearchParams(EMPTY_FILTERS));
   }, [replaceQuery]);
+
+  const openKardex = useCallback((activoId: string) => {
+    setKardexActivoId(activoId);
+  }, []);
+
+  const closeKardex = useCallback(() => {
+    setKardexActivoId(null);
+  }, []);
 
   const changePage = useCallback(
     (nextPage: number) => {
@@ -423,11 +433,23 @@ export function InventarioContent() {
                 <th className="px-5 py-3 text-center">Estado</th>
                 <th className="px-5 py-3 text-right">Dep. Acumulada</th>
                 <th className="px-5 py-3 text-right">Valor en Libros</th>
+                <th className="px-3 py-3 text-center">Detalle</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/60 transition-colors">
+                <tr
+                  key={row.id}
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openKardex(row.id);
+                    }
+                  }}
+                  className="hover:bg-slate-50/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#003D9B]/30"
+                >
                   {/* Código */}
                   <td className="px-5 py-3.5 whitespace-nowrap">
                     <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200/60">
@@ -504,12 +526,28 @@ export function InventarioContent() {
                   <td className="px-5 py-3.5 text-right whitespace-nowrap font-mono tabular-nums font-semibold text-slate-900">
                     {formatRD(row.valorEnLibros)}
                   </td>
+
+                  {/* Detalle: abre el Kardex del activo (REQ-REP-005) */}
+                  <td className="px-3 py-3.5 text-center">
+                    <button
+                      type="button"
+                      onClick={() => openKardex(row.id)}
+                      aria-label={`Ver Kardex de ${row.codigo}`}
+                      title="Ver Kardex"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-[#003D9B] hover:bg-[#003D9B]/10 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#003D9B]/40"
+                    >
+                      <Eye className="w-4 h-4" aria-hidden="true" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </ReportDataTable>
+
+      {/* Kardex del activo (REQ-REP-005) */}
+      {kardexActivoId && <KardexModal activoId={kardexActivoId} onClose={closeKardex} />}
     </div>
   );
 }
