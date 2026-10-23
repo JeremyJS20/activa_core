@@ -1,25 +1,69 @@
-import { TrendingDown } from "lucide-react";
+import { Suspense } from "react";
+import { prisma } from "@/lib/prisma";
+import { DepreciacionContent } from "@/components/reportes/depreciacion-content";
 
-export default function ReportesDepreciacionPage() {
+interface PeriodosDepreciacion {
+  periodoInicial: string;
+  periodosDisponibles: string[];
+}
+
+function DepreciacionFallback() {
   return (
-    <section
-      aria-labelledby="reportes-depreciacion-title"
-      className="rounded-2xl bg-white shadow-[0_1px_3px_rgba(27,42,74,0.06),0_4px_12px_rgba(27,42,74,0.04)]"
-    >
-      <div className="px-6 py-10 flex flex-col items-center text-center gap-3">
-        <span className="p-3 rounded-2xl bg-[#F2F3FF] text-[#003D9B]" aria-hidden="true">
-          <TrendingDown className="w-6 h-6" />
-        </span>
-        <h2
-          id="reportes-depreciacion-title"
-          className="font-display font-bold text-lg text-[#1B2A4A]"
-        >
-          Depreciación Fiscal
-        </h2>
-        <p className="text-sm text-slate-500 max-w-md">
-          El reporte por período fiscal se habilita en la Task 3.4 de la Wave 3.
-        </p>
-      </div>
-    </section>
+    <div className="space-y-4" aria-busy="true">
+      <div className="h-16 rounded-xl bg-white shadow-2xs animate-pulse" />
+      <div className="h-[420px] rounded-xl bg-white shadow-2xs animate-pulse" />
+    </div>
+  );
+}
+
+/** Mes actual en la zona horaria institucional (America/Santo_Domingo). */
+function periodoActual(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santo_Domingo",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = parts.find((part) => part.type === "year")?.value ?? "2026";
+  const month = parts.find((part) => part.type === "month")?.value ?? "01";
+  return `${year}-${month}`;
+}
+
+/**
+ * REQ-REP-004 — período predeterminado: mes actual si tiene cuotas;
+ * en caso contrario, el último período con cuotas registradas.
+ */
+async function resolverPeriodos(): Promise<PeriodosDepreciacion> {
+  const actual = periodoActual();
+
+  try {
+    const rows = await prisma.depreciacionMensual.groupBy({
+      by: ["periodoFiscal"],
+      orderBy: { periodoFiscal: "desc" },
+    });
+
+    const periodosDisponibles = rows.map((row) => row.periodoFiscal);
+    const periodoInicial = periodosDisponibles.includes(actual)
+      ? actual
+      : (periodosDisponibles[0] ?? actual);
+
+    return { periodoInicial, periodosDisponibles };
+  } catch (error) {
+    // La pantalla sigue siendo utilizable: el usuario puede elegir el período.
+    console.error("[reportes/depreciacion/page] No se pudieron resolver los períodos:", error);
+    return { periodoInicial: actual, periodosDisponibles: [] };
+  }
+}
+
+export default async function ReportesDepreciacionPage() {
+  const { periodoInicial, periodosDisponibles } = await resolverPeriodos();
+
+  return (
+    <Suspense fallback={<DepreciacionFallback />}>
+      <DepreciacionContent
+        periodoInicial={periodoInicial}
+        periodosDisponibles={periodosDisponibles}
+      />
+    </Suspense>
   );
 }

@@ -24,6 +24,8 @@ export interface ReportDataTableProps {
   searchPlaceholder?: string;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  /** Oculta la barra de búsqueda cuando el endpoint origen no soporta `search`. */
+  showSearch?: boolean;
   filters?: React.ReactNode;
   onRefresh?: () => void;
   isLoading: boolean;
@@ -34,6 +36,8 @@ export interface ReportDataTableProps {
   onPageChange: (newPage: number) => void;
   emptyTitle?: string;
   emptyDescription?: string;
+  /** Acción de recuperación mostrada en el estado vacío (p. ej. restablecer filtros). */
+  onResetEmpty?: () => void;
   children: React.ReactNode;
 }
 
@@ -49,6 +53,7 @@ export function ReportDataTable({
   searchPlaceholder = "Buscar registros...",
   searchValue,
   onSearchChange,
+  showSearch = true,
   filters,
   onRefresh,
   isLoading,
@@ -59,6 +64,7 @@ export function ReportDataTable({
   onPageChange,
   emptyTitle = "No se encontraron registros",
   emptyDescription = "No hay registros que coincidan con los criterios de búsqueda o filtros seleccionados.",
+  onResetEmpty,
   children,
 }: ReportDataTableProps) {
   // Input local para debounce fluido de 300ms (REP-REP-001)
@@ -232,27 +238,29 @@ export function ReportDataTable({
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="relative flex-1 min-w-[260px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all text-slate-800 placeholder-slate-400"
-          />
-          {localSearch && (
-            <button
-              onClick={() => {
-                setLocalSearch("");
-                onSearchChange("");
-              }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        {showSearch && (
+          <div className="relative flex-1 min-w-[260px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
+              placeholder={searchPlaceholder}
+              className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003D9B]/30 focus:border-[#003D9B] focus:bg-white transition-all text-slate-800 placeholder-slate-400"
+            />
+            {localSearch && (
+              <button
+                onClick={() => {
+                  setLocalSearch("");
+                  onSearchChange("");
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Optional Filter Controls */}
         {filters && <div className="flex items-center gap-2.5 flex-wrap">{filters}</div>}
@@ -279,16 +287,29 @@ export function ReportDataTable({
             </div>
             <h3 className="text-base font-semibold text-slate-800 font-display">{emptyTitle}</h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto mt-1 mb-4">{emptyDescription}</p>
-            {localSearch && (
-              <button
-                onClick={() => {
-                  setLocalSearch("");
-                  onSearchChange("");
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#003D9B] bg-[#003D9B]/10 hover:bg-[#003D9B]/20 rounded-md transition-colors"
-              >
-                Limpiar término de búsqueda
-              </button>
+            {(localSearch || onResetEmpty) && (
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                {localSearch && (
+                  <button
+                    onClick={() => {
+                      setLocalSearch("");
+                      onSearchChange("");
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#003D9B] bg-[#003D9B]/10 hover:bg-[#003D9B]/20 rounded-md transition-colors"
+                  >
+                    Limpiar término de búsqueda
+                  </button>
+                )}
+                {onResetEmpty && (
+                  <button
+                    type="button"
+                    onClick={onResetEmpty}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#003D9B] bg-[#003D9B]/10 hover:bg-[#003D9B]/20 rounded-md transition-colors"
+                  >
+                    Restablecer filtros
+                  </button>
+                )}
+              </div>
             )}
           </div>
         ) : (

@@ -33,6 +33,38 @@ export interface InventarioResponse {
   data: InventarioRow[];
 }
 
+export interface DepreciacionRow {
+  activoId: string;
+  codigo: string;
+  descripcion: string;
+  vidaUtilMeses: number | null;
+  costoOriginal: string;
+  cuotaMes: string;
+  depreciacionAcumuladaHistorica: string;
+  valorEnLibros: string;
+  cuentaCompra: string;
+  cuentaDepreciacion: string;
+}
+
+export interface DepreciacionTotales {
+  cuotaTotalMes: string;
+  depreciacionAcumuladaTotal: string;
+  valorEnLibrosTotal: string;
+}
+
+export interface DepreciacionResponse {
+  meta: {
+    periodo: string;
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    sinProceso: boolean;
+  };
+  totales: DepreciacionTotales;
+  data: DepreciacionRow[];
+}
+
 export type EstadoActivoFiltro = "ACTIVO" | "EN_MANTENIMIENTO" | "DADO_DE_BAJA";
 
 export interface ReportFilters {

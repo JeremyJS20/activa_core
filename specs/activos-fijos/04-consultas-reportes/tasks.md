@@ -204,14 +204,19 @@ graph TD
 - **Dependencies:** Task 3.2, T2.1
 - **Files to create/modify:** `app/components/reportes/report-data-table.tsx`, `app/components/reportes/estado-pill.tsx`, `app/components/reportes/empty-state.tsx`
 
-### Task 3.4: Página Depreciación (período + cuentas + `sinProceso`) (~1h)
+### Task 3.4: Página Depreciación (período + cuentas + `sinProceso`) (~1h) [COMPLETED 2026-10-23]
 - **Description:** Implementar `app/app/reportes/depreciacion/page.tsx`: selector de período `YYYY-MM` y filtros de cuenta compra/depreciación (sugeridos desde el catálogo de tipos de activo de Sub-01), reutiliza la tabla server-side del T3.3 con fila de totales del período y el estado `sinProceso: true` mostrando 'No existe depreciación procesada para el período YYYY-MM'.
 - **Acceptance criteria:**
-  - [ ] Renderizado con data, sin data y filtro inválido funcionan sobre la misma pantalla sin cambios de layout.
-  - [ ] Período predeterminado = mes actual si tiene datos; si no, último período con cuotas registradas.
-  - [ ] Totales coinciden bit-a-bit con los del snapshot filtrado (fixture compartido con T2.2).
+  - [x] Renderizado con data, sin data y filtro inválido funcionan sobre la misma pantalla sin cambios de layout. **✅ Chromium: `2026-10` → 29 activos/10 filas; `2026-01` (sin cuotas) → empty state + botón "Restablecer filtros"; `periodo=2026-13` → banner RFC 7807 "El período fiscal debe tener formato YYYY-MM (ej: 2026-10)" sin romper la pantalla.**
+  - [x] Período predeterminado = mes actual si tiene datos; si no, último período con cuotas registradas. **✅ Resuelto en servidor (`groupBy periodoFiscal desc` + zona `America/Santo_Domingo`): hoy `2026-10` tiene cuotas → URL canónica `?periodo=2026-10`; fallback = primer período del listado descendente. Leyenda "Con datos: 2026-10 · 2026-09 · 2026-05".**
+  - [x] Totales coinciden bit-a-bit con los del snapshot filtrado (fixture compartido con T2.2). **✅ UI `RD$ 55,886.26 / 335,317.56 / 4,377,682.44` == API `55886.26 / 335317.56 / 4377682.44` para `2026-10`; con filtro `cuentaCompra=1-01-04-0010` (2025-11) → 1 activo.**
+- **Notas de implementación:**
+  - `ReportDataTable` se extendió con `showSearch?: boolean` (el endpoint de depreciación no soporta `search`) y `onResetEmpty?: () => void` (botón "Restablecer filtros" del empty state, exigido por DESIGN §Empty).
+  - El período por defecto se resuelve en el server component con lectura directa a `depreciaciones_mensual` (sin endpoint nuevo ni cambio de contrato); `dynamic = "force-dynamic"` no es válido con `cacheComponents` de Next 16 → se retiró.
+  - Selector de cuentas poblado desde `/api/tipos-activos` (cuentas únicas de compra/depreciación), preservando en el `<select>` una cuenta de URL aunque no esté en el catálogo.
+  - **Pendiente T3.6:** el botón Exportar aún no reenvía `periodo`/cuentas al endpoint de exportación (hoy responde 400 "El período fiscal es obligatorio…"); se resuelve en la Task 3.6 junto con el flujo de precheck.
 - **Dependencies:** Task 3.3, T2.2
-- **Files to create/modify:** `app/app/reportes/depreciacion/page.tsx`, `app/components/reportes/*` (reutilizados)
+- **Files to create/modify:** `app/app/reportes/depreciacion/page.tsx`, `app/components/reportes/depreciacion-content.tsx`, `app/components/reportes/report-data-table.tsx`, `app/components/reportes/reportes-types.ts`
 
 ### Task 3.5: Modal Kardex del Activo (~0.5h)
 - **Description:** `app/components/reportes/kardex-modal.tsx`: dialog de shadcn/ui con rounded-3xl, timeline vertical inmutable (dot indicators, tipo `ALTA_INICIAL`/`TRASLADO`/`BAJA`, justificación, usuario responsable, custodios y departamentos origen/destino), grilla de cuotas con las columnas del reporte de depreciación, y banner 'ACTIVO DESINCORPORADO — FUERA DE SERVICIO' cuando `bajaInfo != null`; se abre desde el icono de detalle en cada fila del inventario.
