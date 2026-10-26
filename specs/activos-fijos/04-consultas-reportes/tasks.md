@@ -261,12 +261,18 @@ graph TD
 - **Dependencies:** Tasks 3.1–3.6, 2.4
 - **Files to create/modify:** `app/e2e/reportes-smoke.spec.ts`, `app/artifacts/*` (evidencias)
 
-### Task 4.2: Certificación de calidad — Suite completa + cobertura (~0.5h)
+### Task 4.2: Certificación de calidad — Suite completa + cobertura (~0.5h) [BLOCKED 2026-10-26 — lint preexistente]
 - **Description:** Ejecutar el círculo completo de calidad local y certificar el sub-módulo: `pnpm lint`, `pnpm test` (Vitest completo), `pnpm test:e2e` y `pnpm build` (type-check + build de producción Turbopack).
 - **Acceptance criteria:**
   - [ ] Los 4 comandos pasan sin errores, con cobertura del sub-módulo ≥ 85% (umbral referencial de Sub-01: 94.16%).
-  - [ ] Cero `console.error` inesperados durante la revisión del smoke test en dev.
-  - [ ] Revisar que no queden artefactos de texto corrupto en código ni comentarios (Hard Gate 15).
+    - `pnpm test:e2e` **✅ 17/17** (2.8 min).
+    - `pnpm build` **✅ exit 0** — primera compilación 46s / recacheada 6.6s; 4 rutas API de reportes en el route table (`/api/reportes/inventario`, `/depreciacion`, `/export`, `/activos/[id]/kardex`). Se corrigieron 2 hallazgos reales del build: `new Date()` inestable al prerenderizar y `connection()` fuera de `<Suspense>` (ambos en `reportes/depreciacion/page.tsx`).
+    - `pnpm test` **⚠️ entorno**: el script falla en la máquina con Node 20.11.1 (`node:util.styleText` no existe; Vitest 5 exige Node ≥22). Con Node 22 (`npx -y node@22 node_modules/vitest/vitest.mjs run`): **✅ 344/344 tests, 28/28 files**.
+    - `pnpm lint` **❌ bloqueado por deuda preexistente**: 251 errores + 31 warnings, **0 en archivos del Sub-04** (scoped lint del módulo: limpio). Bajó de 262 → 251 al tipar `export.service.ts` y 2 tests del Sub-04. El resto pertenece a Sub-01/Sub-02 (principalmente `@typescript-eslint/no-explicit-any` en tests y componentes).
+    - **Cobertura Sub-04** (one-off `--coverage.include` sobre servicios/schemas/guard/rutas): **Stmts 96.83% (428/442) · Líneas 97.98% · Funciones 100% · Ramas 84.09%**.
+  - [x] Cero `console.error` inesperados durante la revisión del smoke test en dev. **✅ Captura de `console` + `pageerror` durante login, filtro, Kardex (apertura/ESC), depreciación (período vacío/reset): `[]` en ambas listas.**
+  - [x] Revisar que no queden artefactos de texto corrupto en código ni comentarios (Hard Gate 15). **✅ Búsqueda de U+FFFD en todos los archivos del Sub-04: sin resultados.**
+- **Bloqueo:** la certificación formal exige `pnpm lint` global en verde; los 251 errores son deuda de Sub-01/Sub-02 ajena a este spec. No se corrigen aquí para no mezclar alcances (Hard Gate 2 / regla "bug ≠ feature"). Requiere decisión del Lead: (a) tarea separada de saneamiento lint, o (b) certificar con lint scoped del Sub-04 y registrar la deuda.
 - **Dependencies:** Task 4.1
 - **Files to create/modify:** ninguno (evidencia registrada en el PR)
 
