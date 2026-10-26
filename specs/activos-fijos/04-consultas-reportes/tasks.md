@@ -251,12 +251,13 @@ graph TD
 
 > ⚠️ **Role ownership:** unit tests integrados en cada tarea de las waves 1–3. Los E2E y la documentación final de certificación siguen el precedente del Sub-01 (sin QA asignado formalmente en el proyecto, se registran como tareas assignee JeremyJS).
 
-### Task 4.1: E2E Playwright — Flujo completo de reportes (~1h)
+### Task 4.1: E2E Playwright — Flujo completo de reportes (~1h) [COMPLETED 2026-10-26]
 - **Description:** Crear `app/e2e/reportes-smoke.spec.ts` con el patrón de `auth-smoke.spec.ts` / `catalogos-smoke.spec.ts`: login ADMIN → navegar `/reportes` → aplicar filtros → validar KPIs → paginar/ordenar → abrir Kardex → ir a Depreciación → exportar XLSX (download event) → validar vista de impresión vía CDP (`Page.printToPDF`).
 - **Acceptance criteria:**
-  - [ ] La suite completa pasa headless: `pnpm test:e2e`.
-  - [ ] La exportación del test se descarga y se re-parsea con exceljs mostrando la fila de totales exacta.
-  - [ ] Screenshot de regresión visual del shell `/reportes` almacenado como evidencia en `artifacts/`.
+  - [x] La suite completa pasa headless: `pnpm test:e2e`. **✅ 17/17 tests en 2.8 min (5 de reportes + 12 preexistentes). Nota: en frío los E2E de Sub-02 (`activos-custodia`) fallaron por timeout de 30s en el PDF; aislados pasan 3/3 y la repetición completa quedó verde — flakiness preexistente, no del Sub-04.**
+  - [x] La exportación del test se descarga y se re-parsea con exceljs mostrando la fila de totales exacta. **✅ Filtro `montoMin=100000`: workbook.worksheets[0], título fila 1, `autoFilter` fila 3, fila `TOTALES` con celdas 8/9/10 == KPIs de pantalla (costo, depreciación, valor en libros) a 2 decimales.**
+  - [x] Screenshot de regresión visual del shell `/reportes` almacenado como evidencia en `artifacts/`. **✅ `app/artifacts/reportes-shell-e2e.png`.**
+- **Cobertura del spec (5 tests):** filtros UI + KPIs + orden asc/desc + paginación server-side · Kardex (timeline, cuotas, ESC) · Depreciación (período por defecto, totales, cuenta) · XLSX re-parseado · impresión con CDP (`Page.printToPDF`, PDF > 10 KB) + membrete/filtros y ocultamiento de chasis.
 - **Dependencies:** Tasks 3.1–3.6, 2.4
 - **Files to create/modify:** `app/e2e/reportes-smoke.spec.ts`, `app/artifacts/*` (evidencias)
 
