@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { DepreciacionContent } from "@/components/reportes/depreciacion-content";
 
@@ -55,15 +56,27 @@ async function resolverPeriodos(): Promise<PeriodosDepreciacion> {
   }
 }
 
-export default async function ReportesDepreciacionPage() {
+/**
+ * Acceso dinámico + render, aislados tras el boundary de Suspense para que
+ * Next 16 (Cache Components) pueda prerenderizar el shell y transmitir el
+ * contenido sin bloquear la navegación.
+ */
+async function DepreciacionReporte() {
+  await connection();
   const { periodoInicial, periodosDisponibles } = await resolverPeriodos();
 
   return (
+    <DepreciacionContent
+      periodoInicial={periodoInicial}
+      periodosDisponibles={periodosDisponibles}
+    />
+  );
+}
+
+export default function ReportesDepreciacionPage() {
+  return (
     <Suspense fallback={<DepreciacionFallback />}>
-      <DepreciacionContent
-        periodoInicial={periodoInicial}
-        periodosDisponibles={periodosDisponibles}
-      />
+      <DepreciacionReporte />
     </Suspense>
   );
 }
