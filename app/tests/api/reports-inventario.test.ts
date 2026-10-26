@@ -22,6 +22,13 @@ vi.mock("@/lib/prisma", () => ({
 
 import { GET as inventarioHandler } from "@/app/api/reportes/inventario/route";
 
+/** Forma mínima de las cláusulas Prisma inspeccionadas en los asserts. */
+type WhereClause = {
+  costoAdquisicion?: { gte: { toString(): string }; lte: { toString(): string } };
+  empleado?: { OR: Array<{ nombre?: { contains: string; mode: string } }> };
+  OR?: Array<Record<string, unknown>>;
+};
+
 const adminSession = {
   user: {
     id: "10000000-0000-4000-a000-000000000001",
@@ -186,9 +193,11 @@ describe("GET /api/reportes/inventario", () => {
   it("traduce el rango de montos a Decimal gte/lte", async () => {
     await inventarioHandler(makeRequest("?montoMin=50000.25&montoMax=800000.75"));
     const where = mocks.findMany.mock.calls[0][0].where;
-    const montoFilter = where.AND.find((clause: any) => clause.costoAdquisicion);
-    expect(montoFilter.costoAdquisicion.gte.toString()).toBe("50000.25");
-    expect(montoFilter.costoAdquisicion.lte.toString()).toBe("800000.75");
+    const montoFilter = (where.AND as WhereClause[]).find((clause) =>
+      Boolean(clause.costoAdquisicion)
+    );
+    expect(montoFilter?.costoAdquisicion?.gte.toString()).toBe("50000.25");
+    expect(montoFilter?.costoAdquisicion?.lte.toString()).toBe("800000.75");
   });
 
   it("filtra por departamento y tipo de activo", async () => {
@@ -223,16 +232,19 @@ describe("GET /api/reportes/inventario", () => {
   it("busca custodio por nombre, apellido o cédula (case-insensitive)", async () => {
     await inventarioHandler(makeRequest("?custodio=001-123"));
     const where = mocks.findMany.mock.calls[0][0].where;
-    const custodioClause = where.AND.find((clause: any) => clause.empleado);
-    expect(custodioClause.empleado.OR).toHaveLength(3);
-    expect(custodioClause.empleado.OR[0].nombre).toMatchObject({ contains: "001-123", mode: "insensitive" });
+    const custodioClause = (where.AND as WhereClause[]).find((clause) => Boolean(clause.empleado));
+    expect(custodioClause?.empleado?.OR).toHaveLength(3);
+    expect(custodioClause?.empleado?.OR?.[0]?.nombre).toMatchObject({
+      contains: "001-123",
+      mode: "insensitive",
+    });
   });
 
   it("busca por código, descripción o número de serie", async () => {
     await inventarioHandler(makeRequest("?search=ACT-2026"));
     const where = mocks.findMany.mock.calls[0][0].where;
-    const searchClause = where.AND.find((clause: any) => clause.OR);
-    expect(searchClause.OR.map((c: any) => Object.keys(c)[0])).toEqual([
+    const searchClause = (where.AND as WhereClause[]).find((clause) => Boolean(clause.OR));
+    expect((searchClause?.OR ?? []).map((c) => Object.keys(c)[0])).toEqual([
       "codigo",
       "descripcion",
       "numeroSerie",

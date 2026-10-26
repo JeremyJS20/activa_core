@@ -71,7 +71,7 @@ const depreciacionPayload: ReportExportPayload = {
 
 async function loadWorksheet(buffer: Buffer): Promise<ExcelJS.Worksheet> {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer as any);
+  await workbook.xlsx.load(buffer as unknown as Parameters<typeof workbook.xlsx.load>[0]);
   const sheet = workbook.worksheets[0];
   if (!sheet) throw new Error("El XLSX no contiene hojas");
   return sheet;

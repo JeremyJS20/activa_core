@@ -17,7 +17,7 @@ interface ExportColumnDefinition {
   width?: number;
 }
 
-function escapeCsvValue(val: any): string {
+function escapeCsvValue(val: unknown): string {
   if (val === null || val === undefined) return "";
   let str = String(val);
   if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
@@ -26,7 +26,7 @@ function escapeCsvValue(val: any): string {
   return str;
 }
 
-function generateCsvString(headers: string[], rows: any[][]): string {
+function generateCsvString(headers: string[], rows: unknown[][]): string {
   const headerLine = headers.map(escapeCsvValue).join(",");
   const rowLines = rows.map((r) => r.map(escapeCsvValue).join(",")).join("\r\n");
   // Preámbulo UTF-8 BOM (\uFEFF) para visualización nativa limpia en Microsoft Excel sin mojibake
@@ -36,7 +36,7 @@ function generateCsvString(headers: string[], rows: any[][]): string {
 async function generateExcelBuffer(
   sheetName: string,
   columns: ExportColumnDefinition[],
-  rows: Record<string, any>[]
+  rows: Record<string, unknown>[]
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "ActivaCore — Universidad APEC";
@@ -386,7 +386,7 @@ export interface ReportExportPayload {
   /** Subtítulo/línea de filtros aplicados que ocupa la fila 2. */
   subtitle?: string;
   columns: ReportColumn[];
-  rows: Record<string, any>[];
+  rows: Record<string, unknown>[];
   /** Valores de totales por key de columna (mismo cálculo que los KPIs). */
   totals?: Record<string, string | number>;
   /** Cuando la exportación fue truncada al tope de MAX_EXPORT_ROWS. */
@@ -489,7 +489,7 @@ export async function buildReportXlsx(payload: ReportExportPayload): Promise<Buf
         horizontal: col.money ? "right" : col.align ?? "left",
       };
       if (col.money) {
-        cell.value = toNumber(cell.value as any);
+        cell.value = toNumber(cell.value as string | number | null | undefined);
         cell.numFmt = MONEY_NUM_FMT;
       }
       cell.border = {
@@ -507,7 +507,7 @@ export async function buildReportXlsx(payload: ReportExportPayload): Promise<Buf
 
   // Fila final de totales
   if (totals && Object.keys(totals).length > 0) {
-    const totalRowValues: Record<string, any> = {};
+    const totalRowValues: Record<string, string | number | null> = {};
     columns.forEach((col, index) => {
       if (index === 0) {
         totalRowValues[col.key] = "TOTALES";
@@ -571,7 +571,9 @@ export function buildReportCsv(payload: ReportExportPayload): string {
   const rows = payload.rows.map((row) =>
     payload.columns.map((col) => {
       const value = row[col.key];
-      return col.money ? toNumber(value).toFixed(2) : value ?? "";
+      return col.money
+        ? toNumber(value as string | number | null | undefined).toFixed(2)
+        : (value ?? "");
     })
   );
 
