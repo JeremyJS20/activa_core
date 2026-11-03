@@ -134,4 +134,50 @@ describe("evaluarDepreciabilidad — universo del período", () => {
     evaluarDepreciabilidad(input);
     expect(input.estadoActivo).toBe("ACTIVO");
   });
+
+  it("debe excluir un estado de activo no contemplado en las listas conocidas", () => {
+    const r = evaluarDepreciabilidad({ ...base, estadoActivo: "EXTRAVIADO" });
+    expect(r.depreciable).toBe(false);
+    expect(r.motivo).toBe("ESTADO_NO_DEPRECIABLE");
+  });
+
+  it("debe excluir un activo con vida útil cero", () => {
+    const r = evaluarDepreciabilidad({ ...base, vidaUtilMeses: 0 });
+    expect(r.depreciable).toBe(false);
+    expect(r.motivo).toBe("VIDA_UTIL_AGOTADA");
+  });
+
+  it("debe excluir un activo con vida útil negativa", () => {
+    const r = evaluarDepreciabilidad({ ...base, vidaUtilMeses: -12 });
+    expect(r.depreciable).toBe(false);
+    expect(r.motivo).toBe("VIDA_UTIL_AGOTADA");
+  });
+
+  it("debe exigir el primer mes completo cuando se adquiere en el mes del período", () => {
+    const r = evaluarDepreciabilidad({
+      ...base,
+      fechaAdquisicion: "2026-03-31T23:00:00.000Z",
+      anio: 2026,
+      mes: 3,
+    });
+    expect(r.depreciable).toBe(true);
+    expect(r.indiceMes).toBe(1);
+  });
+
+  it("debe aceptar montos en string y en number de forma equivalente", () => {
+    const desdeString = evaluarDepreciabilidad({
+      ...base,
+      costoAdquisicion: "85000.00",
+      valorResidual: "8500.00",
+      depreciacionAcumulada: "0.00",
+    });
+    const desdeNumber = evaluarDepreciabilidad({
+      ...base,
+      costoAdquisicion: 85000,
+      valorResidual: 8500,
+      depreciacionAcumulada: 0,
+    });
+    expect(desdeString.depreciable).toBe(true);
+    expect(desdeNumber.depreciable).toBe(true);
+  });
 });

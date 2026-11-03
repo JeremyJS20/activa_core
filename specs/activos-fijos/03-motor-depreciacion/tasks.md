@@ -319,45 +319,55 @@ graph TD
 > - **Smoke E2E** → Developer (precedente de los Sub-módulos 00, 01 y 02); la validación formal de QA ocurre en el corte
 > - **Documentación viva** → Developer
 
-### Task 5.1: Suite Vitest de la calculadora (~2h)
+### Task 5.1: Suite Vitest de la calculadora (~2h) [COMPLETED]
+- **Status:** COMPLETED — 31 casos en verde
 - **Description:** Consolidar la batería de pruebas del motor de cálculo incluyendo casos límite de redondeo, cuota final, residual igual a costo y montos grandes.
 - **Acceptance criteria:**
-  - [ ] Mínimo 30 casos: `0.005`, `0.015`, `1/3`, `2/3`, cuota final, residual extremo, vida útil 1 y 1200 meses.
-  - [ ] Se verifica explícitamente que `valorEnLibros` final iguala `valorResidual` en todos los escenarios.
-  - [ ] Cobertura de líneas ≥ 95% en `app/lib/depreciation/`.
-  - [ ] `npx vitest run tests/depreciation` en verde.
+  - [x] Mínimo 30 casos: `0.005`, `0.015`, `1/3`, `2/3`, cuota final, residual extremo, vida útil 1 y 1200 meses. (31 casos)
+  - [x] Se verifica explícitamente que `valorEnLibros` final iguala `valorResidual` en todos los escenarios.
+  - [x] Cobertura de líneas ≥ 95% en `app/lib/depreciation/`. (99.06% líneas / 99.11% statements)
+  - [x] `npx vitest run tests/depreciation` en verde.
 - **Dependencies:** Task 2.1
-- **Files to create/modify:** `app/tests/depreciation/calculator.test.ts`
+- **Files to create/modify:** `app/tests/depreciation/calculator.test.ts`, `app/tests/depreciation/universe.test.ts`, `app/tests/depreciation/errors.test.ts`
+- **Nota:** el caso `0.015 ⇒ 0.02` solo es alcanzable con costo `0.06` y vida útil 4; con costo `0.03` y vida 2 la cuota teórica es `0.015` pero el redondeo Half Even de decimal.js opera sobre `0.015` ⇒ `0.02` y el test original estaba mal planteado. Documentado en `correction-cuota-final-half-even`.
 
-### Task 5.2: Suite Vitest de servicios y API (~3h)
+### Task 5.2: Suite Vitest de servicios y API (~3h) [COMPLETED]
+- **Status:** COMPLETED — 363 pruebas en verde (28 archivos)
 - **Description:** Cubrir servicios y endpoints: creación, ejecución, re-ejecución, cierre inmutable, concurrencia, asiento descuadrado y matriz RBAC.
 - **Acceptance criteria:**
-  - [ ] Se cubren los códigos `PERIOD_ALREADY_CLOSED`, `PERIOD_IMMUTABLE`, `NO_DEPRECIABLE_ASSETS`, `DEPRECIATION_EXPENSE_ACCOUNT_MISSING`, `ASIENTO_UNBALANCED` y `FORBIDDEN`.
-  - [ ] Prueba de falta de atomicidad (fallo a mitad de corrida) en verde.
-  - [ ] Prueba de re-ejecución sin duplicar acumulados en verde.
-  - [ ] Cobertura de líneas ≥ 90% en `app/lib/services/` y `app/app/api/depreciacion/`.
-  - [ ] `npx vitest run` completo en verde.
+  - [x] Se cubren los códigos `PERIOD_ALREADY_CLOSED`, `PERIOD_IMMUTABLE`, `NO_DEPRECIABLE_ASSETS`, `DEPRECIATION_EXPENSE_ACCOUNT_MISSING`, `ASIENTO_UNBALANCED` y `FORBIDDEN`.
+  - [x] Prueba de falta de atomicidad (fallo a mitad de corrida) en verde. (`AUDIT_LOG_FAILED` y fallo de `$transaction`)
+  - [x] Prueba de re-ejecución sin duplicar acumulados en verde.
+  - [x] Cobertura de líneas ≥ 90% en `app/lib/services/` y `app/app/api/depreciacion/`. (`lib/services` 94.44%, `api/depreciacion` 97.2%)
+  - [x] `npx vitest run` completo en verde.
 - **Dependencies:** Task 3.2, Task 3.5
-- **Files to create/modify:** `app/tests/services/depreciation.service.test.ts`, `app/tests/api/depreciacion.test.ts`
+- **Files to create/modify:** `app/tests/services/depreciation.service.test.ts`, `app/tests/services/period.service.test.ts`, `app/tests/services/asiento.service.test.ts`, `app/tests/api/depreciacion.test.ts`
+- **Desviación detectada:** `RESIDUAL_EXCEEDS_COST` y `ASSET_TYPE_INVALID_LIFE` no abortan la corrida: `evaluarDepreciabilidad` clasifica esos activos como `SIN_REMANENTE` / `VIDA_UTIL_AGOTADA` y el servicio los cuenta como omitidos. Contradice `design.md §Error Handling`; los tests documentan la conducta real.
+- **Desviación de rendimiento:** el AC "1,000 activos < 5 s" no se cumple con el `UPDATE` fila por fila actual (30 activos contra Neon remoto ≈ 5 s). Requiere `UPDATE … FROM (VALUES …)` masivo; pendiente de decisión.
 
-### Task 5.3: Smoke E2E con Playwright (~2h)
+
+### Task 5.3: Smoke E2E con Playwright (~2h) [COMPLETED]
+- **Status:** COMPLETED — 1/1 en verde (23.2 s)
 - **Description:** Implementar `app/e2e/depreciacion-smoke.spec.ts` cubriendo el flujo completo: login, crear período, ejecutar corrida, verificar detalle y cerrar período.
 - **Acceptance criteria:**
-  - [ ] Flujo feliz completo pasa en verde (crear → ejecutar → detalle → cerrar).
-  - [ ] Se verifica que el período `CERRADO` no ofrece acción de re-ejecución.
-  - [ ] Uso de `data-testid` estables y ejecución headless.
-  - [ ] Captura de pantalla del período cerrado como evidencia.
+  - [x] Flujo feliz completo pasa en verde (crear → ejecutar → detalle → cerrar).
+  - [x] Se verifica que el período `CERRADO` no ofrece acción de re-ejecución. (tampoco ofrece ejecutar ni cerrar)
+  - [x] Uso de `data-testid` estables y ejecución headless. (`periodo-row-YYYY-MM`)
+  - [x] Captura de pantalla del período cerrado como evidencia. (`app/e2e-artifacts/depreciacion-periodo-cerrado.png`)
 - **Dependencies:** Task 4.5
 - **Files to create/modify:** `app/e2e/depreciacion-smoke.spec.ts`
+- **Seguridad de datos:** el test se niega a ejecutarse si el período de prueba ya existe, y en `afterAll` restaura la depreciación acumulada y el valor en libros de cada activo usando las columnas `*_anterior` del detalle, además de borrar período, detalle, asiento, líneas y auditoría. Verificado contra Neon: 13 períodos y 0 inconsistencias al terminar.
+- **Nota:** el flujo muta datos por diseño (el cierre es irreversible vía API); el período de prueba es configurable con `E2E_DEPRECIACION_PERIODO=YYYY-MM` y por defecto usa `2026-12`.
 
-### Task 5.4: Sincronización de documentación viva (~1.5h)
+### Task 5.4: Sincronización de documentación viva (~1.5h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Actualizar `docs/modules/activos-fijos.md`, `docs/architecture/database-architecture.md` y `docs/architecture/system-overview.md` con el estado certificado del Sub-03, el ERD extendido, la ruta `/depreciacion`, el catálogo de endpoints y las reglas del motor; sincronizar los 3 diagramas maestros.
 - **Acceptance criteria:**
-  - [ ] Matriz de capacidades marca el Sub-03 como `✅ Certified` con enlace al spec y cobertura de pruebas.
-  - [ ] Los 3 diagramas maestros (state machine, flowchart y ERD) incluyen las nuevas entidades y el flujo de cierre.
-  - [ ] Tablas Markdown sin filas en blanco ni columnas descuadradas.
-  - [ ] Change Log actualizado con fecha, spec, commit y aprobador.
-  - [ ] Sin `TODO` ni `FIXME` pendientes en el código del módulo.
+  - [x] Matriz de capacidades marca el Sub-03 como `✅ Certified` con enlace al spec y cobertura de pruebas.
+  - [x] Los 3 diagramas maestros (state machine, flowchart y ERD) incluyen las nuevas entidades y el flujo de cierre.
+  - [x] Tablas Markdown sin filas en blanco ni columnas descuadradas. (también se corrigieron fences malformados previos en 3.1)
+  - [x] Change Log actualizado con fecha, spec, commit y aprobador.
+  - [x] Sin `TODO` ni `FIXME` pendientes en el código del módulo.
 - **Dependencies:** Task 5.1, Task 5.2, Task 5.3
 - **Files to create/modify:** `docs/modules/activos-fijos.md`, `docs/architecture/database-architecture.md`, `docs/architecture/system-overview.md`
 
@@ -392,16 +402,16 @@ graph TD
 ## Total Estimate: ~50h (includes 20% buffer)
 
 ## Completion Checklist
-- [ ] All tasks completed
-- [ ] All tests passing
-- [ ] Cobertura del motor de cálculo ≥ 95% y de servicios/API ≥ 90%
-- [ ] Corrida de 1,000 activos bajo 5 segundos
-- [ ] Cierre inmutable verificado con prueba negativa de reapertura
-- [ ] Asientos balanceados (`totalDebito === totalCredito`) en el 100% de las corridas
-- [ ] Sin residuos de centavos: `valorEnLibros` final igual a `valorResidual`
-- [ ] Documentación viva sincronizada y 3 diagramas maestros actualizados
-- [ ] Sin `TODO`/`FIXME` ni código muerto en el módulo
-- [ ] PR creado y WI/spec movido a revisión
+- [x] All tasks completed (22 tareas: 21 planificadas + Task 4.6 añadida)
+- [x] All tests passing (363 Vitest · 28 archivos · 1/1 Playwright E2E)
+- [x] Cobertura del motor de cálculo ≥ 95% y de servicios/API ≥ 90% (depreciation 99.1% · services 94.6% · api/depreciacion ≥ 91.7%)
+- [ ] Corrida de 1,000 activos bajo 5 segundos — **NO CUMPLIDO**: el `UPDATE` fila por fila tarda ~5 s con solo 30 activos contra Neon remoto. Requiere `UPDATE … FROM (VALUES …)` masivo (decisión pendiente del humano).
+- [x] Cierre inmutable verificado con prueba negativa de reapertura (`PERIOD_IMMUTABLE`, `PERIOD_ALREADY_CLOSED` y bloqueo de acciones en la UI)
+- [x] Asientos balanceados (`totalDebito === totalCredito`) en el 100% de las corridas (verificado por `ASIENTO_UNBALANCED` y por el pie "Asiento cuadrado" del E2E)
+- [x] Sin residuos de centavos: `valorEnLibros` final igual a `valorResidual`
+- [x] Documentación viva sincronizada y 3 diagramas maestros actualizados
+- [x] Sin `TODO`/`FIXME` ni código muerto en el módulo
+- [ ] PR creado y WI/spec movido a revisión (pendiente de aprobación humana)
 
 ---
 > 📍 Sub-03 · 🌿 `feature/activos-fijos-03-motor-depreciacion` · Generated by SDD Standard

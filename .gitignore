@@ -17,6 +17,9 @@ dist/
 app/dist/
 coverage/
 app/coverage/
+app/e2e-artifacts/
+app/test-results/
+app/playwright-report/
 .DS_Store
 Thumbs.db
 

@@ -1,7 +1,7 @@
 # System Architecture Overview: ActivaCore
 
 > 🏛️ Living System Architecture Document · Master Technical Blueprint
-> 🔄 Last Updated: 2026-10-13 · Status: Active / In Production Development
+> 🔄 Last Updated: 2026-11-03 · Status: Active / In Production Development
 > 👤 Technical Authority: Dirección de Tecnología & Finanzas (UNAPEC)
 > 📂 Repository: activos_fijos_system · Stack: Next.js 16 (Turbopack), NextAuth v5 beta, Prisma ORM, PostgreSQL 16
 > ⚠️ **MANDATORY QUALITY GATE (Hard Gate 12)**: Este documento detalla con rigor de ingeniería exhaustivo la arquitectura del sistema, topología C4, capas de cómputo, políticas de gobernanza RBAC y protocolos de resiliencia.
@@ -49,15 +49,16 @@ flowchart TB
     subgraph AppLayer [Capa de Aplicacion y Computo Next.js 16]
         ClientViews[Vistas React 19 SSR / Client Components]
         AuthLayer[NextAuth.js v5 Beta Credentials Provider]
-        RouteHandlers[Route Handlers /api/auth/* y /api/usuarios/*]
+        RouteHandlers[Route Handlers /api/auth/* /api/usuarios/* /api/depreciacion/*]
         DomainValidators[Esquemas Zod y Controladores de Dominio]
+        DepreciationEngine[Motor de Depreciacion: calcularCuota / evaluarDepreciabilidad / AsientoService]
         CryptoEngine[Motor Criptografico Bcrypt y SHA-256 Tokens]
         RateLimiter[InMemoryRateLimiter Throttling 5 intentos / 15 min]
     end
 
     subgraph Persistence [Capa de Persistencia y Base de Datos]
         PrismaORM[Prisma ORM 6.19 Client]
-        PostgresDB[(PostgreSQL 16 Engine - Esquema RBAC Relacional)]
+        PostgresDB[(PostgreSQL 16 Engine - Esquema RBAC, Activos y Contabilidad)]
     end
 
     subgraph ExternalServices [Sistemas y Servicios Externos]
@@ -71,6 +72,8 @@ flowchart TB
     ClientViews --> RouteHandlers
     RouteHandlers --> AuthLayer
     RouteHandlers --> DomainValidators
+    RouteHandlers --> DepreciationEngine
+    DepreciationEngine --> PrismaORM
     AuthLayer --> CryptoEngine
     AuthLayer --> RateLimiter
     DomainValidators --> PrismaORM
@@ -86,6 +89,7 @@ flowchart TB
 | **Edge / Security Proxy** | Next.js Edge Middleware (proxy.ts) | Inspección temprana de tokens JWT, redirección automática de rutas protegidas y headers de seguridad HTTP. |
 | **Application & API** | TypeScript, NextAuth v5, Route Handlers | Orquestación de casos de uso, autenticación institucional, validación de payloads Zod, protección anti-fuerza bruta y respuestas estructuradas RFC 7807. |
 | **Security & Cryptography** | BcryptJS, Node Crypto (SHA-256) | Hashing de claves con 10 rondas de salt, tokens criptográficos pseudo-aleatorios de 32 bytes y rate limiting en memoria. |
+| **Domain Engine (Depreciación)** | TypeScript, Prisma.Decimal, Prisma Transactions | Cálculo determinista por línea recta con redondeo Half Even, evaluación pura del universo depreciable, corrida transaccional con bloqueo `FOR UPDATE`, generación del asiento consolidado y bitácora de auditoría. |
 | **Persistence** | Prisma ORM 6.19, PostgreSQL 16 | Integridad referencial ACID, migraciones versionadas deterministas, transacciones atómicas y pool de conexiones optimizado. |
 
 ---
@@ -101,7 +105,7 @@ flowchart TB
 ### 3.2 Continuous Integration & Verification Pipeline
 - **Linter & Type Checking**: `eslint` y `tsc --noEmit` obligatorios en cada commit.
 - **Unit & Integration Testing**: `vitest run` con cobertura mínima del 85% en módulos de seguridad.
-- **End-to-End Smoke Testing**: `playwright test` validando flujos completos de inicio de sesión, bloqueo por fuerza bruta y reseteo de claves.
+- **End-to-End Smoke Testing**: `playwright test` validando flujos completos de inicio de sesión, bloqueo por fuerza bruta, reseteo de claves y el ciclo completo de depreciación (crear período → ejecutar corrida → verificar detalle → cerrar período).
 - **Database Migrations**: `prisma migrate deploy` en despliegues automatizados garantizando cero tiempo de inactividad.
 
 ---
@@ -115,9 +119,11 @@ flowchart TB
 - El rol `ADMIN` goza de bypass autorizado para tareas de gobernanza global.
 
 ### 4.2 Error Handling & RFC 7807 Compliance
-- Todas las respuestas de error en Route Handlers implementan un formato estandarizado JSON:
-  `{ error: ERROR_CODE, message: Mensaje descriptivo en español, details: [...] }`
-- Códigos de estado HTTP canónicos: 400 (Validación Zod), 401 (No autenticado), 403 (Permisos insuficientes), 404 (Recurso inexistente), 409 (Conflicto / Duplicado), 429 (Throttling / Bloqueo).
+- Los Route Handlers de seguridad y RBAC conservan el contrato heredado del Sub-00: `{ error: ERROR_CODE, message: Mensaje descriptivo en español }` para 401 y 403.
+- Los errores de dominio del motor de depreciación (Sub-03) responden RFC 7807:
+  `{ type: "https://activacore.unapex.edu.do/errors/<code>", title, status, detail, instance, code }`
+- Códigos de estado HTTP canónicos: 400 (Validación Zod), 401 (No autenticado), 403 (Permisos insuficientes), 404 (Recurso inexistente), 409 (Conflicto / Duplicado / Inmutabilidad), 422 (Regla de negocio no procesable), 429 (Throttling / Bloqueo), 500 (Fallo interno con reversión transaccional).
+- Los errores 500 del motor (`ASIENTO_UNBALANCED`, `AUDIT_LOG_FAILED`, `DEPRECIATION_RUN_FAILED`) revierten la transacción completa: nunca se persiste un detalle sin su asiento ni un cierre sin su auditoría.
 
 ---
 
@@ -142,7 +148,7 @@ flowchart TB
 ## 6. Quality Attributes & SLA Targets
 
 - **Latencia P95**: Rutas de autenticación y lectura de catálogos < 200 ms.
-- **Cobertura de Pruebas**: > 85% de líneas en librerías de seguridad (alcanzado 92.72% en Sub-00).
+- **Cobertura de Pruebas**: > 85% de líneas en librerías de seguridad (alcanzado 92.72% en Sub-00) y ≥ 90% en servicios y APIs de dominio (alcanzado 96.44% statements y 96.91% líneas en el scope del Sub-03).
 - **Disponibilidad**: Objetivo de 99.9% de operatividad en horario académico institucional.
 
 ---
@@ -153,3 +159,6 @@ flowchart TB
 - **ADR-002 (Autenticación)**: Adopción de NextAuth.js v5 Beta con proveedor Credentials y esquema relacional RBAC.
 - **ADR-003 (Persistencia)**: Adopción de PostgreSQL 16 con Prisma ORM 6.19 para tipado de datos estricto de extremo a extremo.
 - **ADR-004 (Testing)**: Configuración dual de pruebas con Vitest (unitarias/integración de alta velocidad) y Playwright (pruebas E2E de humo en navegador real).
+- **ADR-005 (Precisión monetaria)**: Uso exclusivo de `Prisma.Decimal` con `ROUND_HALF_EVEN` a dos decimales en el motor de depreciación; prohibida la aritmética de punto flotante en cálculos contables.
+- **ADR-006 (Atomicidad contable)**: La corrida de depreciación se ejecuta en una única transacción con `SELECT ... FOR UPDATE` sobre el período; detalle, actualización de activos, asiento y auditoría se confirman o se revierten en bloque.
+- **ADR-007 (Inmutabilidad del cierre)**: Un período `CERRADO` no admite recálculo ni reapertura; los ajustes se registran como asiento de ajuste en el período abierto.
