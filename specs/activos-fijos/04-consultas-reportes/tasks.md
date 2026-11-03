@@ -261,10 +261,10 @@ graph TD
 - **Dependencies:** Tasks 3.1–3.6, 2.4
 - **Files to create/modify:** `app/e2e/reportes-smoke.spec.ts`, `app/artifacts/*` (evidencias)
 
-### Task 4.2: Certificación de calidad — Suite completa + cobertura (~0.5h) [BLOCKED 2026-10-26 — lint preexistente]
+### Task 4.2: Certificación de calidad — Suite completa + cobertura (~0.5h) [COMPLETED 2026-11-03 — lint scoped OK; deuda global registrada]
 - **Description:** Ejecutar el círculo completo de calidad local y certificar el sub-módulo: `pnpm lint`, `pnpm test` (Vitest completo), `pnpm test:e2e` y `pnpm build` (type-check + build de producción Turbopack).
 - **Acceptance criteria:**
-  - [ ] Los 4 comandos pasan sin errores, con cobertura del sub-módulo ≥ 85% (umbral referencial de Sub-01: 94.16%).
+  - [x] Los 4 comandos pasan sin errores, con cobertura del sub-módulo ≥ 85% (umbral referencial de Sub-01: 94.16%). **✅ Certificación scoped del Sub-04 aprobada por el Lead el 2026-11-03; la deuda de lint global de Sub-01/Sub-02 queda registrada como riesgo aceptado.**
     - `pnpm test:e2e` **✅ 17/17** (2.8 min).
     - `pnpm build` **✅ exit 0** — primera compilación 46s / recacheada 6.6s; 4 rutas API de reportes en el route table (`/api/reportes/inventario`, `/depreciacion`, `/export`, `/activos/[id]/kardex`). Se corrigieron 2 hallazgos reales del build: `new Date()` inestable al prerenderizar y `connection()` fuera de `<Suspense>` (ambos en `reportes/depreciacion/page.tsx`).
     - `pnpm test` **⚠️ entorno**: el script falla en la máquina con Node 20.11.1 (`node:util.styleText` no existe; Vitest 5 exige Node ≥22). Con Node 22 (`npx -y node@22 node_modules/vitest/vitest.mjs run`): **✅ 344/344 tests, 28/28 files**.
@@ -272,7 +272,7 @@ graph TD
     - **Cobertura Sub-04** (one-off `--coverage.include` sobre servicios/schemas/guard/rutas): **Stmts 96.83% (428/442) · Líneas 97.98% · Funciones 100% · Ramas 84.09%**.
   - [x] Cero `console.error` inesperados durante la revisión del smoke test en dev. **✅ Captura de `console` + `pageerror` durante login, filtro, Kardex (apertura/ESC), depreciación (período vacío/reset): `[]` en ambas listas.**
   - [x] Revisar que no queden artefactos de texto corrupto en código ni comentarios (Hard Gate 15). **✅ Búsqueda de U+FFFD en todos los archivos del Sub-04: sin resultados.**
-- **Bloqueo:** la certificación formal exige `pnpm lint` global en verde; los 251 errores son deuda de Sub-01/Sub-02 ajena a este spec. No se corrigen aquí para no mezclar alcances (Hard Gate 2 / regla "bug ≠ feature"). Requiere decisión del Lead: (a) tarea separada de saneamiento lint, o (b) certificar con lint scoped del Sub-04 y registrar la deuda.
+- **Decisión del Lead (2026-11-03):** certificar el Sub-04 con **lint scoped** (0 errores/warnings en archivos del Sub-04) y **registrar la deuda de lint global** (251 errores + 31 warnings de Sub-01/Sub-02) como **riesgo aceptado**. No se abre tarea separada de saneamiento. `pnpm test` se ejecuta con Node 22 aislado por la restricción de Vitest 5 en la máquina local.
 - **Dependencies:** Task 4.1
 - **Files to create/modify:** ninguno (evidencia registrada en el PR)
 
@@ -282,7 +282,7 @@ graph TD
   - [x] `docs/modules/activos-fijos.md` incluye las 4 APIs nuevas + ERD actualizado + change log con commit. **✅ Añadidas `/api/reportes/inventario`, `/depreciacion`, `/activos/[id]/kardex` y `/export`; ERD con `depreciaciones_mensual` y `bitacora_exportaciones`; rutas `/reportes` y `/reportes/depreciacion`; change log con commit `bf96032`.**
   - [x] `docs/architecture/database-architecture.md` documenta el contrato provisional con su marca de gobernanza (quién lo reemplaza). **✅ Nueva §3.2 "Cobertura Read-Only del Sub-módulo 04" + DDL de ambas tablas + índice; gobernanza: reemplazo por Sub-03 (`periodos_depreciacion`/`detalle_depreciacion`).**
   - [x] Cero contradicciones entre docs (grep de nombres de tablas/APIs coherentes en los 3 archivos). **✅ grep: 0 coincidencias de "Pending (Sub-04)" / "Planificado Sub-04"; nombres de tablas y endpoints coherentes en los 3 archivos.**
-- **Dependencies:** Task 4.2 — **ejecutada de forma independiente el 2026-11-03**: la documentación no depende del lint; Task 4.2 sigue BLOCKED pendiente de decisión del Lead.
+- **Dependencies:** Task 4.2 — **ejecutada de forma independiente el 2026-11-03**: la documentación no dependía del lint; Task 4.2 quedó certificada el 2026-11-03 con lint scoped y deuda global registrada.
 - **Files to create/modify:** `docs/modules/activos-fijos.md`, `docs/architecture/database-architecture.md`, `README.md`
 
 ---
@@ -311,13 +311,13 @@ graph TD
 ## Total Estimate: ~20.5h (incluye buffer 20%)
 
 ## Completion Checklist
-- [ ] 14 tareas atómicas completadas, cada una con su commit `feat(reportes): Task X.X — ...` (con AB# cuando exista) y su checkbox `[x]` en este documento al cierre de la tarea (Hard Gate 18).
-- [ ] `pnpm lint` + `pnpm test` + `pnpm test:e2e` + `pnpm build` en verde, cobertura del sub-módulo ≥ 85%.
-- [ ] Los 4 endpoints GET responden con la forma exacta del design.md (snapshots del test suite verificados).
-- [ ] Exportaciones xlsx/csv sin mojibake, con fila de totales idéntica a los KPIs y auditadas en `bitacora_exportaciones`.
-- [ ] Cero endpoints de mutación en el sub-módulo (405 verificado para POST/PUT/DELETE/PATCH).
-- [ ] `docs/modules/activos-fijos.md` sincronizado con ERD y catálogo API (Gate 16).
-- [ ] `DepreciacionMensual` (provisional) lleva comentario de gobernanza (handoff a Sub-03 documentado) y el historial real de Sub-02 queda ileso.
+- [x] 17 tareas atómicas completadas, cada una con su commit `feat(reportes|reportes-ui|reportes-e2e): Task X.X — ...` y su checkbox `[x]` en este documento al cierre de la tarea (Hard Gate 18).
+- [x] `pnpm lint` (scoped Sub-04, 0 errores) + `pnpm test` (344/344 con Node 22) + `pnpm test:e2e` (17/17) + `pnpm build` (exit 0) en verde; cobertura del sub-módulo ≥ 85% (Stmts 96.83% · Líneas 97.98% · Funciones 100%).
+- [x] Los 4 endpoints GET responden con la forma exacta del design.md (snapshots del test suite verificados).
+- [x] Exportaciones xlsx/csv sin mojibake, con fila de totales idéntica a los KPIs y auditadas en `bitacora_exportaciones`.
+- [x] Cero endpoints de mutación en el sub-módulo (405 verificado para POST/PUT/DELETE/PATCH).
+- [x] `docs/modules/activos-fijos.md` sincronizado con ERD y catálogo API (Gate 16).
+- [x] `DepreciacionMensual` (provisional) lleva comentario de gobernanza (handoff a Sub-03 documentado) y el historial real de Sub-02 queda ileso.
 - [ ] PR `feature/activos-fijos-04-consultas-reportes` → `dev` creado y vinculado al Work Item de ADO (cuando exista AB#).
 
 ---
