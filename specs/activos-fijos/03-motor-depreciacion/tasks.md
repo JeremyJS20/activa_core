@@ -110,7 +110,7 @@ graph TD
   - [x] El seed crea 13 períodos sin duplicar registros al re-ejecutarse (upsert por `anio`+`mes`).
   - [x] Cada período de ejemplo contiene detalles coherentes con la fórmula aprobada (usa `calcularCuota`).
   - [x] El seed respeta el orden de pasos existente y no rompe las entidades de los Sub-módulos 00/01/02.
-  - [ ] `npm run seed` ejecuta sin errores sobre base limpia. *(Pendiente: requiere aplicar la migración en la base)*
+  - [x] Seed ejecutado sin errores con `npx prisma db seed` (configurado en `package.json#prisma.seed`): 13 períodos generados, 340 detalles. Verificación de integridad: `totalCuota` coincide con la suma de detalles en los 13 períodos y `totalActivos` coincide con el conteo de filas (0 inconsistencias).
 - **Nota de secuencia:** se adelantó la creación de `app/lib/depreciation/depreciation-calculator.ts` (Task 2.1) porque el seed requiere la fórmula aprobada. Sus 30 casos límite completos siguen planificados en Task 5.1; aquí se cubren 14.
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/prisma/seed.ts`, `app/package.json`
