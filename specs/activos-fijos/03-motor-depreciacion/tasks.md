@@ -119,39 +119,42 @@ graph TD
 
 ## Wave 2: Core Calculation Engine (~4.5h)
 
-### Task 2.1: Calculadora determinista de cuota (`depreciation-calculator.ts`) (~2h)
+### Task 2.1: Calculadora determinista de cuota (`depreciation-calculator.ts`) (~2h) [COMPLETED]
+- **Status:** COMPLETED (Commit `bfd72f3` — adelantada en Wave 1 por dependencia del seed)
 - **Description:** Implementar el motor puro de cálculo con `decimal.js` configurado en `precision: 28` y `ROUND_HALF_EVEN`, cubriendo cuota teórica, remanente, cuota final exacta, activo no depreciable y tipo de cuota.
 - **Acceptance criteria:**
-  - [ ] `calcularCuota()` reproduce exactamente el algoritmo de `design.md` § *Calculation Engine*.
-  - [ ] Cuota RD$ 85,000.00 / residual RD$ 8,500.00 / 48 meses ⇒ RD$ 1,593.75.
-  - [ ] 3,333.333… ⇒ RD$ 3,333.33 (Half Even) y la última cuota ajusta a RD$ 3,333.34.
-  - [ ] `valorEnLibros` final iguala `valorResidual` exactamente (0 residuos).
-  - [ ] `residual = costo` ⇒ `tipoCuota = NO_DEPRECIABLE`, cuota RD$ 0.00.
-  - [ ] No se usa `number` nativo en ninguna operación monetaria.
-  - [ ] Pruebas unitarias con mínimo 30 casos límite en verde.
+  - [x] `calcularCuota()` reproduce el algoritmo de `design.md` § *Calculation Engine* (con la regla corregida `remanente < 2 × cuotaTeórica`).
+  - [x] Cuota RD$ 85,000.00 / residual RD$ 8,500.00 / 48 meses ⇒ RD$ 1,593.75.
+  - [x] 3,333.333… ⇒ RD$ 3,333.33 (Half Even) y la última cuota ajusta a RD$ 3,333.34.
+  - [x] `valorEnLibros` final iguala `valorResidual` exactamente (0 residuos).
+  - [x] `residual = costo` ⇒ `tipoCuota = NO_DEPRECIABLE`, cuota RD$ 0.00.
+  - [x] No se usa `number` nativo en ninguna operación monetaria (se usa `Prisma.Decimal`).
+  - [ ] Pruebas unitarias con mínimo 30 casos límite en verde. *(Hoy: 14 casos. Los 30 casos completos se cierran en Task 5.1)*
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/lib/depreciation/depreciation-calculator.ts`, `app/tests/depreciation/calculator.test.ts`
 
-### Task 2.2: Selección del universo de activos depreciables (`asset-universe.ts`) (~1.5h)
+### Task 2.2: Selección del universo de activos depreciables (`asset-universe.ts`) (~1.5h) [COMPLETED]
+- **Status:** COMPLETED (Commit `4d2afbf`)
 - **Description:** Implementar la función pura que determina si un activo pertenece al universo del período, evaluando estado, fecha de adquisición, baja anterior al corte, tipo de activo activo y remanente depreciable.
 - **Acceptance criteria:**
-  - [ ] `esDepreciableEnPeriodo()` devuelve `true` para `ACTIVO` y `EN_MANTENIMIENTO` y `false` para `DADO_DE_BAJA` / `VENDIDO`.
-  - [ ] Un activo adquirido el 2026-04-02 no entra en marzo 2026; uno adquirido el 2026-01-31 sí entra en enero 2026.
-  - [ ] Un activo con `fechaBaja` posterior al corte del período sí se incluye.
-  - [ ] Un tipo de activo `INACTIVO` excluye al activo con motivo `ASSET_TYPE_INACTIVE`.
-  - [ ] La función retorna un motivo tipado de exclusión (`as const`) sin efectos secundarios.
-  - [ ] Pruebas unitarias de todas las ramas en verde.
+  - [x] `evaluarDepreciabilidad()` devuelve `true` para `ACTIVO` y `EN_MANTENIMIENTO` y `false` para `DADO_DE_BAJA` / `VENDIDO`.
+  - [x] Un activo adquirido el 2026-04-02 no entra en marzo 2026; uno adquirido el 2026-01-31 sí entra en enero 2026.
+  - [x] Un activo con `fechaBaja` posterior al corte del período sí se incluye.
+  - [x] Un tipo de activo `INACTIVO` excluye al activo con motivo `TIPO_ACTIVO_INACTIVO`.
+  - [x] La función retorna un motivo tipado de exclusión (`MOTIVOS_EXCLUSION`) sin efectos secundarios.
+  - [x] Pruebas unitarias de todas las ramas en verde (14 pruebas).
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/lib/depreciation/asset-universe.ts`, `app/tests/depreciation/universe.test.ts`
 
-### Task 2.3: Utilidades de período (`period-utils.ts`) (~1h)
+### Task 2.3: Utilidades de período (`period-utils.ts`) (~1h) [COMPLETED]
+- **Status:** COMPLETED (Commit `4d2afbf`)
 - **Description:** Implementar helpers deterministas para fecha de corte (último día del mes), validación de rango de período, comparación `(anio, mes)` y generación del correlativo de asiento `DEP-{AAAAMM}-{SEQ}`.
 - **Acceptance criteria:**
-  - [ ] `fechaCorte(2026, 2)` ⇒ `2026-02-28`; `fechaCorte(2024, 2)` ⇒ `2024-02-29`.
-  - [ ] `esPeriodoValido()` rechaza `mes` 0, 13 y `anio` 1999, 2101.
-  - [ ] `generarNumeroAsiento(2026, 3, 1)` ⇒ `DEP-202603-001`.
-  - [ ] Todas las funciones operan en UTC y no dependen de la zona horaria del servidor.
-  - [ ] Pruebas unitarias en verde.
+  - [x] `fechaCorte(2026, 2)` ⇒ `2026-02-28`; `fechaCorte(2024, 2)` ⇒ `2024-02-29`.
+  - [x] `esPeriodoValido()` rechaza `mes` 0, 13 y `anio` 1999, 2101.
+  - [x] `generarNumeroAsiento(2026, 3, 1)` ⇒ `DEP-202603-001`.
+  - [x] Todas las funciones operan en UTC y no dependen de la zona horaria del servidor.
+  - [x] Pruebas unitarias en verde (19 pruebas).
 - **Dependencies:** Task 2.1
 - **Files to create/modify:** `app/lib/depreciation/period-utils.ts`, `app/tests/depreciation/period-utils.test.ts`
 
