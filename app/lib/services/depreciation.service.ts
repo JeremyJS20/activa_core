@@ -31,7 +31,38 @@ export interface ResumenCorrida {
   };
 }
 
-const TAMANO_LOTE = 100;
+const TAMANO_LOTE = 500;
+
+type CambioActivo = { id: string; acumulada: Prisma.Decimal; valor: Prisma.Decimal };
+
+/**
+ * Aplica los cambios de depreciación acumulada y valor en libros en un solo
+ * statement por lote (`UPDATE ... FROM (VALUES ...)`), en lugar de un round-trip
+ * por activo. Requisito de rendimiento: 1,000 activos en menos de 5 segundos.
+ */
+export async function aplicarCambiosMasivos(
+  tx: Prisma.TransactionClient,
+  cambios: CambioActivo[]
+): Promise<void> {
+  for (let i = 0; i < cambios.length; i += TAMANO_LOTE) {
+    const lote = cambios.slice(i, i + TAMANO_LOTE);
+    const filas = lote.map(
+      (cambio) =>
+        Prisma.sql`(${cambio.id}::varchar(36), ${cambio.acumulada.toFixed(2)}::numeric(14, 2), ${cambio.valor.toFixed(2)}::numeric(14, 2))`
+    );
+
+    const query = Prisma.sql`
+      UPDATE activos_fijos AS a
+         SET depreciacion_acumulada = v.acumulada,
+             valor_en_libros = v.valor,
+             updated_at = CURRENT_TIMESTAMP
+        FROM (VALUES ${Prisma.join(filas)}) AS v(id, acumulada, valor)
+       WHERE a.id = v.id
+    `;
+
+    await tx.$executeRaw(query);
+  }
+}
 
 /**
  * Ejecuta la corrida mensual de depreciación de forma transaccional:
@@ -115,6 +146,21 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
         });
 
         if (!evaluacion.depreciable) {
+          // Anomalías de datos: abortan la corrida completa (design.md §Error Handling).
+          if (evaluacion.motivo === "VIDA_UTIL_INVALIDA") {
+            throw new DepreciationError(
+              "ASSET_TYPE_INVALID_LIFE",
+              `El tipo de activo del bien ${activo.codigo} no posee una vida útil válida (${activo.tipoActivo.vidaUtilMeses ?? "nulo"} meses). Corrija el catálogo fiscal antes de ejecutar la corrida.`
+            );
+          }
+
+          if (evaluacion.motivo === "RESIDUAL_EXCEEDS_COST") {
+            throw new DepreciationError(
+              "RESIDUAL_EXCEEDS_COST",
+              `El bien ${activo.codigo} tiene un valor residual (${activo.valorResidual.toFixed(2)}) mayor a su costo de adquisición (${activo.costoAdquisicion.toFixed(2)}). Corrija la ficha del activo antes de ejecutar la corrida.`
+            );
+          }
+
           if (
             evaluacion.motivo === "VIDA_UTIL_AGOTADA" ||
             evaluacion.motivo === "SIN_REMANENTE"
@@ -207,36 +253,11 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
       await tx.detalleDepreciacion.deleteMany({ where: { periodoId: periodo.id } });
       await tx.detalleDepreciacion.createMany({ data: detalles });
 
-      for (let i = 0; i < actualizaciones.length; i += TAMANO_LOTE) {
-        const lote = actualizaciones.slice(i, i + TAMANO_LOTE);
-        await Promise.all(
-          lote.map((cambio) =>
-            tx.activoFijo.update({
-              where: { id: cambio.id },
-              data: {
-                depreciacionAcumulada: cambio.acumulada,
-                valorEnLibros: cambio.valor,
-              },
-            })
-          )
-        );
-      }
+      // Un solo statement por lote: 1,000 activos no generan 1,000 round-trips.
+      await aplicarCambiosMasivos(tx, actualizaciones);
 
       // Activos que tenían detalle previo y ya no pertenecen al universo: se revierte su cargo.
-      for (let i = 0; i < reversiones.length; i += TAMANO_LOTE) {
-        const lote = reversiones.slice(i, i + TAMANO_LOTE);
-        await Promise.all(
-          lote.map((cambio) =>
-            tx.activoFijo.update({
-              where: { id: cambio.id },
-              data: {
-                depreciacionAcumulada: cambio.acumulada,
-                valorEnLibros: cambio.valor,
-              },
-            })
-          )
-        );
-      }
+      await aplicarCambiosMasivos(tx, reversiones);
 
       const asiento = await crearAsiento(tx, {
         periodoId: periodo.id,

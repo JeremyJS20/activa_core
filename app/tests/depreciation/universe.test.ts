@@ -141,16 +141,26 @@ describe("evaluarDepreciabilidad — universo del período", () => {
     expect(r.motivo).toBe("ESTADO_NO_DEPRECIABLE");
   });
 
-  it("debe excluir un activo con vida útil cero", () => {
+  it("marca VIDA_UTIL_INVALIDA con vida útil cero (el servicio debe abortar)", () => {
     const r = evaluarDepreciabilidad({ ...base, vidaUtilMeses: 0 });
     expect(r.depreciable).toBe(false);
-    expect(r.motivo).toBe("VIDA_UTIL_AGOTADA");
+    expect(r.motivo).toBe("VIDA_UTIL_INVALIDA");
   });
 
-  it("debe excluir un activo con vida útil negativa", () => {
+  it("marca VIDA_UTIL_INVALIDA con vida útil negativa (el servicio debe abortar)", () => {
     const r = evaluarDepreciabilidad({ ...base, vidaUtilMeses: -12 });
     expect(r.depreciable).toBe(false);
-    expect(r.motivo).toBe("VIDA_UTIL_AGOTADA");
+    expect(r.motivo).toBe("VIDA_UTIL_INVALIDA");
+  });
+
+  it("marca RESIDUAL_EXCEEDS_COST cuando el residual supera el costo (el servicio debe abortar)", () => {
+    const r = evaluarDepreciabilidad({
+      ...base,
+      costoAdquisicion: new Prisma.Decimal("1000.00"),
+      valorResidual: new Prisma.Decimal("1000.01"),
+    });
+    expect(r.depreciable).toBe(false);
+    expect(r.motivo).toBe("RESIDUAL_EXCEEDS_COST");
   });
 
   it("debe exigir el primer mes completo cuando se adquiere en el mes del período", () => {

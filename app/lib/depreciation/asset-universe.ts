@@ -8,6 +8,9 @@ export const MOTIVOS_EXCLUSION = [
   "TIPO_ACTIVO_INACTIVO",
   "VIDA_UTIL_AGOTADA",
   "SIN_REMANENTE",
+  // Anomalías de datos: no se excluyen en silencio, abortan la corrida (design.md §Error Handling).
+  "VIDA_UTIL_INVALIDA",
+  "RESIDUAL_EXCEEDS_COST",
 ] as const;
 
 export type MotivoExclusion = (typeof MOTIVOS_EXCLUSION)[number];
@@ -82,16 +85,24 @@ export function evaluarDepreciabilidad(input: EvaluacionUniversoInput): Evaluaci
   }
 
   if (input.vidaUtilMeses <= 0) {
-    return { depreciable: false, motivo: "VIDA_UTIL_AGOTADA", indiceMes };
+    // Dato inválido del catálogo fiscal: el servicio aborta con ASSET_TYPE_INVALID_LIFE.
+    return { depreciable: false, motivo: "VIDA_UTIL_INVALIDA", indiceMes };
+  }
+
+  const costo = aDecimal(input.costoAdquisicion);
+  const residual = aDecimal(input.valorResidual);
+  const acumulada = aDecimal(input.depreciacionAcumulada);
+
+  // Anomalía de datos del activo: se evalúa antes de la vida agotada para que el
+  // servicio aborte en lugar de omitir silenciosamente un activo inconsistente.
+  if (residual.greaterThan(costo)) {
+    return { depreciable: false, motivo: "RESIDUAL_EXCEEDS_COST", indiceMes };
   }
 
   if (indiceMes > input.vidaUtilMeses) {
     return { depreciable: false, motivo: "VIDA_UTIL_AGOTADA", indiceMes };
   }
 
-  const costo = aDecimal(input.costoAdquisicion);
-  const residual = aDecimal(input.valorResidual);
-  const acumulada = aDecimal(input.depreciacionAcumulada);
   const depreciable = costo.minus(residual);
 
   if (depreciable.lessThanOrEqualTo(0) || acumulada.greaterThanOrEqualTo(depreciable)) {
