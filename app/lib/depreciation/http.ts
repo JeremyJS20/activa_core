@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { DepreciationError } from "./errors";
 
@@ -39,11 +40,12 @@ export function serializar<T>(valor: T): unknown {
   if (Array.isArray(valor)) return valor.map((v) => serializar(v));
   if (valor instanceof Date) return valor.toISOString();
 
+  // Prisma.Decimal (decimal.js) no expone un prototipo reconocible por constructor.name.
+  if (Prisma.Decimal.isDecimal(valor)) {
+    return (valor as Prisma.Decimal).toFixed(2);
+  }
+
   if (typeof valor === "object") {
-    const proto = Object.getPrototypeOf(valor);
-    if (proto && proto.constructor && proto.constructor.name === "Decimal") {
-      return (valor as unknown as { toFixed: (n: number) => string }).toFixed(2);
-    }
     const salida: Record<string, unknown> = {};
     for (const [clave, v] of Object.entries(valor as Record<string, unknown>)) {
       salida[clave] = serializar(v);
