@@ -241,57 +241,74 @@ graph TD
 
 ## Wave 4: UI & Integration (~8.5h)
 
-### Task 4.1: Vista `/depreciacion` y tarjetas KPI (~2h)
+### Task 4.1: Vista `/depreciacion` y tarjetas KPI (~2h) [COMPLETED]
+- **Status:** COMPLETED — verificación de render pendiente del smoke E2E (Task 5.3)
 - **Description:** Crear la página Server Component con `Suspense`, integrada al `ConsoleShell`, con migas `ActivaCore / Operaciones / Depreciación` y las tarjetas KPI del período seleccionado.
 - **Acceptance criteria:**
-  - [ ] La ruta `/depreciacion` renderiza sin errores con sesión autenticada.
-  - [ ] Las migas y el layout respetan `DESIGN.md` (No-Line, sin footer, sidebar 240px).
-  - [ ] `DepreciationKpiCards` muestra total del período, activos procesados, omitidos y excluidos.
-  - [ ] Estado `loading` con skeleton shimmer y estado vacío sin errores.
-  - [ ] Cifras en fuente monoespaciada alineadas a la derecha.
+  - [ ] La ruta `/depreciacion` renderiza sin errores con sesión autenticada. *(Verificación runtime en Task 5.3: el gate de seguridad de `next dev` impidió levantar el servidor en esta sesión)*
+  - [x] Las migas y el layout respetan `DESIGN.md` (No-Line, sin footer, sidebar 240px). Las migas se resuelven con el `ROUTE_MAP` existente de `ConsoleBreadcrumb` (`ActivaCore / Gestión de Activos / Depreciación`); la ruta y el ítem del sidebar ya existían.
+  - [x] `DepreciationKpiCards` muestra total del período, activos procesados, omitidos y excluidos.
+  - [x] Estado `loading` con skeleton shimmer y estado vacío sin errores.
+  - [x] Cifras en fuente monoespaciada alineadas a la derecha.
 - **Dependencies:** Task 3.4
-- **Files to create/modify:** `app/app/depreciacion/page.tsx`, `app/components/depreciacion/depreciation-kpi-cards.tsx`
+- **Files to create/modify:** `app/app/depreciacion/page.tsx`, `app/components/depreciacion/depreciacion-content.tsx`, `app/components/depreciacion/depreciation-kpi-cards.tsx`, `app/components/depreciacion/types.ts`
 
-### Task 4.2: `PeriodTable` con estados y paginación (~2h)
+### Task 4.2: `PeriodTable` con estados y paginación (~2h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Implementar la tabla paginada de períodos con pills tonales por estado (`ABIERTO`, `CALCULADO`, `CERRADO`), acciones condicionadas y navegación por teclado.
 - **Acceptance criteria:**
-  - [ ] Paginación server-side con selector 10/25/50.
-  - [ ] Las acciones se habilitan según el estado (ejecutar solo en `ABIERTO`, cerrar solo en `CALCULADO`).
-  - [ ] Hover de fila con desplazamiento `+2px` y fondo `#F2F3FF`.
-  - [ ] `aria-label` en acciones y navegación completa por teclado.
-  - [ ] Estado vacío y estado de error implementados.
+  - [x] Paginación server-side con selector 10/25/50.
+  - [x] Las acciones se habilitan según el estado (ejecutar solo en `ABIERTO` y re-ejecutar en `CALCULADO`, cerrar solo en `CALCULADO`, detalle en todos).
+  - [x] Hover de fila con fondo `#F2F3FF` y desplazamiento de `+2px` en el código del período (`group-hover:translate-x-0.5`).
+  - [x] `aria-label` en acciones y navegación completa por teclado (`select` y `button` nativos con `title` y `scope="col"`).
+  - [x] Estado vacío y estado de error implementados.
+  - [x] `data-testid` estable por período (`periodo-row-YYYY-MM`) para Task 5.3.
 - **Dependencies:** Task 4.1
 - **Files to create/modify:** `app/components/depreciacion/period-table.tsx`
 
-### Task 4.3: `RunDepreciationDialog` (~1.5h)
+### Task 4.3: `RunDepreciationDialog` (~1.5h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Implementar el diálogo de confirmación de corrida con resumen previo (activos estimados y monto total) y estados de envío.
 - **Acceptance criteria:**
-  - [ ] Muestra un resumen antes de ejecutar y solicita confirmación.
-  - [ ] Deshabilita el botón mientras está en vuelo y evita doble envío.
-  - [ ] Maneja `PERIOD_ALREADY_CLOSED`, `NO_DEPRECIABLE_ASSETS` y `DEPRECIATION_EXPENSE_ACCOUNT_MISSING` con mensajes claros en español.
-  - [ ] Refresca la tabla al terminar y muestra notificación de éxito con el total.
+  - [x] Muestra un resumen antes de ejecutar y solicita confirmación. En re-ejecución muestra activos y monto de la corrida previa; en la primera ejecución indica que el universo se determina al ejecutar (no existe endpoint de preflight).
+  - [x] Deshabilita el botón mientras está en vuelo y evita doble envío (`disabled={isSubmitting}`).
+  - [x] Maneja `PERIOD_ALREADY_CLOSED`, `NO_DEPRECIABLE_ASSETS` y `DEPRECIATION_EXPENSE_ACCOUNT_MISSING` con mensajes claros en español.
+  - [x] Refresca la tabla al terminar y muestra notificación de éxito con el total.
 - **Dependencies:** Task 4.2
 - **Files to create/modify:** `app/components/depreciacion/run-depreciation-dialog.tsx`
 
-### Task 4.4: `ClosePeriodDialog` y `AsientoPreview` (~1.5h)
+### Task 4.4: `ClosePeriodDialog` y `AsientoPreview` (~1.5h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Implementar el diálogo de cierre irreversible con casilla de confirmación explícita y la previsualización del asiento con totales balanceados.
 - **Acceptance criteria:**
-  - [ ] El botón de cierre permanece deshabilitado hasta marcar "Entiendo que el cierre es irreversible".
-  - [ ] Muestra advertencia explícita y el monto total a cerrar.
-  - [ ] `AsientoPreview` muestra líneas débito/crédito y confirma cuadre.
-  - [ ] Maneja `PERIOD_IMMUTABLE` y `PERIOD_NOT_CLOSABLE` con mensajes claros.
+  - [x] El botón de cierre permanece deshabilitado hasta marcar "Entiendo que el cierre es irreversible".
+  - [x] Muestra advertencia explícita y el monto total a cerrar.
+  - [x] `AsientoPreview` muestra líneas débito/crédito y confirma cuadre.
+  - [x] Maneja `PERIOD_IMMUTABLE` y `PERIOD_NOT_CLOSABLE` con mensajes claros.
 - **Dependencies:** Task 4.2
 - **Files to create/modify:** `app/components/depreciacion/close-period-dialog.tsx`, `app/components/depreciacion/asiento-preview.tsx`
 
-### Task 4.5: `PeriodDetailSheet` (~1.5h)
+### Task 4.5: `PeriodDetailSheet` (~1.5h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Implementar el panel de detalle del período con el desglose por activo (código, descripción, cuota, acumulada y valor en libros) y el asiento asociado.
 - **Acceptance criteria:**
-  - [ ] Se abre desde la fila y carga el detalle del endpoint `GET /periodos/{id}`.
-  - [ ] Muestra código `ACT-YYYY-NNNN` y cuentas en fuente monoespaciada.
-  - [ ] Indica visualmente las cuotas marcadas `ULTIMA` y `NO_DEPRECIABLE`.
-  - [ ] Maneja estados loading, vacío y error.
+  - [x] Se abre desde la fila y carga el detalle del endpoint `GET /periodos/{id}`.
+  - [x] Muestra código `ACT-YYYY-NNNN` y cuentas en fuente monoespaciada.
+  - [x] Indica visualmente las cuotas marcadas `ULTIMA` y `NO_DEPRECIABLE`.
+  - [x] Maneja estados loading, vacío y error. Cierre con `Escape` y clic en el overlay.
 - **Dependencies:** Task 4.2
 - **Files to create/modify:** `app/components/depreciacion/period-detail-sheet.tsx`
+
+### Task 4.6: `NewPeriodDialog` — alta de período desde la consola (~1h) [COMPLETED]
+- **Status:** COMPLETED — tarea añadida durante la implementación
+- **Motivo:** el flujo E2E de Task 5.3 exige «crear período → ejecutar → detalle → cerrar». La Wave 4 aprobada no incluía componente de alta y sin él el flujo no era ejecutable desde la UI.
+- **Acceptance criteria:**
+  - [x] Selección de año (año actual ± 1) y mes (1–12).
+  - [x] `POST /api/depreciacion/periodos` con estados de envío y botón deshabilitado durante el vuelo.
+  - [x] Maneja `PERIOD_ALREADY_EXISTS`, `INVALID_PERIOD_FORMAT` y `VALIDATION_ERROR` con mensajes en español.
+  - [x] Al crear, refresca tabla y KPIs y notifica el período en estado `ABIERTO`.
+- **Dependencies:** Task 4.1
+- **Files to create/modify:** `app/components/depreciacion/new-period-dialog.tsx`
 
 ---
 
