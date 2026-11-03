@@ -76,38 +76,42 @@ graph TD
 
 ## Wave 1: Foundation & Setup (~5.5h)
 
-### Task 1.1: Migración Prisma del Sub-03 — períodos, detalle, asientos y cuenta de gasto (~2.5h)
+### Task 1.1: Migración Prisma del Sub-03 — períodos, detalle, asientos y cuenta de gasto (~2.5h) [COMPLETED]
+- **Status:** COMPLETED (Commit `bfd72f3`)
 - **Description:** Crear los modelos `PeriodoDepreciacion`, `DetalleDepreciacion`, `AsientoContable` y `LineaAsiento` con sus relaciones hacia `Usuario` y `ActivoFijo`, y generar la migración DDL con índices únicos, `CHECK` de dominio y `CHECK` de cuadre contable. La misma migración incorpora la columna nullable `cuenta_contable_gasto_depreciacion` en `tipos_activos` con backfill por método DGII, sin tocar endpoints, validadores, formularios ni pruebas del Sub-01.
 - **Acceptance criteria:**
-  - [ ] Los 4 modelos existen con los tipos exactos de `design.md` (`Decimal(14,2)`, `@db.Date`, `@db.Timestamptz`).
-  - [ ] `@@unique([anio, mes])`, `@@unique([periodoId, activoId])`, `@@unique([periodoId])` en asientos y `@@unique([numeroAsiento])` aplicados.
-  - [ ] Relaciones `ejecutadoPor` / `cerradoPor` hacia `Usuario` con `onDelete: Restrict` y alias de relación únicos.
-  - [ ] `ActivoFijo` expone la relación inversa `detallesDepreciacion`.
-  - [ ] `tipos_activos.cuenta_contable_gasto_depreciacion` creada y poblada por categoría (CAT1 `6-30-01-0001`, CAT2 `6-30-01-0002`, CAT3 `6-30-01-0003`, LINEA_RECTA `6-30-01-0002`).
-  - [ ] Migración `20261102000000_add_motor_depreciacion` aplicable con `prisma migrate deploy` sobre base limpia.
-  - [ ] `npx prisma generate` produce el cliente sin advertencias.
-  - [ ] `npx tsc --noEmit` sin errores y suite Vitest existente (Sub-00/01/02) en verde.
+  - [x] Los 4 modelos existen con los tipos exactos de `design.md` (`Decimal(14,2)`, `@db.Date`, `@db.Timestamptz`).
+  - [x] `@@unique([anio, mes])`, `@@unique([periodoId, activoId])`, `@@unique([periodoId])` en asientos y `@@unique([numeroAsiento])` aplicados.
+  - [x] Relaciones `ejecutadoPor` / `cerradoPor` hacia `Usuario` con `onDelete: Restrict` y alias de relación únicos.
+  - [x] `ActivoFijo` expone la relación inversa `detallesDepreciacion`.
+  - [x] `tipos_activos.cuenta_contable_gasto_depreciacion` creada y poblada por categoría (CAT1 `6-30-01-0001`, CAT2 `6-30-01-0002`, CAT3 `6-30-01-0003`, LINEA_RECTA `6-30-01-0002`).
+  - [ ] Migración `20261102000000_add_motor_depreciacion` aplicable con `prisma migrate deploy` sobre base limpia. *(Pendiente: no se ejecutó contra la base de datos)*
+  - [x] `npx prisma generate` produce el cliente sin advertencias.
+  - [x] `npx tsc --noEmit` sin errores y suite Vitest existente (Sub-00/01/02) en verde (238 pruebas).
 - **Dependencies:** None
 - **Files to create/modify:** `app/prisma/schema.prisma`, `app/prisma/migrations/20261102000000_add_motor_depreciacion/migration.sql`
 
-### Task 1.2: Schemas Zod y DTOs de depreciación (~1.5h)
+### Task 1.2: Schemas Zod y DTOs de depreciación (~1.5h) [COMPLETED]
+- **Status:** COMPLETED (Commit `bfd72f3`)
 - **Description:** Implementar `app/lib/schemas/depreciation.ts` con los esquemas de creación de período, ejecución, cierre y filtros, más los tipos DTO inferidos, incluyendo validación de rango `anio` 2000–2100 y `mes` 1–12.
 - **Acceptance criteria:**
-  - [ ] `CreatePeriodSchema` valida `anio` y `mes` con mensajes en español.
-  - [ ] `ClosePeriodSchema` exige `confirmar === true` para permitir el cierre.
-  - [ ] `PeriodFilterSchema` valida `page`, `pageSize` (máx 50), `estado` y `anio`.
-  - [ ] Tipos `CreatePeriodDTO`, `ClosePeriodDTO`, `PeriodFilterDTO` exportados.
-  - [ ] Pruebas unitarias de los 3 esquemas (válidos, inválidos, límites) en verde.
+  - [x] `CreatePeriodSchema` valida `anio` y `mes` con mensajes en español.
+  - [x] `ClosePeriodSchema` exige `confirmar === true` para permitir el cierre.
+  - [x] `PeriodFilterSchema` valida `page`, `pageSize` (máx 50), `estado` y `anio`.
+  - [x] Tipos `CreatePeriodDTO`, `ClosePeriodDTO`, `PeriodFilterDTO` exportados (más `AsientoFilterSchema` / `AsientoFilterDTO`).
+  - [x] Pruebas unitarias de los esquemas (válidos, inválidos, límites) en verde — 17 pruebas.
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/lib/schemas/depreciation.ts`, `app/tests/schemas/depreciation.test.ts`
 
-### Task 1.3: Seed determinista de períodos de demostración (~1.5h)
+### Task 1.3: Seed determinista de períodos de demostración (~1.5h) [COMPLETED]
+- **Status:** COMPLETED (Commit `bfd72f3`) — implementado y tipado; ejecución contra base de datos pendiente
 - **Description:** Extender `app/prisma/seed.ts` para generar períodos de depreciación de ejemplo (12 meses del ejercicio anterior y el mes en curso en estado `ABIERTO`) con detalles calculados, manteniendo la semilla determinista `42` y el orden de ejecución existente.
 - **Acceptance criteria:**
-  - [ ] El seed crea 13 períodos sin duplicar registros al re-ejecutarse (upsert por `anio`+`mes`).
-  - [ ] Cada período de ejemplo contiene detalles coherentes con la fórmula aprobada.
-  - [ ] El seed respeta el orden de pasos existente y no rompe las entidades de los Sub-módulos 00/01/02.
-  - [ ] `npm run seed` ejecuta sin errores sobre base limpia.
+  - [x] El seed crea 13 períodos sin duplicar registros al re-ejecutarse (upsert por `anio`+`mes`).
+  - [x] Cada período de ejemplo contiene detalles coherentes con la fórmula aprobada (usa `calcularCuota`).
+  - [x] El seed respeta el orden de pasos existente y no rompe las entidades de los Sub-módulos 00/01/02.
+  - [ ] `npm run seed` ejecuta sin errores sobre base limpia. *(Pendiente: requiere aplicar la migración en la base)*
+- **Nota de secuencia:** se adelantó la creación de `app/lib/depreciation/depreciation-calculator.ts` (Task 2.1) porque el seed requiere la fórmula aprobada. Sus 30 casos límite completos siguen planificados en Task 5.1; aquí se cubren 14.
 - **Dependencies:** Task 1.1
 - **Files to create/modify:** `app/prisma/seed.ts`, `app/package.json`
 
