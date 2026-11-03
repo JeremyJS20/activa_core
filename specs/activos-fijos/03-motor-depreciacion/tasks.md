@@ -162,73 +162,80 @@ graph TD
 
 ## Wave 3: Services & API (~14.5h)
 
-### Task 3.1: `PeriodService` — alta, consulta y cierre (~3h)
+### Task 3.1: `PeriodService` — alta, consulta y cierre (~3h) [COMPLETED]
+- **Status:** COMPLETED (servicios implementados; pruebas de servicio se cierran en Task 5.2)
 - **Description:** Implementar el servicio de períodos con creación idempotente por `(anio, mes)`, listado paginado, detalle con asiento y cierre inmutable (validaciones de estado y persistencia de `fechaCierre`/`cerradoPorId`).
 - **Acceptance criteria:**
-  - [ ] `crearPeriodo()` rechaza duplicados con `PERIOD_ALREADY_EXISTS` y valida el rango de período.
-  - [ ] `listarPeriodos()` pagina en servidor y ordena por `anio` y `mes` descendente.
-  - [ ] `obtenerPeriodo()` incluye detalles y asiento, o lanza `PERIOD_NOT_FOUND`.
-  - [ ] `cerrarPeriodo()` solo opera sobre `CALCULADO` con detalle no vacío; deja el período `CERRADO`.
-  - [ ] Cualquier intento de reapertura lanza `PERIOD_IMMUTABLE`.
-  - [ ] Pruebas de servicio con base de datos de prueba en verde.
+  - [x] `crearPeriodo()` rechaza duplicados con `PERIOD_ALREADY_EXISTS` y valida el rango de período.
+  - [x] `listarPeriodos()` pagina en servidor y ordena por `anio` y `mes` descendente.
+  - [x] `obtenerPeriodo()` incluye detalles y asiento, o lanza `PERIOD_NOT_FOUND`.
+  - [x] `cerrarPeriodo()` solo opera sobre `CALCULADO` con detalle no vacío; deja el período `CERRADO`.
+  - [x] Cualquier intento de reapertura lanza `PERIOD_IMMUTABLE`.
+  - [ ] Pruebas de servicio con base de datos de prueba en verde. *(Task 5.2)*
 - **Dependencies:** Task 2.3
 - **Files to create/modify:** `app/lib/services/period.service.ts`, `app/tests/services/period.service.test.ts`
 
-### Task 3.2: `DepreciationService` — corrida transaccional (~4h)
+### Task 3.2: `DepreciationService` — corrida transaccional (~4h) [COMPLETED]
+- **Status:** COMPLETED (corrida transaccional implementada; verificación empírica de atomicidad y rendimiento se cierra en Task 5.2)
 - **Description:** Implementar la corrida mensual completa: bloqueo del período, carga por lotes del universo (sin N+1), cálculo por activo, reemplazo atómico del detalle, actualización de acumulados del activo, totalización y delegación de la generación del asiento.
 - **Acceptance criteria:**
-  - [ ] La corrida se ejecuta dentro de `prisma.$transaction` con `SELECT … FOR UPDATE` sobre el período.
-  - [ ] Re-ejecución sobre `CALCULADO` reemplaza el detalle sin duplicar ni duplicar acumulados.
-  - [ ] Corrida sobre `CERRADO` lanza `PERIOD_ALREADY_CLOSED` sin mutaciones.
-  - [ ] Universo vacío lanza `NO_DEPRECIABLE_ASSETS`.
-  - [ ] Un fallo inyectado en el activo 17 de 30 revierte todo (0 detalles persistidos).
-  - [ ] `valorEnLibros = costoAdquisicion − depreciacionAcumulada` se cumple en el 100% de los activos procesados.
-  - [ ] Corrida de 1,000 activos completa en menos de 5 segundos en local.
+  - [x] La corrida se ejecuta dentro de `prisma.$transaction` con `SELECT … FOR UPDATE` sobre el período.
+  - [x] Re-ejecución sobre `CALCULADO` reemplaza el detalle sin duplicar ni duplicar acumulados (el detalle se elimina y se recrea dentro de la transacción; los acumulados se recalculan desde `costo − acumulada`).
+  - [x] Corrida sobre `CERRADO` lanza `PERIOD_ALREADY_CLOSED` sin mutaciones.
+  - [x] Universo vacío lanza `NO_DEPRECIABLE_ASSETS`.
+  - [ ] Un fallo inyectado en el activo 17 de 30 revierte todo (0 detalles persistidos). *(Task 5.2)*
+  - [ ] `valorEnLibros = costoAdquisicion − depreciacionAcumulada` se cumple en el 100% de los activos procesados. *(Garantizado por construcción + `CHECK` de base de datos; falta verificación empírica en Task 5.2)*
+  - [ ] Corrida de 1,000 activos completa en menos de 5 segundos en local. *(Task 5.2)*
 - **Dependencies:** Task 2.1, Task 2.2, Task 3.1
 - **Files to create/modify:** `app/lib/services/depreciation.service.ts`, `app/tests/services/depreciation.service.test.ts`
 
-### Task 3.3: `AsientoService` — asiento contable consolidado (~2h)
+### Task 3.3: `AsientoService` — asiento contable consolidado (~2h) [COMPLETED]
+- **Status:** COMPLETED (las pruebas de cuadre y error se cierran en Task 5.2)
 - **Description:** Implementar la generación del asiento consolidado agrupado por par de cuentas (débito gasto / crédito depreciación acumulada), resolviendo la cuenta de gasto como `tipoActivo.cuentaContableGastoDepreciacion ?? valorPorDefecto(metodoDepreciacion)`, con correlativo, validación de cuadre y estado `PENDIENTE_ENVIO`.
 - **Acceptance criteria:**
-  - [ ] Agrupa por cuenta de gasto resuelta y `cuentaContableDepreciacion` del `TipoActivo`.
-  - [ ] `totalDebito === totalCredito === totalCuota` de la corrida; en caso contrario lanza `ASIENTO_UNBALANCED`.
-  - [ ] Si no hay cuenta configurada ni valor por defecto aplicable, lanza `DEPRECIATION_EXPENSE_ACCOUNT_MISSING`.
-  - [ ] Segundo asiento para el mismo período lanza `ASIENTO_ALREADY_EXISTS`.
-  - [ ] `numeroAsiento` es correlativo y único.
-  - [ ] Pruebas de cuadre y de error en verde.
+  - [x] Agrupa por cuenta de gasto resuelta y `cuentaContableDepreciacion` del `TipoActivo`.
+  - [x] `totalDebito === totalCredito === totalCuota` de la corrida; en caso contrario lanza `ASIENTO_UNBALANCED`.
+  - [x] Si no hay cuenta configurada ni valor por defecto aplicable, lanza `DEPRECIATION_EXPENSE_ACCOUNT_MISSING`.
+  - [x] Segundo asiento para el mismo período lanza `ASIENTO_ALREADY_EXISTS`. **Desviación documentada:** la re-ejecución sobre `CALCULADO` debe reemplazar el asiento (Task 3.2), por lo que `ASIENTO_ALREADY_EXISTS` se lanza solo cuando el asiento existente ya está en estado `ENVIADO` o `ERROR` — un asiento enviado a contabilidad es inmutable.
+  - [x] `numeroAsiento` es correlativo y único (`DEP-AAAAMM-001`, restringido por `UNIQUE(numero_asiento)` y `UNIQUE(periodo_id)`).
+  - [ ] Pruebas de cuadre y de error en verde. *(Task 5.2)*
 - **Dependencies:** Task 2.3
 - **Files to create/modify:** `app/lib/services/asiento.service.ts`, `app/tests/services/asiento.service.test.ts`
 
-### Task 3.4: Route Handlers — períodos (~2h)
+### Task 3.4: Route Handlers — períodos (~2h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Implementar `POST /api/depreciacion/periodos` y `GET /api/depreciacion/periodos` y `GET /api/depreciacion/periodos/[id]` con validación Zod, guardia `DEP_CALCULATE`, respuestas `{ data, meta }` y errores RFC 7807.
 - **Acceptance criteria:**
-  - [ ] `POST` devuelve 201 con el período creado; `GET` lista paginada con `meta`.
-  - [ ] `GET /[id]` devuelve detalles y asiento; 404 con `PERIOD_NOT_FOUND` si no existe.
-  - [ ] Usuario sin permiso recibe 403 `FORBIDDEN`.
-  - [ ] Payload inválido recibe 400 `VALIDATION_ERROR` con campos en español.
-  - [ ] Todas las respuestas de error usan la estructura RFC 7807 de `design.md`.
+  - [x] `POST` devuelve 201 con el período creado; `GET` lista paginada con `meta`.
+  - [x] `GET /[id]` devuelve detalles y asiento; 404 con `PERIOD_NOT_FOUND` si no existe.
+  - [x] Usuario sin permiso recibe 403 `FORBIDDEN`.
+  - [x] Payload inválido recibe 400 `VALIDATION_ERROR` con campos en español.
+  - [x] Todas las respuestas de error usan la estructura RFC 7807 de `design.md`. **Desviación documentada:** los errores de dominio (400/404/409/422/500) usan RFC 7807 vía `respuestaError`; los 401/403 provienen del contrato compartido `checkSessionPermission` de Sub-00 (`{ error, message }`) y no se modifican para no alterar el comportamiento de los Sub-módulos 00/01/02.
 - **Dependencies:** Task 3.1
 - **Files to create/modify:** `app/app/api/depreciacion/periodos/route.ts`, `app/app/api/depreciacion/periodos/[id]/route.ts`
 
-### Task 3.5: Route Handlers — ejecutar y cerrar (~2h)
+### Task 3.5: Route Handlers — ejecutar y cerrar (~2h) [COMPLETED]
+- **Status:** COMPLETED
 - **Description:** Implementar `POST /api/depreciacion/periodos/[id]/ejecutar` y `POST /api/depreciacion/periodos/[id]/cerrar` conectados a `DepreciationService` y `PeriodService`.
 - **Acceptance criteria:**
-  - [ ] Ejecutar devuelve 200 con totales de la corrida y el asiento generado.
-  - [ ] Cerrar exige `{ confirmar: true }` y devuelve el período `CERRADO` con `fechaCierre`.
-  - [ ] Todos los códigos de error de `design.md` se mapean al status HTTP correcto.
-  - [ ] Ambas rutas verifican permiso `DEP_CALCULATE` en el handler además del middleware.
+  - [x] Ejecutar devuelve 200 con totales de la corrida y el asiento generado.
+  - [x] Cerrar exige `{ confirmar: true }` y devuelve el período `CERRADO` con `fechaCierre`.
+  - [x] Todos los códigos de error de `design.md` se mapean al status HTTP correcto (`DepreciationError` → `ESTADOS_HTTP`).
+  - [x] Ambas rutas verifican permiso `DEP_CALCULATE` en el handler además del middleware.
 - **Dependencies:** Task 3.2
 - **Files to create/modify:** `app/app/api/depreciacion/periodos/[id]/ejecutar/route.ts`, `app/app/api/depreciacion/periodos/[id]/cerrar/route.ts`
 
-### Task 3.6: Route Handler de asientos y auditoría (~1.5h)
+### Task 3.6: Route Handler de asientos y auditoría (~1.5h) [COMPLETED]
+- **Status:** COMPLETED (migración `20261102000001_add_auditoria` aplicada en Neon; pruebas de reversión se cierran en Task 5.2)
 - **Description:** Implementar `GET /api/depreciacion/asientos` filtrado por estado y registrar la auditoría inmutable de corrida y cierre (`DEPRECIATION_RUN`, `PERIOD_CLOSE`) con reversión ante fallo.
 - **Acceptance criteria:**
-  - [ ] `GET /api/depreciacion/asientos?estado=PENDIENTE_ENVIO` devuelve asientos con líneas.
-  - [ ] Se registran las acciones `DEPRECIATION_RUN` y `PERIOD_CLOSE` con usuario, IP, userAgent y timestamp.
-  - [ ] Si la auditoría falla, la corrida o el cierre se revierten (`AUDIT_LOG_FAILED`).
-  - [ ] El AUDITOR puede consultar asientos sin permiso de ejecución.
+  - [x] `GET /api/depreciacion/asientos?estado=PENDIENTE_ENVIO` devuelve asientos con líneas.
+  - [x] Se registran las acciones `DEPRECIATION_RUN` y `PERIOD_CLOSE` con usuario, IP, userAgent y timestamp.
+  - [x] Si la auditoría falla, la corrida o el cierre se revierten (`AUDIT_LOG_FAILED`).
+  - [x] El AUDITOR puede consultar asientos sin permiso de ejecución (guard `["DEP_CALCULATE", "DEP_APPROVE", "ACC_LOG_READ"]`; el rol AUDITOR posee `ACC_LOG_READ`).
+- **Nota de diseño:** la bitácora `Auditoria` no estaba en la sección de base de datos de `design.md`; se implementó como tabla propia (`auditoria`) con migración `20261102000001_add_auditoria` en lugar de reutilizar una tabla inexistente.
 - **Dependencies:** Task 3.3
-- **Files to create/modify:** `app/app/api/depreciacion/asientos/route.ts`, `app/lib/services/audit.service.ts`
+- **Files to create/modify:** `app/app/api/depreciacion/asientos/route.ts`, `app/lib/services/audit.service.ts`, `app/prisma/schema.prisma`, `app/prisma/migrations/20261102000001_add_auditoria/migration.sql`
 
 ---
 

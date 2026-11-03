@@ -318,3 +318,20 @@ model LineaAsiento {
   @@index([asientoId])
   @@map("lineas_asiento")
 }
+
+model Auditoria {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  usuarioId String?  @map("usuario_id") @db.VarChar(36)
+  accion    String   @db.VarChar(40)
+  recurso   String   @db.VarChar(60)
+  recursoId String?  @map("recurso_id") @db.VarChar(36)
+  detalle   Json?
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([accion])
+  @@index([recursoId])
+  @@index([usuarioId])
+  @@map("auditoria")
+}
