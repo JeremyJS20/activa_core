@@ -85,7 +85,7 @@ graph TD
   - [x] Relaciones `ejecutadoPor` / `cerradoPor` hacia `Usuario` con `onDelete: Restrict` y alias de relación únicos.
   - [x] `ActivoFijo` expone la relación inversa `detallesDepreciacion`.
   - [x] `tipos_activos.cuenta_contable_gasto_depreciacion` creada y poblada por categoría (CAT1 `6-30-01-0001`, CAT2 `6-30-01-0002`, CAT3 `6-30-01-0003`, LINEA_RECTA `6-30-01-0002`).
-  - [ ] Migración `20261102000000_add_motor_depreciacion` aplicable con `prisma migrate deploy` sobre base limpia. *(Pendiente: no se ejecutó contra la base de datos)*
+  - [x] Migración `20261102000000_add_motor_depreciacion` aplicada con `prisma migrate deploy` sobre la base Neon (2026-11-02). `prisma migrate status` → *Database schema is up to date*. Las 4 tablas existen y los 8 tipos de activo tienen `cuenta_contable_gasto_depreciacion` poblada (0 sin cuenta).
   - [x] `npx prisma generate` produce el cliente sin advertencias.
   - [x] `npx tsc --noEmit` sin errores y suite Vitest existente (Sub-00/01/02) en verde (238 pruebas).
 - **Dependencies:** None
