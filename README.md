@@ -31,7 +31,7 @@ El sistema se divide en **6 sub-módulos independientes y desacoplados**. Cada s
 | **01 - Catálogos Base** | `feature/activos-fijos-01-catalogos-base` | ✅ **Listo** | JeremyJS | Departamentos, Tipos de Activos (cuentas contables compra/depreciación) y Empleados (Cédula JCE). |
 | **02 - Gestión de Activos y Custodia** | `feature/activos-fijos-02-gestion-activos-custodia` | ✅ **Listo** | JeremyJS | Alta de Activos (`ACT-YYYY-NNNN`), `HistorialCustodia` (ACID), Actas de Entrega PDF y Bajas Formales. |
 | **03 - Motor de Depreciación** | `feature/activos-fijos-03-motor-depreciacion` | ⏳ **Asignado** | *Compañero de Equipo* | Cálculo mensual de cuotas DGII (5%, 25%, 15%) y Línea Recta, corridas mensuales, cierres y reversiones. |
-| **04 - Consultas y Reportes** | `feature/activos-fijos-04-consultas-reportes` | ⏳ **Asignado** | *Compañero de Equipo* | Consultas multicriterio de inventario, reportes de depreciación acumulada y exportaciones. |
+| **04 - Consultas y Reportes** | `feature/activos-fijos-04-consultas-reportes` | ⏳ **En progreso (15/17)** | JeremyJS | Consola `/reportes` multicriterio con KPIs, depreciación fiscal por período, Kardex, exportación XLSX/CSV (UTF-8 BOM) y vista de impresión. Certificación formal bloqueada por lint preexistente de Sub-01/Sub-02 (0 errores en archivos del Sub-04). |
 | **05 - Integración WS Contabilidad** | `feature/activos-fijos-05-integracion-ws-contabilidad` | ⏳ **Asignado** | *Compañero de Equipo* | Asientos de diario contables, Outbox Pattern, Mock WS, monitor de envíos y reintentos. |
 
 ---

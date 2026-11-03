@@ -1,7 +1,7 @@
 # ActivaCore — Sistema de Gestión de Activos Fijos & Contabilización DGII
 
 > 📖 Master Module Documentation · Living Domain Document
-> 🔄 Last Updated: 2026-10-15 · Status: Active / Certified Sub-00, Sub-01 & Sub-02
+> 🔄 Last Updated: 2026-11-03 · Status: Active / Certified Sub-00, Sub-01 & Sub-02 · Sub-04 In Progress (certificación bloqueada por lint preexistente)
 > 👤 Technical & Functional Lead: Dirección de Tecnología & Finanzas (UNAPEC)
 > 📂 Scope: Gestión integral del ciclo de vida de activos fijos institucionales, asignación y transferencias de custodios, motor de cálculo de depreciación por línea recta bajo normativa DGII (Norma General 07-07 / Ley 11-92 Art. 287), integración contable auxiliar y gobernanza de acceso basada en roles relacionales (RBAC).
 
@@ -33,7 +33,8 @@
 | /api/catalogos/export | Exportación Tabular (.xlsx y .csv) | Operadores, Auditores y Administradores (CAT_READ) | ✅ Certified |
 | /activos | Registro Patrimonial, Custodia y Bajas de Activos | Operadores, Auditores y Administradores | ✅ Certified |
 | /depreciacion | Corrida Mensual y Asientos de Depreciación DGII | Operadores y Administradores (DEP_CALCULATE) | ⏳ Pending (Sub-03) |
-| /reportes | Consultas Fiscales y Conciliación DGII | Auditores, Operadores y Administradores (REP_READ) | ⏳ Pending (Sub-04) |
+| /reportes | Consulta Multicriterio, KPIs, Kardex y Exportación Fiscal | Auditores, Operadores y Administradores (REP_READ) | ⏳ In Progress (Sub-04) |
+| /reportes/depreciacion | Reporte de Depreciación Periódica y Fiscal por Período | Auditores, Operadores y Administradores (REP_READ) | ⏳ In Progress (Sub-04) |
 
 ---
 
@@ -45,7 +46,7 @@
 | **01** | **Catálogos Base del Sistema** | Mantenimiento de Departamentos, Cuentas Contables Auxiliares, Tipos de Activos con Vida Útil DGII (Cat 1: 5%, Cat 2: 25%, Cat 3: 15%), validación cripto-aritmética Módulo 10 de Cédulas JCE y Módulo 11 de RNC, interfaz unificada con layout de pestañas, búsqueda debounced y exportación a Excel (.xlsx) y CSV con UTF-8 BOM. | ✅ Certified | [specs/activos-fijos/01-catalogos-base/](../../specs/activos-fijos/01-catalogos-base/requirements.md) | Unit & Integration: 94.16% (123 pruebas Vitest) · E2E: ✅ (5/5 Playwright) |
 | **02** | **Gestión de Activos Fijos y Custodia** | Altas patrimoniales con código correlativo anual (ACT-YYYY-NNNN), bloqueo contable de campos financieros, traslados ACID de custodio y departamento, emisión de Actas de Entrega en PDF Carta, marbetes imprimibles y bajas formales irreversibles restringidas a ADMIN. | ✅ Certified | [specs/activos-fijos/02-gestion-activos-custodia/](../../specs/activos-fijos/02-gestion-activos-custodia/requirements.md) | Unit & Integration: 93.33% (207 pruebas Vitest) · E2E: ✅ (3/3 Playwright) |
 | **03** | **Motor de Depreciación y Contabilización DGII** | Cálculo mensual determinista por línea recta según Ley 11-92 Art. 287 (Categorías 1, 2 y 3), generación de asientos contables débitos/créditos y cierre mensual inmutable. | ⏳ Pending | Planificado Sub-03 | Pendiente de inicio |
-| **04** | **Reportes, Auditoría e Integración Contable Externa** | Consultas multicriterio, exportación a Excel / PDF, trazabilidad inmutable de eventos y despacho al Web Service Contable de la Universidad. | ⏳ Pending | Planificado Sub-04 | Pendiente de inicio |
+| **04** | **Consultas y Reportes (Solo Lectura)** | Consola `/reportes` de consulta multicriterio con KPIs consolidados, reporte de depreciación fiscal por período, Kardex inmutable del activo, exportación institucional XLSX/CSV (UTF-8 BOM) con bitácora de auditoría y vista de impresión (`@media print`). Dominio estrictamente read-only sobre Sub-02/Sub-03; la integración con el WS contable es alcance del Sub-05. | ⏳ In Progress | [specs/activos-fijos/04-consultas-reportes/](../../specs/activos-fijos/04-consultas-reportes/requirements.md) | Unit & Integration: 344 tests en 28 archivos (Sub-04: Stmts 96.83% · Líneas 97.98% · Funciones 100%) · E2E: ✅ 17/17 (5 de reportes) |
 
 ---
 
@@ -121,6 +122,8 @@ erDiagram
     activos_fijos ||--o| historial_bajas : desincorpora
     usuarios ||--o{ historial_custodia : autoriza_traslado
     usuarios ||--o{ historial_bajas : autoriza_baja
+    activos_fijos ||--o{ depreciaciones_mensual : cuotas_provisionales
+    usuarios ||--o{ bitacora_exportaciones : audita_exportacion
 
     departamentos {
         uuid id PK
@@ -257,6 +260,31 @@ erDiagram
         uuid autorizado_por_id FK
         timestamptz created_at
     }
+
+    depreciaciones_mensual {
+        uuid id PK
+        uuid activo_id FK
+        char periodo_fiscal UK
+        decimal cuota_mes
+        decimal depreciacion_acumulada_post
+        decimal valor_en_libros_post
+        string cuenta_compra
+        string cuenta_depreciacion
+        timestamptz created_at
+    }
+
+    bitacora_exportaciones {
+        uuid id PK
+        uuid usuario_id FK
+        string correo_usuario
+        string ip_address
+        string user_agent
+        string formato
+        string reporte
+        json filtros_aplicados
+        integer filas_exportadas
+        timestamptz created_at
+    }
 ```
 
 ### Key Tables & Data Dictionary
@@ -325,6 +353,10 @@ erDiagram
 | POST | /api/activos/[id]/traslados | Reasignación transaccional ACID de custodio y departamento | ACT_OPERATE / ADMIN / OPERADOR | { departamentoNuevoId, empleadoNuevoId, motivo, justificacion } | { activo, movimientoId } |
 | POST | /api/activos/[id]/baja | Desincorporación formal e irreversible del activo fijo | Exclusivo ADMIN | { motivoBaja, numeroActa, fechaBaja, justificacion } | { activo, baja } |
 | GET | /api/activos/[id]/acta-entrega | Emisión de Acta de Entrega de Custodia en PDF tamaño Carta | ACT_READ / ADMIN / OPERADOR / AUDITOR | Query: ?movimientoId= | Binario application/pdf con membrete UNAPEC y firmas |
+| GET | /api/reportes/inventario | Consulta multicriterio del inventario + KPIs consolidados con paginación server-side | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?fechaInicio=&fechaFin=&montoMin=&montoMax=&departamentoId=&tipoActivoId=&custodio=&estados=&search=&sort=&dir=&page=&pageSize= | { data: [...], meta: { total, page, pageSize, totalPages }, kpis: { cantidad, costoTotal, depreciacionTotal, valorEnLibrosTotal } } |
+| GET | /api/reportes/depreciacion | Detalle de depreciación por período fiscal + totales (solo lectura del motor Sub-03) | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?periodo=YYYY-MM&cuentaCompra=&cuentaDepreciacion=&page=&pageSize= | { data: [...], totales: {...}, sinProceso: false } |
+| GET | /api/reportes/activos/[id]/kardex | Timeline inmutable de custodia + cuotas de depreciación del activo | REP_READ / ADMIN / OPERADOR / AUDITOR | Ninguno (URL param) | { activo, timeline: [...], cuotas: [...], bajaInfo: {...} \| null } |
+| GET | /api/reportes/export | Exportación XLSX/CSV del snapshot filtrado con precheck de truncamiento y auditoría no bloqueante | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?reporte=inventario\|depreciacion&formato=xlsx\|csv&precheck=true + filtros del reporte origen | Binario (Content-Disposition) o JSON { avisoTruncamiento, totalFiltrado } |
 
 ---
 
@@ -380,7 +412,7 @@ erDiagram
 ---
 
 ## 8. Audit Trail & Security Policy
-- **Acciones Auditadas Inmutables**: Inicio de sesión exitoso y fallido, bloqueo y desbloqueo de cuenta, creación de usuarios, mutación de roles, altas, modificaciones y bajas de catálogos base (Departamentos, Tipos de Activos, Empleados).
+- **Acciones Auditadas Inmutables**: Inicio de sesión exitoso y fallido, bloqueo y desbloqueo de cuenta, creación de usuarios, mutación de roles, altas, modificaciones y bajas de catálogos base (Departamentos, Tipos de Activos, Empleados) y exportaciones financieras de reportes (usuario, correo, IP, user-agent, formato, reporte, filtros en JSONB y filas emitidas) persistidas en `bitacora_exportaciones`.
 - **Campos de Traza**: usuario_id, ip_address, user_agent, accion, recurso, timestamp_utc.
 
 ---
@@ -392,3 +424,4 @@ erDiagram
 | 2026-10-13 | specs/activos-fijos/00-autenticacion-rbac | Certificación formal del Sub-módulo 00: Arquitectura RBAC relacional, autenticación NextAuth v5, suites completas Vitest (92.7%) y Playwright E2E (4/4). | 246837a | Dirección de Tecnología / SDD Build Agent |
 | 2026-10-15 | specs/activos-fijos/01-catalogos-base | Certificación formal del Sub-módulo 01: Catálogos Base (Departamentos, Tipos de Activos DGII, Custodios JCE Módulo 10, exportación Excel/CSV), suite Vitest 100% (123 tests) y suite E2E Playwright 100% (9 tests). | 458ee12 | Dirección de Tecnología & Finanzas / SDD Build Agent |
 | 2026-10-17 | specs/activos-fijos/02-gestion-activos-custodia | Certificación formal del Sub-módulo 02: Gestión de Activos Fijos, Inventario y Custodia (correlativo anual ACT-YYYY-NNNN, bloqueo contable, traslados ACID, Actas PDF con pdf-lib, marbetes imprimibles, bajas formales ADMIN), suite Vitest 93.33% (207 tests) y Playwright E2E (3/3). | cbab636 | JeremyJS / SDD Build Agent |
+| 2026-11-03 | specs/activos-fijos/04-consultas-reportes | Sub-módulo 04 en progreso: consola `/reportes` (inventario + depreciación + Kardex), 4 endpoints GET read-only, exportación XLSX/CSV con bitácora de auditoría, RBAC dual-check y vista de impresión. 344 tests Vitest y 17/17 E2E en verde; `build` OK. Certificación formal pendiente por deuda de lint preexistente de Sub-01/Sub-02 (0 errores en archivos del Sub-04). | bf96032 | JeremyJS / SDD Build Agent |

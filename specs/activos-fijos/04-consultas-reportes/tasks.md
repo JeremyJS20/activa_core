@@ -276,13 +276,13 @@ graph TD
 - **Dependencies:** Task 4.1
 - **Files to create/modify:** ninguno (evidencia registrada en el PR)
 
-### Task 4.3: Sincronización de Documentación Viva (Hard Gate 16) (~0.5h)
+### Task 4.3: Sincronización de Documentación Viva (Hard Gate 16) (~0.5h) [COMPLETED 2026-11-03]
 - **Description:** Actualizar los documentos maestros: `docs/modules/activos-fijos.md` (matriz sub-04 → In Progress/Certificado según avance, rutas `/reportes` y las 4 APIs nuevas, ERD consolidado con `bitacora_exportaciones` y el contrato provisional, change log), `docs/architecture/database-architecture.md` (sección de cobertura read-only y bitácora con gobernanza), `README.md` (estado del branch). De los 3 diagramas maestros cambian: ERD (sí), Flowchart de componentes (sí), State Machine de sesión (no).
 - **Acceptance criteria:**
-  - [ ] `docs/modules/activos-fijos.md` incluye las 4 APIs nuevas + ERD actualizado + change log con commit.
-  - [ ] `docs/architecture/database-architecture.md` documenta el contrato provisional con su marca de gobernanza (quién lo reemplaza).
-  - [ ] Cero contradicciones entre docs (grep de nombres de tablas/APIs coherentes en los 3 archivos).
-- **Dependencies:** Task 4.2
+  - [x] `docs/modules/activos-fijos.md` incluye las 4 APIs nuevas + ERD actualizado + change log con commit. **✅ Añadidas `/api/reportes/inventario`, `/depreciacion`, `/activos/[id]/kardex` y `/export`; ERD con `depreciaciones_mensual` y `bitacora_exportaciones`; rutas `/reportes` y `/reportes/depreciacion`; change log con commit `bf96032`.**
+  - [x] `docs/architecture/database-architecture.md` documenta el contrato provisional con su marca de gobernanza (quién lo reemplaza). **✅ Nueva §3.2 "Cobertura Read-Only del Sub-módulo 04" + DDL de ambas tablas + índice; gobernanza: reemplazo por Sub-03 (`periodos_depreciacion`/`detalle_depreciacion`).**
+  - [x] Cero contradicciones entre docs (grep de nombres de tablas/APIs coherentes en los 3 archivos). **✅ grep: 0 coincidencias de "Pending (Sub-04)" / "Planificado Sub-04"; nombres de tablas y endpoints coherentes en los 3 archivos.**
+- **Dependencies:** Task 4.2 — **ejecutada de forma independiente el 2026-11-03**: la documentación no depende del lint; Task 4.2 sigue BLOCKED pendiente de decisión del Lead.
 - **Files to create/modify:** `docs/modules/activos-fijos.md`, `docs/architecture/database-architecture.md`, `README.md`
 
 ---
