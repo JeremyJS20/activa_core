@@ -180,12 +180,12 @@ graph TD
 - **Description:** Implementar la corrida mensual completa: bloqueo del período, carga por lotes del universo (sin N+1), cálculo por activo, reemplazo atómico del detalle, actualización de acumulados del activo, totalización y delegación de la generación del asiento.
 - **Acceptance criteria:**
   - [x] La corrida se ejecuta dentro de `prisma.$transaction` con `SELECT … FOR UPDATE` sobre el período.
-  - [x] Re-ejecución sobre `CALCULADO` reemplaza el detalle sin duplicar ni duplicar acumulados (el detalle se elimina y se recrea dentro de la transacción; los acumulados se recalculan desde `costo − acumulada`).
+  - [x] Re-ejecución sobre `CALCULADO` reemplaza el detalle sin duplicar ni duplicar acumulados. **Corrección post-verificación:** la primera versión leía `activo.depreciacionAcumulada` (ya incrementada por la corrida previa) y sumaba una segunda cuota. Corregido: si el período ya tiene detalle, la línea base es `detallePrevio.depreciacionAcumuladaAnterior` / `valorEnLibrosAnterior`, y los activos que salen del universo revierten su cargo previo. Verificado contra Neon: dos corridas consecutivas del período 2026-11 producen `RD$ 56,219.59` ambas, con acumulados idénticos y 1 solo asiento de 8 líneas.
   - [x] Corrida sobre `CERRADO` lanza `PERIOD_ALREADY_CLOSED` sin mutaciones.
   - [x] Universo vacío lanza `NO_DEPRECIABLE_ASSETS`.
   - [ ] Un fallo inyectado en el activo 17 de 30 revierte todo (0 detalles persistidos). *(Task 5.2)*
-  - [ ] `valorEnLibros = costoAdquisicion − depreciacionAcumulada` se cumple en el 100% de los activos procesados. *(Garantizado por construcción + `CHECK` de base de datos; falta verificación empírica en Task 5.2)*
-  - [ ] Corrida de 1,000 activos completa en menos de 5 segundos en local. *(Task 5.2)*
+  - [ ] `valorEnLibros = costoAdquisicion − depreciacionAcumulada` se cumple en el 100% de los activos procesados. *(Garantizado por construcción + `CHECK` de base de datos; verificado en los 30 activos de la corrida real; falta prueba hermética en Task 5.2)*
+  - [ ] Corrida de 1,000 activos completa en menos de 5 segundos en local. *(Task 5.2 — **riesgo identificado:** la actualización de acumulados se hace con `UPDATE` por fila en lotes de 100; contra Neon remoto 30 activos ya cuestan ~5 s de ida y vuelta. Para cumplir el criterio habrá que reemplazar los updates individuales por un `UPDATE … FROM (VALUES …)` masivo por lote.)*
 - **Dependencies:** Task 2.1, Task 2.2, Task 3.1
 - **Files to create/modify:** `app/lib/services/depreciation.service.ts`, `app/tests/services/depreciation.service.test.ts`
 

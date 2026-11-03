@@ -70,8 +70,22 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
         orderBy: { codigo: "asc" },
       });
 
+      // Idempotencia de la re-ejecución: si el período ya tiene detalle, el estado base
+      // de cada activo es el que existía ANTES de esa corrida, no la acumulada actual
+      // (que ya incluye la cuota de este período). Sin esto, re-ejecutar duplicaría el cargo.
+      const detallesPrevios = await tx.detalleDepreciacion.findMany({
+        where: { periodoId: periodo.id },
+        select: {
+          activoId: true,
+          depreciacionAcumuladaAnterior: true,
+          valorEnLibrosAnterior: true,
+        },
+      });
+      const basePorActivo = new Map(detallesPrevios.map((d) => [d.activoId, d]));
+
       const detalles: Prisma.DetalleDepreciacionCreateManyInput[] = [];
       const actualizaciones: Array<{ id: string; acumulada: Prisma.Decimal; valor: Prisma.Decimal }> = [];
+      const reversiones: Array<{ id: string; acumulada: Prisma.Decimal; valor: Prisma.Decimal }> = [];
       const grupos = new Map<string, GrupoAsiento>();
 
       let totalCuota = new Prisma.Decimal(0);
@@ -79,6 +93,14 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
       let activosExcluidos = 0;
 
       for (const activo of activos) {
+        const base = basePorActivo.get(activo.id);
+        const acumuladaBase = base
+          ? base.depreciacionAcumuladaAnterior
+          : activo.depreciacionAcumulada;
+        const valorEnLibrosBase = base
+          ? base.valorEnLibrosAnterior
+          : activo.costoAdquisicion.minus(activo.depreciacionAcumulada);
+
         const evaluacion = evaluarDepreciabilidad({
           estadoActivo: activo.estado,
           fechaAdquisicion: activo.fechaAdquisicion,
@@ -86,7 +108,7 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
           estadoTipoActivo: activo.tipoActivo.estado,
           costoAdquisicion: activo.costoAdquisicion,
           valorResidual: activo.valorResidual,
-          depreciacionAcumulada: activo.depreciacionAcumulada,
+          depreciacionAcumulada: acumuladaBase,
           vidaUtilMeses: activo.tipoActivo.vidaUtilMeses,
           anio: periodo.anio,
           mes: periodo.mes,
@@ -101,6 +123,14 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
           } else {
             activosExcluidos += 1;
           }
+          // Si este activo se cargó en una corrida anterior del período, se revierte su cargo.
+          if (base) {
+            reversiones.push({
+              id: activo.id,
+              acumulada: base.depreciacionAcumuladaAnterior,
+              valor: base.valorEnLibrosAnterior,
+            });
+          }
           continue;
         }
 
@@ -109,7 +139,7 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
           resultado = calcularCuota({
             costoAdquisicion: activo.costoAdquisicion,
             valorResidual: activo.valorResidual,
-            depreciacionAcumulada: activo.depreciacionAcumulada,
+            depreciacionAcumulada: acumuladaBase,
             vidaUtilMeses: activo.tipoActivo.vidaUtilMeses,
           });
         } catch (error) {
@@ -118,6 +148,13 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
 
         if (resultado.cuota.isZero()) {
           activosOmitidos += 1;
+          if (base) {
+            reversiones.push({
+              id: activo.id,
+              acumulada: base.depreciacionAcumuladaAnterior,
+              valor: base.valorEnLibrosAnterior,
+            });
+          }
           continue;
         }
 
@@ -131,9 +168,9 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
           periodoId: periodo.id,
           activoId: activo.id,
           cuotaMensual: resultado.cuota,
-          depreciacionAcumuladaAnterior: activo.depreciacionAcumulada,
+          depreciacionAcumuladaAnterior: acumuladaBase,
           depreciacionAcumuladaNueva: resultado.acumuladaNueva,
-          valorEnLibrosAnterior: activo.costoAdquisicion.minus(activo.depreciacionAcumulada),
+          valorEnLibrosAnterior: valorEnLibrosBase,
           valorEnLibrosNuevo: resultado.valorEnLibrosNuevo,
           tipoCuota: resultado.tipoCuota,
           esCuotaFinal: resultado.esCuotaFinal,
@@ -172,6 +209,22 @@ export async function ejecutarCorrida(input: EjecutarCorridaInput): Promise<Resu
 
       for (let i = 0; i < actualizaciones.length; i += TAMANO_LOTE) {
         const lote = actualizaciones.slice(i, i + TAMANO_LOTE);
+        await Promise.all(
+          lote.map((cambio) =>
+            tx.activoFijo.update({
+              where: { id: cambio.id },
+              data: {
+                depreciacionAcumulada: cambio.acumulada,
+                valorEnLibros: cambio.valor,
+              },
+            })
+          )
+        );
+      }
+
+      // Activos que tenían detalle previo y ya no pertenecen al universo: se revierte su cargo.
+      for (let i = 0; i < reversiones.length; i += TAMANO_LOTE) {
+        const lote = reversiones.slice(i, i + TAMANO_LOTE);
         await Promise.all(
           lote.map((cambio) =>
             tx.activoFijo.update({

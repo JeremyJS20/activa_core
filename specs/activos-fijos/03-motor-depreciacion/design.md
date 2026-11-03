@@ -711,6 +711,17 @@ Reglas derivadas:
 - `residual = costo` produce `tipoCuota = NO_DEPRECIABLE` y cuota 0 (REQ-DEP-001).
 - La corrida se ejecuta en `prisma.$transaction(async (tx) => …)` con `SELECT … FOR UPDATE` sobre `periodos_depreciacion` para serializar ejecuciones concurrentes (REQ-DEP-004).
 
+### Idempotencia de la re-ejecución
+
+Re-ejecutar un período en estado `CALCULADO` reemplaza su detalle sin duplicar el cargo. La regla de implementación es:
+
+1. Si el período ya tiene `detalle_depreciacion`, la **línea base** de cada activo es la del detalle previo (`depreciacion_acumulada_anterior` y `valor_en_libros_anterior`), **no** la columna `activos_fijos.depreciacion_acumulada`, que ya incluye la cuota de este período.
+2. El cálculo (`calcularCuota`) recibe esa línea base, por lo que el resultado es idéntico al de la corrida original.
+3. Los activos con detalle previo que dejan de pertenecer al universo (baja, tipo inactivo, vida útil agotada o sin remanente) **revierte**n su cargo: se restauran `depreciacion_acumulada` y `valor_en_libros` a los valores previos.
+4. El detalle y el asiento se eliminan y recrean dentro de la misma transacción, de modo que solo puede existir un detalle por `(periodo, activo)` y un asiento por período.
+
+Sin el punto 1, una segunda corrida sumaría una cuota adicional por activo: verificado que con 30 activos el total pasaría de `RD$ 56,219.59` a `RD$ 112,439.18`.
+
 ## UI / UX & Frontend Design
 
 ### Rutas
