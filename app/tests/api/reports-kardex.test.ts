@@ -15,7 +15,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     activoFijo: { findUnique: mocks.findUniqueActivo },
     historialCustodia: { findMany: mocks.findManyHistorial },
-    depreciacionMensual: { findMany: mocks.findManyCuotas },
+    detalleDepreciacion: { findMany: mocks.findManyCuotas },
     $transaction: (operations: Promise<unknown>[]) => Promise.all(operations),
   },
 }));
@@ -80,11 +80,12 @@ function buildHistorialEntry(overrides: Record<string, unknown> = {}) {
 }
 
 function buildCuota(periodo: string, cuota: string, acumulada: string, valor: string) {
+  const [anio, mes] = periodo.split("-").map(Number);
   return {
-    periodoFiscal: periodo,
-    cuotaMes: new Prisma.Decimal(cuota),
-    depreciacionAcumuladaPost: new Prisma.Decimal(acumulada),
-    valorEnLibrosPost: new Prisma.Decimal(valor),
+    periodo: { anio, mes },
+    cuotaMensual: new Prisma.Decimal(cuota),
+    depreciacionAcumuladaNueva: new Prisma.Decimal(acumulada),
+    valorEnLibrosNuevo: new Prisma.Decimal(valor),
   };
 }
 
@@ -197,7 +198,10 @@ describe("GET /api/reportes/activos/[id]/kardex", () => {
       { periodo: "2026-09", cuotaMes: "1275.00", depreciacionAcumulada: "10725.00", valorEnLibros: "74275.00" },
     ]);
     expect(mocks.findManyCuotas).toHaveBeenCalledWith(
-      expect.objectContaining({ orderBy: { periodoFiscal: "desc" } })
+      expect.objectContaining({
+        where: { activoId: ACTIVO_ID },
+        orderBy: [{ periodo: { anio: "desc" } }, { periodo: { mes: "desc" } }],
+      })
     );
   });
 

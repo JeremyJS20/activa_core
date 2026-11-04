@@ -32,6 +32,56 @@ function parseIsoDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
 }
 
+/**
+ * `YYYY-MM` (período fiscal del reporte) → componentes del período real de
+ * Sub-03. El schema Zod ya valida el formato; el fallback evita NaN.
+ */
+export function parsePeriodoFiscal(periodo: string): { anio: number; mes: number } {
+  const [anioTexto, mesTexto] = periodo.split("-");
+  const anio = Number(anioTexto);
+  const mes = Number(mesTexto);
+  if (!Number.isInteger(anio) || !Number.isInteger(mes) || mes < 1 || mes > 12) {
+    return { anio: 0, mes: 0 };
+  }
+  return { anio, mes };
+}
+
+/**
+ * WHERE del reporte de depreciación sobre el detalle oficial de Sub-03
+ * (`detalle_depreciacion`), con las cuentas resueltas desde el tipo de activo.
+ */
+function buildDepreciacionWhere(query: {
+  periodo: string;
+  cuentaCompra?: string;
+  cuentaDepreciacion?: string;
+}): Prisma.DetalleDepreciacionWhereInput {
+  const { anio, mes } = parsePeriodoFiscal(query.periodo);
+  const where: Prisma.DetalleDepreciacionWhereInput = { periodo: { anio, mes } };
+
+  if (query.cuentaCompra || query.cuentaDepreciacion) {
+    const tipoActivo: Prisma.TipoActivoWhereInput = {};
+    if (query.cuentaCompra) tipoActivo.cuentaContableCompra = query.cuentaCompra;
+    if (query.cuentaDepreciacion) tipoActivo.cuentaContableDepreciacion = query.cuentaDepreciacion;
+    where.activo = { tipoActivo };
+  }
+
+  return where;
+}
+
+/** Columnas del activo y su tipo que necesita el reporte de depreciación. */
+const ACTIVO_DEPRECIACION_SELECT = {
+  codigo: true,
+  descripcion: true,
+  costoAdquisicion: true,
+  tipoActivo: {
+    select: {
+      vidaUtilMeses: true,
+      cuentaContableCompra: true,
+      cuentaContableDepreciacion: true,
+    },
+  },
+} satisfies Prisma.ActivoFijoSelect;
+
 /** Construye el WHERE AND-componible del inventario (REQ-REP-001 y REQ-REP-003). */
 export function buildInventarioWhere(query: InventarioQuery): Prisma.ActivoFijoWhereInput {
   const where: Prisma.ActivoFijoWhereInput = {};
@@ -261,36 +311,25 @@ export async function consultarDepreciacion(query: {
   page: number;
   pageSize: number;
 }): Promise<DepreciacionResult> {
-  const where: Prisma.DepreciacionMensualWhereInput = { periodoFiscal: query.periodo };
-  if (query.cuentaCompra) where.cuentaCompra = query.cuentaCompra;
-  if (query.cuentaDepreciacion) where.cuentaDepreciacion = query.cuentaDepreciacion;
+  const where = buildDepreciacionWhere(query);
 
   const skip = (query.page - 1) * query.pageSize;
 
   const [rows, aggregate] = await prisma.$transaction([
-    prisma.depreciacionMensual.findMany({
+    prisma.detalleDepreciacion.findMany({
       where,
       skip,
       take: query.pageSize,
       orderBy: [{ activo: { codigo: "asc" } }, { activoId: "asc" }],
-      include: {
-        activo: {
-          select: {
-            codigo: true,
-            descripcion: true,
-            costoAdquisicion: true,
-            tipoActivo: { select: { vidaUtilMeses: true } },
-          },
-        },
-      },
+      include: { activo: { select: ACTIVO_DEPRECIACION_SELECT } },
     }),
-    prisma.depreciacionMensual.aggregate({
+    prisma.detalleDepreciacion.aggregate({
       where,
       _count: { _all: true },
       _sum: {
-        cuotaMes: true,
-        depreciacionAcumuladaPost: true,
-        valorEnLibrosPost: true,
+        cuotaMensual: true,
+        depreciacionAcumuladaNueva: true,
+        valorEnLibrosNuevo: true,
       },
     }),
   ]);
@@ -303,11 +342,11 @@ export async function consultarDepreciacion(query: {
     descripcion: row.activo.descripcion,
     vidaUtilMeses: row.activo.tipoActivo?.vidaUtilMeses ?? null,
     costoOriginal: moneyToString(row.activo.costoAdquisicion),
-    cuotaMes: moneyToString(row.cuotaMes),
-    depreciacionAcumuladaHistorica: moneyToString(row.depreciacionAcumuladaPost),
-    valorEnLibros: moneyToString(row.valorEnLibrosPost),
-    cuentaCompra: row.cuentaCompra,
-    cuentaDepreciacion: row.cuentaDepreciacion,
+    cuotaMes: moneyToString(row.cuotaMensual),
+    depreciacionAcumuladaHistorica: moneyToString(row.depreciacionAcumuladaNueva),
+    valorEnLibros: moneyToString(row.valorEnLibrosNuevo),
+    cuentaCompra: row.activo.tipoActivo.cuentaContableCompra,
+    cuentaDepreciacion: row.activo.tipoActivo.cuentaContableDepreciacion,
   }));
 
   return {
@@ -320,9 +359,9 @@ export async function consultarDepreciacion(query: {
       sinProceso: total === 0,
     },
     totales: {
-      cuotaTotalMes: moneyToString(aggregate._sum?.cuotaMes),
-      depreciacionAcumuladaTotal: moneyToString(aggregate._sum?.depreciacionAcumuladaPost),
-      valorEnLibrosTotal: moneyToString(aggregate._sum?.valorEnLibrosPost),
+      cuotaTotalMes: moneyToString(aggregate._sum?.cuotaMensual),
+      depreciacionAcumuladaTotal: moneyToString(aggregate._sum?.depreciacionAcumuladaNueva),
+      valorEnLibrosTotal: moneyToString(aggregate._sum?.valorEnLibrosNuevo),
     },
     data,
   };
@@ -407,9 +446,10 @@ export async function consultarKardex(activoId: string): Promise<KardexResult | 
         autorizadoPor: { select: { correo: true } },
       },
     }),
-    prisma.depreciacionMensual.findMany({
+    prisma.detalleDepreciacion.findMany({
       where: { activoId },
-      orderBy: { periodoFiscal: "desc" },
+      orderBy: [{ periodo: { anio: "desc" } }, { periodo: { mes: "desc" } }],
+      include: { periodo: { select: { anio: true, mes: true } } },
     }),
   ]);
 
@@ -448,10 +488,10 @@ export async function consultarKardex(activoId: string): Promise<KardexResult | 
       usuario: entry.autorizadoPor?.correo ?? "",
     })),
     cuotas: cuotas.map((cuota) => ({
-      periodo: cuota.periodoFiscal,
-      cuotaMes: moneyToString(cuota.cuotaMes),
-      depreciacionAcumulada: moneyToString(cuota.depreciacionAcumuladaPost),
-      valorEnLibros: moneyToString(cuota.valorEnLibrosPost),
+      periodo: `${cuota.periodo.anio}-${String(cuota.periodo.mes).padStart(2, "0")}`,
+      cuotaMes: moneyToString(cuota.cuotaMensual),
+      depreciacionAcumulada: moneyToString(cuota.depreciacionAcumuladaNueva),
+      valorEnLibros: moneyToString(cuota.valorEnLibrosNuevo),
     })),
   };
 }
@@ -544,30 +584,19 @@ export async function consultarDepreciacionExport(
   },
   maxRows: number
 ): Promise<ExportSnapshot<DepreciacionRow> & { totales: DepreciacionResult["totales"] }> {
-  const where: Prisma.DepreciacionMensualWhereInput = { periodoFiscal: query.periodo };
-  if (query.cuentaCompra) where.cuentaCompra = query.cuentaCompra;
-  if (query.cuentaDepreciacion) where.cuentaDepreciacion = query.cuentaDepreciacion;
+  const where = buildDepreciacionWhere(query);
 
   const [rows, aggregate] = await prisma.$transaction([
-    prisma.depreciacionMensual.findMany({
+    prisma.detalleDepreciacion.findMany({
       where,
       take: maxRows,
       orderBy: [{ activo: { codigo: "asc" } }, { activoId: "asc" }],
-      include: {
-        activo: {
-          select: {
-            codigo: true,
-            descripcion: true,
-            costoAdquisicion: true,
-            tipoActivo: { select: { vidaUtilMeses: true } },
-          },
-        },
-      },
+      include: { activo: { select: ACTIVO_DEPRECIACION_SELECT } },
     }),
-    prisma.depreciacionMensual.aggregate({
+    prisma.detalleDepreciacion.aggregate({
       where,
       _count: { _all: true },
-      _sum: { cuotaMes: true, depreciacionAcumuladaPost: true, valorEnLibrosPost: true },
+      _sum: { cuotaMensual: true, depreciacionAcumuladaNueva: true, valorEnLibrosNuevo: true },
     }),
   ]);
 
@@ -580,16 +609,16 @@ export async function consultarDepreciacionExport(
       descripcion: row.activo.descripcion,
       vidaUtilMeses: row.activo.tipoActivo?.vidaUtilMeses ?? null,
       costoOriginal: moneyToString(row.activo.costoAdquisicion),
-      cuotaMes: moneyToString(row.cuotaMes),
-      depreciacionAcumuladaHistorica: moneyToString(row.depreciacionAcumuladaPost),
-      valorEnLibros: moneyToString(row.valorEnLibrosPost),
-      cuentaCompra: row.cuentaCompra,
-      cuentaDepreciacion: row.cuentaDepreciacion,
+      cuotaMes: moneyToString(row.cuotaMensual),
+      depreciacionAcumuladaHistorica: moneyToString(row.depreciacionAcumuladaNueva),
+      valorEnLibros: moneyToString(row.valorEnLibrosNuevo),
+      cuentaCompra: row.activo.tipoActivo.cuentaContableCompra,
+      cuentaDepreciacion: row.activo.tipoActivo.cuentaContableDepreciacion,
     })),
     totales: {
-      cuotaTotalMes: moneyToString(aggregate._sum?.cuotaMes),
-      depreciacionAcumuladaTotal: moneyToString(aggregate._sum?.depreciacionAcumuladaPost),
-      valorEnLibrosTotal: moneyToString(aggregate._sum?.valorEnLibrosPost),
+      cuotaTotalMes: moneyToString(aggregate._sum?.cuotaMensual),
+      depreciacionAcumuladaTotal: moneyToString(aggregate._sum?.depreciacionAcumuladaNueva),
+      valorEnLibrosTotal: moneyToString(aggregate._sum?.valorEnLibrosNuevo),
     },
     totalFiltrado,
     truncated: totalFiltrado > maxRows,

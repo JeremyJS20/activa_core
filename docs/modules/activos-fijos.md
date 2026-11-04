@@ -1,7 +1,7 @@
 # ActivaCore — Sistema de Gestión de Activos Fijos & Contabilización DGII
 
 > 📖 Master Module Documentation · Living Domain Document
-> 🔄 Last Updated: 2026-11-03 · Status: Active / Certified Sub-00, Sub-01 & Sub-02 · Sub-04 In Progress (certificación bloqueada por lint preexistente)
+> 🔄 Last Updated: 2026-11-03 · Status: Active / Certified Sub-00, Sub-01, Sub-02, Sub-03 & Sub-04
 > 👤 Technical & Functional Lead: Dirección de Tecnología & Finanzas (UNAPEC)
 > 📂 Scope: Gestión integral del ciclo de vida de activos fijos institucionales, asignación y transferencias de custodios, motor de cálculo de depreciación por línea recta bajo normativa DGII (Norma General 07-07 / Ley 11-92 Art. 287), integración contable auxiliar y gobernanza de acceso basada en roles relacionales (RBAC).
 
@@ -32,9 +32,9 @@
 | /catalogos/empleados | Directorio de Custodios y Colaboradores | Operadores y Administradores (CAT_READ, CAT_WRITE) | ✅ Certified |
 | /api/catalogos/export | Exportación Tabular (.xlsx y .csv) | Operadores, Auditores y Administradores (CAT_READ) | ✅ Certified |
 | /activos | Registro Patrimonial, Custodia y Bajas de Activos | Operadores, Auditores y Administradores | ✅ Certified |
-| /depreciacion | Corrida Mensual y Asientos de Depreciación DGII | Operadores y Administradores (DEP_CALCULATE) | ⏳ Pending (Sub-03) |
-| /reportes | Consulta Multicriterio, KPIs, Kardex y Exportación Fiscal | Auditores, Operadores y Administradores (REP_READ) | ⏳ In Progress (Sub-04) |
-| /reportes/depreciacion | Reporte de Depreciación Periódica y Fiscal por Período | Auditores, Operadores y Administradores (REP_READ) | ⏳ In Progress (Sub-04) |
+| /depreciacion | Corrida Mensual y Asientos de Depreciación DGII | Operadores y Administradores (DEP_CALCULATE) · Consulta de asientos: AUDITOR (ACC_LOG_READ) | ✅ Certified |
+| /reportes | Consulta Multicriterio, KPIs, Kardex y Exportación Fiscal | Auditores, Operadores y Administradores (REP_READ) | ✅ Certified |
+| /reportes/depreciacion | Reporte de Depreciación Periódica y Fiscal por Período (lee `detalle_depreciacion` de Sub-03) | Auditores, Operadores y Administradores (REP_READ) | ✅ Certified |
 
 ---
 
@@ -44,9 +44,9 @@
 |---|-------------------------|------------------------|--------|-----------|---------------|
 | **00** | **Autenticación, Usuarios y Control de Acceso Relacional RBAC** | Inicio de sesión NextAuth v5, hashing bcrypt (10 rondas), protección contra fuerza bruta (15 min / 5 intentos), tokens SHA-256 de autoservicio, middleware edge y directorio de roles dinámicos. | ✅ Certified | [specs/activos-fijos/00-autenticacion-rbac/](../../specs/activos-fijos/00-autenticacion-rbac/requirements.md) | Unit: 92.7% (45 pruebas Vitest) · E2E: ✅ (4/4 Playwright) |
 | **01** | **Catálogos Base del Sistema** | Mantenimiento de Departamentos, Cuentas Contables Auxiliares, Tipos de Activos con Vida Útil DGII (Cat 1: 5%, Cat 2: 25%, Cat 3: 15%), validación cripto-aritmética Módulo 10 de Cédulas JCE y Módulo 11 de RNC, interfaz unificada con layout de pestañas, búsqueda debounced y exportación a Excel (.xlsx) y CSV con UTF-8 BOM. | ✅ Certified | [specs/activos-fijos/01-catalogos-base/](../../specs/activos-fijos/01-catalogos-base/requirements.md) | Unit & Integration: 94.16% (123 pruebas Vitest) · E2E: ✅ (5/5 Playwright) |
-| **02** | **Gestión de Activos Fijos y Custodia** | Altas patrimoniales con código correlativo anual (ACT-YYYY-NNNN), bloqueo contable de campos financieros, traslados ACID de custodio y departamento, emisión de Actas de Entrega en PDF Carta, marbetes imprimibles y bajas formales irreversibles restringidas a ADMIN. | ✅ Certified | [specs/activos-fijos/02-gestion-activos-custodia/](../../specs/activos-fijos/02-gestion-activos-custodia/requirements.md) | Unit & Integration: 93.33% (207 pruebas Vitest) · E2E: ✅ (3/3 Playwright) |
-| **03** | **Motor de Depreciación y Contabilización DGII** | Cálculo mensual determinista por línea recta según Ley 11-92 Art. 287 (Categorías 1, 2 y 3), generación de asientos contables débitos/créditos y cierre mensual inmutable. | ⏳ Pending | Planificado Sub-03 | Pendiente de inicio |
-| **04** | **Consultas y Reportes (Solo Lectura)** | Consola `/reportes` de consulta multicriterio con KPIs consolidados, reporte de depreciación fiscal por período, Kardex inmutable del activo, exportación institucional XLSX/CSV (UTF-8 BOM) con bitácora de auditoría y vista de impresión (`@media print`). Dominio estrictamente read-only sobre Sub-02/Sub-03; la integración con el WS contable es alcance del Sub-05. | ⏳ In Progress | [specs/activos-fijos/04-consultas-reportes/](../../specs/activos-fijos/04-consultas-reportes/requirements.md) | Unit & Integration: 344 tests en 28 archivos (Sub-04: Stmts 96.83% · Líneas 97.98% · Funciones 100%) · E2E: ✅ 17/17 (5 de reportes) |
+| **02** | **Gestión de Activos Fijos y Custodia** | Altas patrimoniales con código correlativo anual (ACT-YYYY-NNNN), bloqueo contable de campos financieros, traslados ACID de custodio y departamento, emisión de Actas de Entrega en PDF Carta, marbetes imprimibles, bajas formales irreversibles restringidas a ADMIN y ficha técnica de consulta en drawer de solo lectura (identificación, situación financiera, clasificación DGII, custodia e historial de baja). | ✅ Certified | [specs/activos-fijos/02-gestion-activos-custodia/](../../specs/activos-fijos/02-gestion-activos-custodia/requirements.md) | Unit & Integration: 93.33% (207 pruebas Vitest) · E2E: ✅ (6/6 Playwright) |
+| **03** | **Motor de Depreciación y Contabilización DGII** | Cálculo mensual determinista por línea recta según Ley 11-92 Art. 287 con redondeo bancario Half Even, universo de activos por estado/fecha/vida útil, corrida transaccional idempotente con bloqueo `FOR UPDATE`, generación del asiento consolidado débito/crédito en estado `PENDIENTE_ENVIO`, cierre mensual inmutable y bitácora `Auditoria`. | ✅ Certified | [specs/activos-fijos/03-motor-depreciacion/](../../specs/activos-fijos/03-motor-depreciacion/requirements.md) | Unit & Integration: 96.44% (367 pruebas Vitest) · E2E: ✅ (1/1 Playwright) |
+| **04** | **Consultas y Reportes (Solo Lectura)** | Consola `/reportes` de consulta multicriterio con KPIs consolidados, reporte de depreciación fiscal por período, Kardex inmutable del activo, exportación institucional XLSX/CSV (UTF-8 BOM) con bitácora de auditoría y vista de impresión (`@media print`). Dominio estrictamente read-only: lee `activos_fijos`, `historial_custodia` y el detalle oficial de Sub-03 (`detalle_depreciacion` + `periodos_depreciacion`); la integración con el WS contable es alcance del Sub-05. | ✅ Certified | [specs/activos-fijos/04-consultas-reportes/](../../specs/activos-fijos/04-consultas-reportes/requirements.md) | Unit & Integration: 504 pruebas Vitest (37 archivos, suite integrada Sub-00…04) · E2E: ✅ 18/18 (5 de reportes) |
 
 ---
 
@@ -75,10 +75,10 @@ stateDiagram-v2
     INACTIVO --> ACTIVO : Reactivacion Operativa
     ACTIVO --> [*] : Borrado Fisico (Solo si no tiene relaciones)
     INACTIVO --> [*] : Borrado Fisico
-`
+```
 
 #### Activos Fijos y Ciclo de Custodia
-`mermaid
+```mermaid
 stateDiagram-v2
     [*] --> ACTIVO : Alta Patrimonial ACT-YYYY-NNNN + HistorialCustodia ALTA_INICIAL
     ACTIVO --> ACTIVO : Traslado ACID de Custodio y Departamento + Emision Acta PDF
@@ -88,6 +88,19 @@ stateDiagram-v2
     EN_MANTENIMIENTO --> DADO_DE_BAJA : Baja por Dano Irreparable ADMIN
     DADO_DE_BAJA --> [*] : Congelamiento Permanente de Valor en Libros y Custodia
 ```
+
+#### Motor de Depreciación (Período Mensual)
+```mermaid
+stateDiagram-v2
+    [*] --> ABIERTO : Alta del Periodo (anio, mes) + fecha_corte ultimo dia del mes
+    ABIERTO --> CALCULADO : Corrida exitosa (detalle + asiento PENDIENTE_ENVIO)
+    CALCULADO --> CALCULADO : Re-ejecucion idempotente (reemplaza detalle y asiento)
+    CALCULADO --> CERRADO : Cierre irreversible con confirmacion explicita
+    ABIERTO --> ABIERTO : Intento de cierre rechazado (PERIOD_NOT_CLOSABLE)
+    CERRADO --> CERRADO : Recálculo rechazado (PERIOD_ALREADY_CLOSED)
+    CERRADO --> [*] : Inmutabilidad contable del periodo
+```
+
 
 ### 3.2 High-Level Component Flow
 ```mermaid
@@ -100,6 +113,21 @@ flowchart TD
     RBAC_Gate --> Validators[Motores de Validacion: validarCedulaJCE / validarRncDGII / validarCuentaContable]
     Validators --> Prisma[Prisma ORM 6.19 Client]
     Prisma --> PostgreSQL[(Neon PostgreSQL 16: departamentos, tipos_activos, empleados, rbac)]
+
+    Browser --> Console[ConsoleShell /depreciacion]
+    Console --> DepContent[DepreciacionContent: KPIs, PeriodTable, Dialogos]
+    DepContent --> API_Dep[Route Handlers /api/depreciacion/periodos, /ejecutar, /cerrar, /asientos]
+    API_Dep --> RBAC_Dep[Guard checkSessionPermission: DEP_CALCULATE / DEP_APPROVE / ACC_LOG_READ]
+    RBAC_Dep --> PeriodSvc[PeriodService: alta, listado, detalle, cierre inmutable]
+    RBAC_Dep --> DepSvc[DepreciationService: corrida transaccional + SELECT FOR UPDATE]
+    DepSvc --> Universe[evaluarDepreciabilidad: estado, corte, vida util, remanente]
+    DepSvc --> Calc[calcularCuota: ROUND_HALF_EVEN y cuota final]
+    DepSvc --> AsientoSvc[AsientoService: grupos debito gasto / credito acumulada]
+    AsientoSvc --> AuditSvc[AuditService: DEPRECIATION_RUN / PERIOD_CLOSE]
+    PeriodSvc --> Prisma
+    AsientoSvc --> Prisma
+    AuditSvc --> Prisma
+    Prisma --> PostgreSQL_Dep[(periodos_depreciacion, detalle_depreciacion, asientos_contables, lineas_asiento, auditoria)]
 ```
 
 ---
@@ -122,8 +150,14 @@ erDiagram
     activos_fijos ||--o| historial_bajas : desincorpora
     usuarios ||--o{ historial_custodia : autoriza_traslado
     usuarios ||--o{ historial_bajas : autoriza_baja
-    activos_fijos ||--o{ depreciaciones_mensual : cuotas_provisionales
+    activos_fijos ||--o{ depreciaciones_mensual : "cuotas_provisionales_legacy"
     usuarios ||--o{ bitacora_exportaciones : audita_exportacion
+    periodos_depreciacion ||--o{ detalle_depreciacion : contiene
+    activos_fijos ||--o{ detalle_depreciacion : deprecia
+    periodos_depreciacion ||--o| asientos_contables : genera
+    asientos_contables ||--o{ lineas_asiento : compone
+    usuarios ||--o{ periodos_depreciacion : ejecuta_y_cierra
+    usuarios ||--o{ auditoria : registra
 
     departamentos {
         uuid id PK
@@ -141,6 +175,7 @@ erDiagram
         string descripcion
         string cuenta_contable_compra
         string cuenta_contable_depreciacion
+        string cuenta_contable_gasto_depreciacion
         string metodo_depreciacion
         decimal porcentaje_depreciacion_anual
         integer vida_util_meses
@@ -285,6 +320,73 @@ erDiagram
         integer filas_exportadas
         timestamptz created_at
     }
+
+    periodos_depreciacion {
+        uuid id PK
+        integer anio
+        integer mes
+        string estado
+        date fecha_corte
+        integer total_activos
+        decimal total_cuota
+        integer activos_omitidos
+        integer activos_excluidos
+        timestamptz fecha_ejecucion
+        uuid ejecutado_por_id FK
+        timestamptz fecha_cierre
+        uuid cerrado_por_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    detalle_depreciacion {
+        uuid id PK
+        uuid periodo_id FK
+        uuid activo_id FK
+        decimal cuota_mensual
+        decimal depreciacion_acumulada_anterior
+        decimal depreciacion_acumulada_nueva
+        decimal valor_en_libros_anterior
+        decimal valor_en_libros_nuevo
+        string tipo_cuota
+        boolean es_cuota_final
+        timestamptz created_at
+    }
+
+    asientos_contables {
+        uuid id PK
+        string numero_asiento UK
+        uuid periodo_id UK
+        string concepto
+        date fecha_contable
+        string estado
+        decimal total_debito
+        decimal total_credito
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    lineas_asiento {
+        uuid id PK
+        uuid asiento_id FK
+        string cuenta_contable
+        string tipo_movimiento
+        decimal monto
+        string descripcion
+        timestamptz created_at
+    }
+
+    auditoria {
+        uuid id PK
+        uuid usuario_id FK
+        string accion
+        string recurso
+        uuid recurso_id
+        json detalle
+        string ip_address
+        string user_agent
+        timestamptz created_at
+    }
 ```
 
 ### Key Tables & Data Dictionary
@@ -317,6 +419,33 @@ erDiagram
   - `telefono`: VARCHAR(20), extensión o teléfono de contacto.
   - `fecha_ingreso`: DATE, fecha de contratación (no admite fechas futuras).
   - `estado`: VARCHAR(10), `ACTIVO` o `INACTIVO`.
+- **`periodos_depreciacion`**: Cabecera del período contable mensual del motor de depreciación.
+  - `id`: UUID (PK).
+  - `anio` / `mes`: INTEGER, con restricción `@@unique([anio, mes])` (un período por mes).
+  - `estado`: VARCHAR(12), `ABIERTO`, `CALCULADO` o `CERRADO` (inmutable al cerrar).
+  - `fecha_corte`: DATE, último día del mes; un activo adquirido después queda fuera del universo.
+  - `total_activos` / `total_cuota` / `activos_omitidos` / `activos_excluidos`: resumen persistido de la última corrida.
+  - `fecha_ejecucion` + `ejecutado_por_id`: traza de la corrida (`onDelete: SetNull`).
+  - `fecha_cierre` + `cerrado_por_id`: traza del cierre inmutable.
+- **`detalle_depreciacion`**: Cuota por activo de un período; `@@unique([periodoId, activoId])` impide duplicados.
+  - `cuota_mensual`: DECIMAL(14,2) tras redondeo bancario.
+  - `depreciacion_acumulada_anterior` / `valor_en_libros_anterior`: línea base previa al período; es la que permite la re-ejecución idempotente y la reversión de cargos.
+  - `depreciacion_acumulada_nueva` / `valor_en_libros_nuevo`: estado resultante del activo tras la corrida.
+  - `tipo_cuota`: VARCHAR(20), `NORMAL`, `ULTIMA` o `NO_DEPRECIABLE`.
+  - `es_cuota_final`: BOOLEAN, indica que la cuota absorbió el remanente.
+- **`asientos_contables`**: Asiento consolidado del período; `periodo_id` es UNIQUE (un asiento por período).
+  - `numero_asiento`: VARCHAR(20) UNIQUE, formato `DEP-YYYYMM-NNN`.
+  - `estado`: VARCHAR(20), `PENDIENTE_ENVIO`, `ENVIADO` o `ERROR`. Un asiento distinto de `PENDIENTE_ENVIO` es inmutable.
+  - `total_debito` / `total_credito`: DECIMAL(14,2); la creación aborta si no cuadran.
+- **`lineas_asiento`**: Líneas débito/crédito del asiento (`onDelete: Cascade` desde `asientos_contables`).
+  - `cuenta_contable`: VARCHAR(20), cuenta auxiliar `X-XX-XX-XXXX`.
+  - `tipo_movimiento`: VARCHAR(10), `DEBITO` o `CREDITO`.
+  - `monto`: DECIMAL(14,2).
+- **`auditoria`**: Bitácora inmutable de eventos del módulo.
+  - `accion`: VARCHAR(40), p. ej. `DEPRECIATION_RUN`, `PERIOD_CLOSE`, `LOGIN_SUCCESS`, `ACCOUNT_UNLOCK`.
+  - `recurso` / `recurso_id`: entidad afectada y su identificador.
+  - `detalle`: JSON con el resumen del evento (totales, conteos, montos).
+  - `ip_address` / `user_agent`: metadatos de red capturados por `metaSolicitud()`.
 
 ---
 
@@ -354,9 +483,15 @@ erDiagram
 | POST | /api/activos/[id]/baja | Desincorporación formal e irreversible del activo fijo | Exclusivo ADMIN | { motivoBaja, numeroActa, fechaBaja, justificacion } | { activo, baja } |
 | GET | /api/activos/[id]/acta-entrega | Emisión de Acta de Entrega de Custodia en PDF tamaño Carta | ACT_READ / ADMIN / OPERADOR / AUDITOR | Query: ?movimientoId= | Binario application/pdf con membrete UNAPEC y firmas |
 | GET | /api/reportes/inventario | Consulta multicriterio del inventario + KPIs consolidados con paginación server-side | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?fechaInicio=&fechaFin=&montoMin=&montoMax=&departamentoId=&tipoActivoId=&custodio=&estados=&search=&sort=&dir=&page=&pageSize= | { data: [...], meta: { total, page, pageSize, totalPages }, kpis: { cantidad, costoTotal, depreciacionTotal, valorEnLibrosTotal } } |
-| GET | /api/reportes/depreciacion | Detalle de depreciación por período fiscal + totales (solo lectura del motor Sub-03) | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?periodo=YYYY-MM&cuentaCompra=&cuentaDepreciacion=&page=&pageSize= | { data: [...], totales: {...}, sinProceso: false } |
+| GET | /api/reportes/depreciacion | Detalle de depreciación por período fiscal + totales (lee `detalle_depreciacion` de Sub-03) | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?periodo=YYYY-MM&cuentaCompra=&cuentaDepreciacion=&page=&pageSize= | { data: [...], totales: {...}, sinProceso: false } |
 | GET | /api/reportes/activos/[id]/kardex | Timeline inmutable de custodia + cuotas de depreciación del activo | REP_READ / ADMIN / OPERADOR / AUDITOR | Ninguno (URL param) | { activo, timeline: [...], cuotas: [...], bajaInfo: {...} \| null } |
 | GET | /api/reportes/export | Exportación XLSX/CSV del snapshot filtrado con precheck de truncamiento y auditoría no bloqueante | REP_READ / ADMIN / OPERADOR / AUDITOR | Query: ?reporte=inventario\|depreciacion&formato=xlsx\|csv&precheck=true + filtros del reporte origen | Binario (Content-Disposition) o JSON { avisoTruncamiento, totalFiltrado } |
+| GET | /api/depreciacion/periodos | Listado paginado de períodos con resumen de la última corrida | DEP_CALCULATE / ADMIN | Query: ?page=1&pageSize=10&estado=TODOS&anio= | { data: [...], meta: { page, pageSize, total, totalPages } } |
+| POST | /api/depreciacion/periodos | Alta de período mensual en estado `ABIERTO` con fecha de corte | DEP_CALCULATE / ADMIN | { anio, mes } | { data: { id, anio, mes, estado, fechaCorte } } (201) |
+| GET | /api/depreciacion/periodos/[id] | Detalle del período con desglose por activo y asiento | DEP_CALCULATE / ADMIN | Ninguno | { data: { ..., detalles: [...], asiento: { lineas: [...] } } } |
+| POST | /api/depreciacion/periodos/[id]/ejecutar | Corrida transaccional de depreciación (calcula, persiste y contabiliza) | DEP_CALCULATE / ADMIN | Ninguno | { data: { totalActivos, totalCuota, activosOmitidos, activosExcluidos, asiento } } |
+| POST | /api/depreciacion/periodos/[id]/cerrar | Cierre inmutable del período calculado | DEP_CALCULATE / ADMIN | { confirmar: true } | { data: { id, estado: "CERRADO", fechaCierre } } |
+| GET | /api/depreciacion/asientos | Consulta paginada de asientos de depreciación por estado | DEP_CALCULATE / DEP_APPROVE / ACC_LOG_READ (AUDITOR) | Query: ?page=1&pageSize=10&estado=PENDIENTE_ENVIO | { data: [...], meta: { page, pageSize, total, totalPages } } |
 
 ---
 
@@ -384,7 +519,24 @@ erDiagram
   - Expresión regular institucional: `^[1-9]-[0-9]{2}-[0-9]{2}-[0-9]{4}$` (formato `X-XX-XX-XXXX`).
   - Validación de incompatibilidad: La cuenta de compra y la cuenta de depreciación acumulada de un mismo tipo de activo no pueden ser idénticas.
 
-### 6.3 Module Error Codes (RFC 7807)
+### 6.3 Reglas del Motor de Depreciación
+- **Fórmula determinista**: `cuotaMensual = ROUND_HALF_EVEN((costoAdquisicion - valorResidual) / vidaUtilMeses, 2)` sobre `Prisma.Decimal` (nunca aritmética de punto flotante).
+- **Redondeo bancario**: se usa `ROUND_HALF_EVEN` a dos decimales; no se trunca ni se redondea "medio arriba".
+- **Mes de adquisición**: el mes de compra deprecia completo (`mesesTranscurridos` cuenta el mes de adquisición como 1).
+- **Estados depreciables**: `ACTIVO` y `EN_MANTENIMIENTO` deprecian; `DADO_DE_BAJA` y `VENDIDO` quedan fuera del universo.
+- **Universo del período**: se excluye el activo cuyo tipo está `INACTIVO`, el adquirido después de `fecha_corte`, el dado de baja antes del primer día del período, el de vida útil agotada y el que no tiene remanente depreciable.
+- **Exclusión ≠ aborto**: las condiciones operativas (`ESTADO_NO_DEPRECIABLE`, `ADQUIRIDO_DESPUES_DEL_CORTE`, `BAJA_ANTERIOR_AL_PERIODO`, `TIPO_ACTIVO_INACTIVO`, `VIDA_UTIL_AGOTADA`, `SIN_REMANENTE`) excluyen u omiten el activo y la corrida continúa. Las anomalías de datos (`vidaUtilMeses ≤ 0`, `valorResidual > costoAdquisicion`) **abortan la corrida completa** con `ASSET_TYPE_INVALID_LIFE` / `RESIDUAL_EXCEEDS_COST` (422), según `design.md` § *Error Handling*: no se corrigen datos fiscales en silencio.
+- **Actualización masiva**: los acumulados y el valor en libros se persisten con `UPDATE activos_fijos … FROM (VALUES …)` en lotes de 500 filas (`$executeRaw` con `Prisma.sql`), no con un `UPDATE` por activo. Medido contra Neon: 1,000 activos en 290–445 ms (el enfoque fila por fila extrapolaba a 54–106 s).
+- **Cuota final**: cuando `remanente - cuotaTeorica < cuotaTeorica` (equivalente a `remanente < 2 * cuotaTeorica`), la cuota absorbe todo el remanente y deja `valorEnLibros = valorResidual` exacto, sin centavos perdidos.
+- **Asiento consolidado**: se agrupa por par `(cuentaGasto, cuentaDepreciacion)`; cada grupo genera un `DEBITO` a la cuenta de gasto y un `CREDITO` a la cuenta de depreciación acumulada por el mismo monto. Si los totales no cuadran se lanza `ASIENTO_UNBALANCED` y la corrida se revierte.
+- **Cuenta de gasto**: se toma de `tipos_activos.cuenta_contable_gasto_depreciacion`; si es nula se usa el valor por defecto del método (`DGII_CAT1` → `6-30-01-0001`, `DGII_CAT2`/`LINEA_RECTA` → `6-30-01-0002`, `DGII_CAT3` → `6-30-01-0003`). Sin cuenta resoluble se lanza `DEPRECIATION_EXPENSE_ACCOUNT_MISSING`.
+- **Asiento local**: todo asiento nace en `PENDIENTE_ENVIO`; el despacho al Web Service contable es responsabilidad del Sub-04.
+- **Idempotencia de la re-ejecución**: si el período ya tiene detalle, la línea base de cada activo es `depreciacion_acumulada_anterior` / `valor_en_libros_anterior` del detalle previo, no la columna actual del activo. Los activos que salen del universo revierten su cargo previo.
+- **Concurrencia**: la corrida abre transacción con `SELECT ... FOR UPDATE` sobre `periodos_depreciacion` y timeout de 30 s (`maxWait` 15 s).
+- **Cierre inmutable**: solo un período `CALCULADO` con detalle puede cerrarse; después no admite recálculo ni reapertura (`PERIOD_ALREADY_CLOSED` / `PERIOD_IMMUTABLE`).
+- **Trazabilidad**: cada corrida y cada cierre registra una fila en `auditoria` (`DEPRECIATION_RUN`, `PERIOD_CLOSE`) con usuario, IP, user-agent y resumen; si la auditoría falla, la transacción se revierte con `AUDIT_LOG_FAILED`.
+
+### 6.4 Module Error Codes (RFC 7807)
 | Error Code | HTTP Status | Root Cause | System Action / User Feedback |
 |------------|-------------|------------|-------------------------------|
 | VALIDATION_ERROR | 400 Bad Request | Payload no supera el esquema Zod | Retorna listado de campos inválidos con mensajes en español. |
@@ -400,6 +552,21 @@ erDiagram
 | CEDULA_INVALID_CHECKSUM | 422 Unprocessable | Dígito verificador JCE Módulo 10 incorrecto | Rechazo: El documento de identidad no superó la validación oficial JCE. |
 | EMPLOYEE_CEDULA_DUPLICATE | 409 Conflict | Cédula ya registrada en otro colaborador | Rechazo: Ya existe un colaborador con este documento de identidad. |
 | EMPLOYEE_IS_DEPARTMENT_HEAD | 400 Bad Request | Baja de empleado que figura como jefe de depto | Rechazo: El colaborador es titular de departamento. Reasigne la titularidad antes de proceder. |
+| INVALID_PERIOD_FORMAT | 422 Unprocessable | Año fuera de 2000–2100 o mes fuera de 1–12 | Rechazo con mensaje de rango permitido. |
+| PERIOD_ALREADY_EXISTS | 409 Conflict | Ya existe un período para ese año y mes | Rechazo: seleccione otro mes o consulte el período existente. |
+| PERIOD_NOT_FOUND | 404 Not Found | Identificador de período inexistente | Rechazo: el período solicitado no existe. |
+| PERIOD_ALREADY_CLOSED | 409 Conflict | Corrida sobre un período `CERRADO` | Rechazo: el período está cerrado y no admite recálculo. |
+| PERIOD_NOT_CLOSABLE | 409 Conflict | Cierre de un período que no está `CALCULADO` | Rechazo: ejecute la corrida antes de cerrar. |
+| PERIOD_HAS_NO_DETAIL | 422 Unprocessable | Período calculado sin filas de detalle | Rechazo: el período no posee detalle de depreciación. |
+| PERIOD_IMMUTABLE | 409 Conflict | Segundo cierre del mismo período | Rechazo: el cierre es irreversible; registre un asiento de ajuste en el período abierto. |
+| NO_DEPRECIABLE_ASSETS | 422 Unprocessable | Universo del período vacío | Rechazo: no hay activos depreciables; verifique estados, fechas y vida útil. |
+| RESIDUAL_EXCEEDS_COST | 422 Unprocessable | Valor residual mayor al costo de adquisición | Aborta la corrida completa; corrija la ficha del activo antes de re-ejecutar. |
+| ASSET_TYPE_INVALID_LIFE | 422 Unprocessable | Vida útil menor o igual a cero | Aborta la corrida completa; corrija el catálogo fiscal del tipo de activo. |
+| DEPRECIATION_OVERFLOW | 422 Unprocessable | Depreciación acumulada superior al monto depreciable | Rechazo del cálculo para ese activo. |
+| DEPRECIATION_EXPENSE_ACCOUNT_MISSING | 422 Unprocessable | Sin cuenta de gasto configurada ni valor por defecto del método | Rechazo: complete la cuenta de gasto del tipo de activo. |
+| ASIENTO_UNBALANCED | 500 Internal Server Error | La suma de líneas no coincide con el total de la corrida | La corrida se revierte íntegramente. |
+| ASIENTO_ALREADY_EXISTS | 409 Conflict | El asiento del período ya fue enviado a contabilidad | Rechazo: un asiento enviado no puede regenerarse. |
+| AUDIT_LOG_FAILED | 500 Internal Server Error | Fallo al registrar la auditoría del evento | La corrida o el cierre se revierten para preservar la trazabilidad. |
 
 ---
 
@@ -407,12 +574,12 @@ erDiagram
 - **NextAuth.js v5 Beta**: Proveedor de credenciales institucional con sesiones JWT encriptadas en cookies HttpOnly y SameSite Lax.
 - **ExcelJS**: Generación nativa de libros `.xlsx` con estilos corporativos UNAPEC y auto-ajuste de columnas.
 - **Preámbulo UTF-8 BOM (`\uFEFF`)**: Emisión determinista en archivos `.csv` para compatibilidad inmediata con Microsoft Excel en Windows.
-- **Contabilidad General UNAPEC (Futuro Sub-04)**: Integración REST con el Web Service de Finanzas de UNAPEC para asentar comprobantes contables diarios y mensuales.
+- **Contabilidad General UNAPEC (Sub-04)**: el Sub-03 ya genera los asientos consolidados localmente en `PENDIENTE_ENVIO`; la integración REST con el Web Service de Finanzas de UNAPEC para despacharlos queda en el Sub-04.
 
 ---
 
 ## 8. Audit Trail & Security Policy
-- **Acciones Auditadas Inmutables**: Inicio de sesión exitoso y fallido, bloqueo y desbloqueo de cuenta, creación de usuarios, mutación de roles, altas, modificaciones y bajas de catálogos base (Departamentos, Tipos de Activos, Empleados) y exportaciones financieras de reportes (usuario, correo, IP, user-agent, formato, reporte, filtros en JSONB y filas emitidas) persistidas en `bitacora_exportaciones`.
+- **Acciones Auditadas Inmutables**: Inicio de sesión exitoso y fallido, bloqueo y desbloqueo de cuenta, creación de usuarios, mutación de roles, altas, modificaciones y bajas de catálogos base (Departamentos, Tipos de Activos, Empleados), corrida mensual de depreciación (`DEPRECIATION_RUN`), cierre de período (`PERIOD_CLOSE`) y exportaciones financieras de reportes (usuario, correo, IP, user-agent, formato, reporte, filtros en JSONB y filas emitidas) persistidas en `bitacora_exportaciones`.
 - **Campos de Traza**: usuario_id, ip_address, user_agent, accion, recurso, timestamp_utc.
 
 ---
@@ -424,4 +591,7 @@ erDiagram
 | 2026-10-13 | specs/activos-fijos/00-autenticacion-rbac | Certificación formal del Sub-módulo 00: Arquitectura RBAC relacional, autenticación NextAuth v5, suites completas Vitest (92.7%) y Playwright E2E (4/4). | 246837a | Dirección de Tecnología / SDD Build Agent |
 | 2026-10-15 | specs/activos-fijos/01-catalogos-base | Certificación formal del Sub-módulo 01: Catálogos Base (Departamentos, Tipos de Activos DGII, Custodios JCE Módulo 10, exportación Excel/CSV), suite Vitest 100% (123 tests) y suite E2E Playwright 100% (9 tests). | 458ee12 | Dirección de Tecnología & Finanzas / SDD Build Agent |
 | 2026-10-17 | specs/activos-fijos/02-gestion-activos-custodia | Certificación formal del Sub-módulo 02: Gestión de Activos Fijos, Inventario y Custodia (correlativo anual ACT-YYYY-NNNN, bloqueo contable, traslados ACID, Actas PDF con pdf-lib, marbetes imprimibles, bajas formales ADMIN), suite Vitest 93.33% (207 tests) y Playwright E2E (3/3). | cbab636 | JeremyJS / SDD Build Agent |
-| 2026-11-03 | specs/activos-fijos/04-consultas-reportes | Sub-módulo 04 en progreso: consola `/reportes` (inventario + depreciación + Kardex), 4 endpoints GET read-only, exportación XLSX/CSV con bitácora de auditoría, RBAC dual-check y vista de impresión. 344 tests Vitest y 17/17 E2E en verde; `build` OK. Certificación formal pendiente por deuda de lint preexistente de Sub-01/Sub-02 (0 errores en archivos del Sub-04). | bf96032 | JeremyJS / SDD Build Agent |
+| 2026-11-03 | specs/activos-fijos/04-consultas-reportes | Certificación formal del Sub-módulo 04: consola `/reportes` (inventario + depreciación + Kardex), 4 endpoints GET read-only, exportación XLSX/CSV con bitácora de auditoría, RBAC dual-check y vista de impresión. Integrado con Sub-03: el reporte de depreciación y el Kardex leen `detalle_depreciacion` + `periodos_depreciacion` (se elimina la dependencia del contrato provisional `depreciaciones_mensual` y su seed sintético). | ae71154 | JeremyJS / SDD Build Agent |
+| 2026-11-03 | specs/activos-fijos/03-motor-depreciacion | Certificación formal del Sub-módulo 03: Motor de Depreciación y Contabilización DGII (cuota Half Even, universo por estado/corte/vida útil, corrida transaccional idempotente con `FOR UPDATE`, asiento consolidado en `PENDIENTE_ENVIO`, cierre mensual inmutable, bitácora `Auditoria`, consola `/depreciacion`), Vitest 96.44% de cobertura (363 pruebas) y Playwright E2E (1/1 flujo crear → ejecutar → detalle → cerrar). | ccd53e9 | JeremyJS / SDD Build Agent |
+| 2026-11-03 | fix/activos (Sub-01, sin spec) | Corrección del inventario: el icono «Ver Ficha Técnica» abría el formulario de edición (podía alterar el activo desde una acción de consulta). Se añade `AssetDetailSheet`, un drawer lateral de solo lectura con identificación, situación financiera, clasificación fiscal DGII, custodia e historial de baja, sobre `GET /api/activos/{id}`. El lápiz y el botón «Editar activo» del drawer mantienen el formulario de edición. Regresión cubierta con 3 casos Playwright de solo lectura; Vitest 363/363. | c9078e8 | JeremyJS / SDD Build Agent |
+| 2026-11-03 | fix/depreciacion (Sub-03, sin spec) | Cierre de pendientes del motor: (1) las anomalías de datos ahora abortan la corrida con `ASSET_TYPE_INVALID_LIFE` y `RESIDUAL_EXCEEDS_COST` (422) en lugar de excluirse en silencio, alineando el código a `design.md`; (2) la persistencia de acumulados usa `UPDATE … FROM (VALUES …)` en lotes de 500, cumpliendo el AC de 1,000 activos en menos de 5 s (290.8 ms y 445.2 ms medidos contra Neon en transacción revertida, frente a 53.8–106.5 s del enfoque fila por fila); (3) pruebas de atomicidad del detalle e invariante `valor_en_libros = costo − acumulada`. Vitest 367/367 y smoke E2E de depreciación 1/1 contra Neon, con la base restaurada (13 períodos, 34 activos, 0 inconsistencias). | da88579 | JeremyJS / SDD Build Agent |

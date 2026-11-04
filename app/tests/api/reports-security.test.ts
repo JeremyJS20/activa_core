@@ -22,7 +22,7 @@ vi.mock("@/lib/prisma", () => ({
       aggregate: mocks.aggregateActivos,
       findUnique: mocks.findUniqueActivo,
     },
-    depreciacionMensual: {
+    detalleDepreciacion: {
       findMany: mocks.findManyCuotas,
       aggregate: mocks.aggregateCuotas,
     },
@@ -114,7 +114,7 @@ function activatePrismaFixtures() {
   mocks.findManyCuotas.mockResolvedValue([]);
   mocks.aggregateCuotas.mockResolvedValue({
     _count: { _all: 0 },
-    _sum: { cuotaMes: null, depreciacionAcumuladaPost: null, valorEnLibrosPost: null },
+    _sum: { cuotaMensual: null, depreciacionAcumuladaNueva: null, valorEnLibrosNuevo: null },
   });
   mocks.createBitacora.mockResolvedValue({ id: "log-1" });
 }

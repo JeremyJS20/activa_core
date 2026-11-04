@@ -19,7 +19,7 @@ vi.mock("@/lib/prisma", () => ({
       findMany: mocks.findManyActivos,
       aggregate: mocks.aggregateActivos,
     },
-    depreciacionMensual: {
+    detalleDepreciacion: {
       findMany: mocks.findManyCuotas,
       aggregate: mocks.aggregateCuotas,
     },
@@ -72,17 +72,18 @@ function buildActivoRow() {
 function buildCuotaRow() {
   return {
     activoId: "11111111-1111-4111-8111-111111111111",
-    periodoFiscal: "2026-10",
-    cuotaMes: new Prisma.Decimal("1275.00"),
-    depreciacionAcumuladaPost: new Prisma.Decimal("12000.00"),
-    valorEnLibrosPost: new Prisma.Decimal("73000.00"),
-    cuentaCompra: "1-01-04-0020",
-    cuentaDepreciacion: "1-01-04-0021",
+    cuotaMensual: new Prisma.Decimal("1275.00"),
+    depreciacionAcumuladaNueva: new Prisma.Decimal("12000.00"),
+    valorEnLibrosNuevo: new Prisma.Decimal("73000.00"),
     activo: {
       codigo: "ACT-2026-0001",
       descripcion: "Laptop Dell",
       costoAdquisicion: new Prisma.Decimal("85000.00"),
-      tipoActivo: { vidaUtilMeses: 60 },
+      tipoActivo: {
+        vidaUtilMeses: 60,
+        cuentaContableCompra: "1-01-04-0020",
+        cuentaContableDepreciacion: "1-01-04-0021",
+      },
     },
   };
 }
@@ -101,9 +102,9 @@ function buildAggregateCuotas(count: number) {
   return {
     _count: { _all: count },
     _sum: {
-      cuotaMes: new Prisma.Decimal("55886.26"),
-      depreciacionAcumuladaPost: new Prisma.Decimal("176000.00"),
-      valorEnLibrosPost: new Prisma.Decimal("3100000.00"),
+      cuotaMensual: new Prisma.Decimal("55886.26"),
+      depreciacionAcumuladaNueva: new Prisma.Decimal("176000.00"),
+      valorEnLibrosNuevo: new Prisma.Decimal("3100000.00"),
     },
   };
 }

@@ -31,19 +31,24 @@ function periodoActual(): string {
 }
 
 /**
- * REQ-REP-004 — período predeterminado: mes actual si tiene cuotas;
- * en caso contrario, el último período con cuotas registradas.
+ * REQ-REP-004 — período predeterminado: mes actual si ya fue procesado por el
+ * motor; en caso contrario, el último período con corrida registrada (CALCULADO
+ * o CERRADO). La fuente es el período oficial de Sub-03, no el contrato
+ * provisional de reportes.
  */
 async function resolverPeriodos(): Promise<PeriodosDepreciacion> {
   const actual = periodoActual();
 
   try {
-    const rows = await prisma.depreciacionMensual.groupBy({
-      by: ["periodoFiscal"],
-      orderBy: { periodoFiscal: "desc" },
+    const rows = await prisma.periodoDepreciacion.findMany({
+      where: { estado: { in: ["CALCULADO", "CERRADO"] } },
+      orderBy: [{ anio: "desc" }, { mes: "desc" }],
+      select: { anio: true, mes: true },
     });
 
-    const periodosDisponibles = rows.map((row) => row.periodoFiscal);
+    const periodosDisponibles = rows.map(
+      (row) => `${row.anio}-${String(row.mes).padStart(2, "0")}`
+    );
     const periodoInicial = periodosDisponibles.includes(actual)
       ? actual
       : (periodosDisponibles[0] ?? actual);

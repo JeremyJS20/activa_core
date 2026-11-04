@@ -65,6 +65,8 @@ model Usuario {
   historialesCustodiaAutorizados HistorialCustodia[]
   historialesBajasAutorizados    HistorialBaja[]
   exportacionesBitacora          BitacoraExportacion[]
+  periodosDepreciacionEjecutados PeriodoDepreciacion[] @relation("PeriodoEjecutadoPor")
+  periodosDepreciacionCerrados   PeriodoDepreciacion[] @relation("PeriodoCerradoPor")
 
   @@index([correo])
   @@index([empleadoId])
@@ -112,6 +114,7 @@ model TipoActivo {
   descripcion                 String       @db.VarChar(150)
   cuentaContableCompra        String       @map("cuenta_contable_compra") @db.VarChar(20)
   cuentaContableDepreciacion  String       @map("cuenta_contable_depreciacion") @db.VarChar(20)
+  cuentaContableGastoDepreciacion String?   @map("cuenta_contable_gasto_depreciacion") @db.VarChar(20)
   metodoDepreciacion          String       @default("LINEA_RECTA") @map("metodo_depreciacion") @db.VarChar(20)
   porcentajeDepreciacionAnual Decimal      @default(0.00) @map("porcentaje_depreciacion_anual") @db.Decimal(5, 2)
   vidaUtilMeses               Int          @default(12) @map("vida_util_meses")
@@ -183,6 +186,7 @@ model ActivoFijo {
   historialesCustodia   HistorialCustodia[]
   historialBaja         HistorialBaja?
   depreciacionesMensual DepreciacionMensual[] @relation("DepreciacionesActivo")
+  detallesDepreciacion  DetalleDepreciacion[]
 
   @@index([codigo])
   @@index([departamentoId])
@@ -239,10 +243,12 @@ model HistorialBaja {
 
 // ============================================================================
 // CONTRATO PROVISIONAL — Sub-módulo 04 (depreciaciones_mensual)
-// ⚠️ GOBERNANZA: dominio RECLAMADO por el Sub-módulo 03 (Motor de Depreciación
-// DGII). Cuando Sub-03 entregue su migración oficial, esta tabla provisional
-// debe REEMPLAZARSE por la real (drop + recidivencia de seed). Sub-04 solo la
-// lee: nunca inserta, actualiza ni recalcula cuotas.
+// ⚠️ GOBERNANZA: el dominio fue RECLAMADO por el Sub-módulo 03, que ya entregó
+// su esquema oficial (periodos_depreciacion + detalle_depreciacion). Desde la
+// integración de Sub-03, Reportes lee las tablas reales y NINGÚN servicio usa
+// este modelo: se conserva únicamente porque su tabla sigue existiendo en la
+// base compartida. El DROP de `depreciaciones_mensual` está pendiente de
+// autorización explícita (ver tasks.md del Sub-04).
 // ============================================================================
 model DepreciacionMensual {
   id                        String   @id @default(uuid()) @db.VarChar(36)
@@ -283,4 +289,104 @@ model BitacoraExportacion {
 
   @@index([usuarioId, createdAt(sort: Desc)])
   @@map("bitacora_exportaciones")
+}
+
+model PeriodoDepreciacion {
+  id               String    @id @default(uuid()) @db.VarChar(36)
+  anio             Int
+  mes              Int
+  estado           String    @default("ABIERTO") @db.VarChar(20)
+  fechaCorte       DateTime  @map("fecha_corte") @db.Date
+  totalActivos     Int       @default(0) @map("total_activos")
+  totalCuota       Decimal   @default(0.00) @map("total_cuota") @db.Decimal(14, 2)
+  activosOmitidos  Int       @default(0) @map("activos_omitidos")
+  activosExcluidos Int       @default(0) @map("activos_excluidos")
+  fechaEjecucion   DateTime? @map("fecha_ejecucion") @db.Timestamptz
+  ejecutadoPorId   String?   @map("ejecutado_por_id") @db.VarChar(36)
+  fechaCierre      DateTime? @map("fecha_cierre") @db.Timestamptz
+  cerradoPorId     String?   @map("cerrado_por_id") @db.VarChar(36)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  ejecutadoPor Usuario?             @relation("PeriodoEjecutadoPor", fields: [ejecutadoPorId], references: [id], onDelete: Restrict)
+  cerradoPor   Usuario?             @relation("PeriodoCerradoPor", fields: [cerradoPorId], references: [id], onDelete: Restrict)
+  detalles     DetalleDepreciacion[]
+  asiento      AsientoContable?
+
+  @@unique([anio, mes])
+  @@index([estado])
+  @@index([ejecutadoPorId])
+  @@map("periodos_depreciacion")
+}
+
+model DetalleDepreciacion {
+  id                            String   @id @default(uuid()) @db.VarChar(36)
+  periodoId                     String   @map("periodo_id") @db.VarChar(36)
+  activoId                      String   @map("activo_id") @db.VarChar(36)
+  cuotaMensual                  Decimal  @map("cuota_mensual") @db.Decimal(14, 2)
+  depreciacionAcumuladaAnterior Decimal  @map("depreciacion_acumulada_anterior") @db.Decimal(14, 2)
+  depreciacionAcumuladaNueva    Decimal  @map("depreciacion_acumulada_nueva") @db.Decimal(14, 2)
+  valorEnLibrosAnterior         Decimal  @map("valor_en_libros_anterior") @db.Decimal(14, 2)
+  valorEnLibrosNuevo            Decimal  @map("valor_en_libros_nuevo") @db.Decimal(14, 2)
+  tipoCuota                     String   @default("NORMAL") @map("tipo_cuota") @db.VarChar(20)
+  esCuotaFinal                  Boolean  @default(false) @map("es_cuota_final")
+  createdAt                     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  periodo PeriodoDepreciacion @relation(fields: [periodoId], references: [id], onDelete: Cascade)
+  activo  ActivoFijo          @relation(fields: [activoId], references: [id], onDelete: Restrict)
+
+  @@unique([periodoId, activoId])
+  @@index([activoId])
+  @@map("detalle_depreciacion")
+}
+
+model AsientoContable {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  numeroAsiento String   @unique @map("numero_asiento") @db.VarChar(20)
+  periodoId     String   @unique @map("periodo_id") @db.VarChar(36)
+  concepto      String   @db.VarChar(150)
+  fechaContable DateTime @map("fecha_contable") @db.Date
+  estado        String   @default("PENDIENTE_ENVIO") @db.VarChar(20)
+  totalDebito   Decimal  @default(0.00) @map("total_debito") @db.Decimal(14, 2)
+  totalCredito  Decimal  @default(0.00) @map("total_credito") @db.Decimal(14, 2)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  periodo PeriodoDepreciacion @relation(fields: [periodoId], references: [id], onDelete: Restrict)
+  lineas  LineaAsiento[]
+
+  @@index([estado])
+  @@map("asientos_contables")
+}
+
+model LineaAsiento {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  asientoId      String   @map("asiento_id") @db.VarChar(36)
+  cuentaContable String   @map("cuenta_contable") @db.VarChar(20)
+  tipoMovimiento String   @map("tipo_movimiento") @db.VarChar(10)
+  monto          Decimal  @db.Decimal(14, 2)
+  descripcion    String   @db.VarChar(150)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  asiento AsientoContable @relation(fields: [asientoId], references: [id], onDelete: Cascade)
+
+  @@index([asientoId])
+  @@map("lineas_asiento")
+}
+
+model Auditoria {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  usuarioId String?  @map("usuario_id") @db.VarChar(36)
+  accion    String   @db.VarChar(40)
+  recurso   String   @db.VarChar(60)
+  recursoId String?  @map("recurso_id") @db.VarChar(36)
+  detalle   Json?
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  userAgent String?  @map("user_agent") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([accion])
+  @@index([recursoId])
+  @@index([usuarioId])
+  @@map("auditoria")
 }

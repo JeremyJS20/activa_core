@@ -45,8 +45,14 @@ erDiagram
     activos_fijos ||--o| historial_bajas : desincorpora
     usuarios ||--o{ historial_custodia : autoriza_traslado
     usuarios ||--o{ historial_bajas : autoriza_baja
-    activos_fijos ||--o{ depreciaciones_mensual : cuotas_provisionales
+    activos_fijos ||--o{ depreciaciones_mensual : "cuotas_provisionales_legacy"
     usuarios ||--o{ bitacora_exportaciones : audita_exportacion
+    periodos_depreciacion ||--o{ detalle_depreciacion : contiene
+    activos_fijos ||--o{ detalle_depreciacion : deprecia
+    periodos_depreciacion ||--o| asientos_contables : genera
+    asientos_contables ||--o{ lineas_asiento : compone
+    usuarios ||--o{ periodos_depreciacion : ejecuta_y_cierra
+    usuarios ||--o{ auditoria : registra
 
     departamentos {
         uuid id PK
@@ -64,6 +70,7 @@ erDiagram
         string descripcion
         string cuenta_contable_compra
         string cuenta_contable_depreciacion
+        string cuenta_contable_gasto_depreciacion
         string metodo_depreciacion
         decimal porcentaje_depreciacion_anual
         integer vida_util_meses
@@ -206,6 +213,73 @@ erDiagram
         string reporte
         json filtros_aplicados
         integer filas_exportadas
+        timestamptz created_at
+    }
+
+    periodos_depreciacion {
+        uuid id PK
+        integer anio
+        integer mes
+        string estado
+        date fecha_corte
+        integer total_activos
+        decimal total_cuota
+        integer activos_omitidos
+        integer activos_excluidos
+        timestamptz fecha_ejecucion
+        uuid ejecutado_por_id FK
+        timestamptz fecha_cierre
+        uuid cerrado_por_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    detalle_depreciacion {
+        uuid id PK
+        uuid periodo_id FK
+        uuid activo_id FK
+        decimal cuota_mensual
+        decimal depreciacion_acumulada_anterior
+        decimal depreciacion_acumulada_nueva
+        decimal valor_en_libros_anterior
+        decimal valor_en_libros_nuevo
+        string tipo_cuota
+        boolean es_cuota_final
+        timestamptz created_at
+    }
+
+    asientos_contables {
+        uuid id PK
+        string numero_asiento UK
+        uuid periodo_id UK
+        string concepto
+        date fecha_contable
+        string estado
+        decimal total_debito
+        decimal total_credito
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    lineas_asiento {
+        uuid id PK
+        uuid asiento_id FK
+        string cuenta_contable
+        string tipo_movimiento
+        decimal monto
+        string descripcion
+        timestamptz created_at
+    }
+
+    auditoria {
+        uuid id PK
+        uuid usuario_id FK
+        string accion
+        string recurso
+        uuid recurso_id
+        json detalle
+        string ip_address
+        string user_agent
         timestamptz created_at
     }
 ```
@@ -411,7 +485,7 @@ CREATE TABLE historial_bajas (
     CONSTRAINT fk_hb_autorizado_por FOREIGN KEY (autorizado_por_id) REFERENCES usuarios(id) ON DELETE RESTRICT
 );
 
--- 12. Tabla: depreciaciones_mensual (CONTRATO PROVISIONAL Sub-04 — reclamado por Sub-03)
+-- 12. Tabla: depreciaciones_mensual (CONTRATO PROVISIONAL Sub-04 — sin uso desde la integración de Sub-03)
 CREATE TABLE depreciaciones_mensual (
     id VARCHAR(36) PRIMARY KEY,
     activo_id VARCHAR(36) NOT NULL,
@@ -442,6 +516,105 @@ CREATE TABLE bitacora_exportaciones (
     CONSTRAINT fk_be_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 CREATE INDEX bitacora_exportaciones_usuario_id_created_at_idx ON bitacora_exportaciones(usuario_id, created_at DESC);
+
+-- ========================================================
+-- MODULO 03: MOTOR DE DEPRECIACION Y CONTABILIZACION DGII
+-- ========================================================
+
+-- 14. Columna de cuenta de gasto por depreciacion en el catalogo fiscal
+ALTER TABLE tipos_activos
+    ADD COLUMN cuenta_contable_gasto_depreciacion VARCHAR(20);
+
+-- 15. Tabla: periodos_depreciacion
+CREATE TABLE periodos_depreciacion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    anio INTEGER NOT NULL,
+    mes INTEGER NOT NULL,
+    estado VARCHAR(12) NOT NULL DEFAULT 'ABIERTO',
+    fecha_corte DATE NOT NULL,
+    total_activos INTEGER NOT NULL DEFAULT 0,
+    total_cuota DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    activos_omitidos INTEGER NOT NULL DEFAULT 0,
+    activos_excluidos INTEGER NOT NULL DEFAULT 0,
+    fecha_ejecucion TIMESTAMPTZ,
+    ejecutado_por_id UUID,
+    fecha_cierre TIMESTAMPTZ,
+    cerrado_por_id UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_periodos_depreciacion_anio_mes UNIQUE (anio, mes),
+    CONSTRAINT chk_periodos_depreciacion_estado CHECK (estado IN ('ABIERTO', 'CALCULADO', 'CERRADO')),
+    CONSTRAINT chk_periodos_depreciacion_mes CHECK (mes BETWEEN 1 AND 12),
+    CONSTRAINT chk_periodos_depreciacion_anio CHECK (anio BETWEEN 2000 AND 2100),
+    CONSTRAINT fk_pd_ejecutado_por FOREIGN KEY (ejecutado_por_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+    CONSTRAINT fk_pd_cerrado_por FOREIGN KEY (cerrado_por_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+-- 14. Tabla: detalle_depreciacion
+CREATE TABLE detalle_depreciacion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    periodo_id UUID NOT NULL,
+    activo_id UUID NOT NULL,
+    cuota_mensual DECIMAL(14, 2) NOT NULL,
+    depreciacion_acumulada_anterior DECIMAL(14, 2) NOT NULL,
+    depreciacion_acumulada_nueva DECIMAL(14, 2) NOT NULL,
+    valor_en_libros_anterior DECIMAL(14, 2) NOT NULL,
+    valor_en_libros_nuevo DECIMAL(14, 2) NOT NULL,
+    tipo_cuota VARCHAR(20) NOT NULL DEFAULT 'NORMAL',
+    es_cuota_final BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_detalle_depreciacion_periodo_activo UNIQUE (periodo_id, activo_id),
+    CONSTRAINT chk_detalle_depreciacion_tipo_cuota CHECK (tipo_cuota IN ('NORMAL', 'ULTIMA', 'NO_DEPRECIABLE')),
+    CONSTRAINT fk_dd_periodo FOREIGN KEY (periodo_id) REFERENCES periodos_depreciacion(id) ON DELETE CASCADE,
+    CONSTRAINT fk_dd_activo FOREIGN KEY (activo_id) REFERENCES activos_fijos(id) ON DELETE RESTRICT
+);
+
+-- 15. Tabla: asientos_contables
+CREATE TABLE asientos_contables (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    numero_asiento VARCHAR(20) NOT NULL,
+    periodo_id UUID NOT NULL,
+    concepto VARCHAR(150) NOT NULL,
+    fecha_contable DATE NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE_ENVIO',
+    total_debito DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    total_credito DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_asientos_contables_numero UNIQUE (numero_asiento),
+    CONSTRAINT uq_asientos_contables_periodo UNIQUE (periodo_id),
+    CONSTRAINT chk_asientos_contables_estado CHECK (estado IN ('PENDIENTE_ENVIO', 'ENVIADO', 'ERROR')),
+    CONSTRAINT chk_asientos_contables_cuadre CHECK (total_debito = total_credito),
+    CONSTRAINT fk_ac_periodo FOREIGN KEY (periodo_id) REFERENCES periodos_depreciacion(id) ON DELETE RESTRICT
+);
+
+-- 16. Tabla: lineas_asiento
+CREATE TABLE lineas_asiento (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    asiento_id UUID NOT NULL,
+    cuenta_contable VARCHAR(20) NOT NULL,
+    tipo_movimiento VARCHAR(10) NOT NULL,
+    monto DECIMAL(14, 2) NOT NULL,
+    descripcion VARCHAR(150) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_lineas_asiento_movimiento CHECK (tipo_movimiento IN ('DEBITO', 'CREDITO')),
+    CONSTRAINT chk_lineas_asiento_monto CHECK (monto > 0),
+    CONSTRAINT fk_la_asiento FOREIGN KEY (asiento_id) REFERENCES asientos_contables(id) ON DELETE CASCADE
+);
+
+-- 17. Tabla: auditoria (bitacora append-only del modulo)
+CREATE TABLE auditoria (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    usuario_id UUID,
+    accion VARCHAR(40) NOT NULL,
+    recurso VARCHAR(60) NOT NULL,
+    recurso_id UUID,
+    detalle JSONB,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_auditoria_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
 ```
 
 ### 3.2 Cobertura Read-Only del Sub-módulo 04 (Reportes)
@@ -452,10 +625,11 @@ El Sub-módulo 04 **no posee dominio de escritura** sobre el esquema operativo. 
 |---|---|---|---|
 | `activos_fijos`, `historial_custodia`, `historial_bajas` | Sub-02 | SELECT | Solo lectura: nunca UPDATE/DELETE ni recálculo financiero. |
 | `departamentos`, `tipos_activos`, `empleados` | Sub-01 | SELECT | Solo lectura para filtros y cuentas contables. |
-| `depreciaciones_mensual` | **Contrato provisional Sub-04** | SELECT | **Contrato provisional** — lo reemplaza Sub-03. |
+| `periodos_depreciacion`, `detalle_depreciacion` | Sub-03 | SELECT | Fuente oficial del reporte de depreciación y del Kardex (reemplaza al contrato provisional). |
+| `depreciaciones_mensual` | **Contrato provisional Sub-04** | Sin uso | **Legacy** — ninguna consulta la lee desde la integración de Sub-03; su DROP está pendiente de autorización. |
 | `bitacora_exportaciones` | Sub-04 (exclusiva) | INSERT | Auditoría de exportaciones financieras (NFR-REP-005). |
 
-> ⚠️ **Gobernanza del contrato provisional:** `depreciaciones_mensual` existe únicamente para desbloquear el desarrollo del Sub-04 mientras el Sub-03 no entregue su migración oficial. Está marcada en `app/prisma/schema.prisma` con el comentario `CONTRATO PROVISIONAL — Sub-módulo 04`. **Responsable del reemplazo: Sub-módulo 03 (Motor de Depreciación DGII).** Cuando el motor oficial se integre, el Sub-04 deberá re-apuntar su capa de lectura a las tablas oficiales (`periodos_depreciacion` / `detalle_depreciacion`) y eliminar este contrato mediante migración + re-seed.
+> ✅ **Contrato provisional resuelto:** Sub-03 entregó su esquema oficial y el Sub-04 ya fue re-apuntado. `report.service.ts`, el kardex y la consola `/reportes/depreciacion` leen `detalle_depreciacion` + `periodos_depreciacion`; `seedCuotasDepreciacion` fue eliminado para no sobrescribir la depreciación acumulada real de los activos. La tabla `depreciaciones_mensual` permanece en la base compartida (y en el schema Prisma) únicamente hasta que se autorice su migración de `DROP`.
 
 ---
 
@@ -487,9 +661,18 @@ El Sub-módulo 04 **no posee dominio de escritura** sobre el esquema operativo. 
 | idx_historial_bajas_fecha_baja | historial_bajas | fecha_baja | B-Tree | Auditoría fiscal de bajas por período contable. |
 | idx_activos_fijos_fecha_adquisicion | activos_fijos | fecha_adquisicion | B-Tree | Filtro por rango de fechas del reporte de inventario (Sub-04, índice aditivo). |
 | idx_activos_fijos_costo_adquisicion | activos_fijos | costo_adquisicion | B-Tree | Filtro por rango de costo del reporte de inventario (Sub-04, índice aditivo). |
-| uq_depreciaciones_mensual_activo_periodo | depreciaciones_mensual | (activo_id, periodo_fiscal) | B-Tree (Unique) | Idempotencia del contrato provisional por activo/período. |
-| idx_depreciaciones_mensual_periodo_activo | depreciaciones_mensual | (periodo_fiscal, activo_id) | B-Tree (Composite) | Consulta del reporte de depreciación por período fiscal. |
+| uq_depreciaciones_mensual_activo_periodo | depreciaciones_mensual | (activo_id, periodo_fiscal) | B-Tree (Unique) | Idempotencia del contrato provisional por activo/período (legacy, sin uso desde Sub-03). |
+| idx_depreciaciones_mensual_periodo_activo | depreciaciones_mensual | (periodo_fiscal, activo_id) | B-Tree (Composite) | Consulta del contrato provisional por período fiscal (legacy, sin uso desde Sub-03). |
 | idx_bitacora_exportaciones_usuario_fecha | bitacora_exportaciones | (usuario_id, created_at DESC) | B-Tree (Composite) | Trazabilidad de exportaciones financieras por usuario (NFR-REP-005). |
+| idx_periodos_depreciacion_anio_mes | periodos_depreciacion | (anio, mes) | B-Tree (Unique) | Garantiza un único período por mes y acelera el orden descendente del listado. |
+| idx_periodos_depreciacion_estado | periodos_depreciacion | estado | B-Tree | Filtro de períodos abiertos, calculados o cerrados en la consola. |
+| idx_detalle_depreciacion_periodo | detalle_depreciacion | periodo_id | B-Tree | Carga del desglose por activo del período en un solo recorrido. |
+| idx_detalle_depreciacion_activo | detalle_depreciacion | activo_id | B-Tree | Trazabilidad histórica de cuotas por activo (Kardex y reporte de Sub-04). |
+| idx_asientos_contables_estado | asientos_contables | estado | B-Tree | Bandeja de asientos `PENDIENTE_ENVIO` para el despacho contable del Sub-05. |
+| idx_lineas_asiento_asiento_id | lineas_asiento | asiento_id | B-Tree | Recuperación de líneas débito/crédito de un asiento. |
+| idx_auditoria_accion | auditoria | accion | B-Tree | Consulta de eventos por tipo (`DEPRECIATION_RUN`, `PERIOD_CLOSE`). |
+| idx_auditoria_recurso_id | auditoria | recurso_id | B-Tree | Traza completa de un período o activo específico. |
+| idx_auditoria_usuario_id | auditoria | usuario_id | B-Tree | Bitácora de acciones por colaborador. |
 
 ---
 

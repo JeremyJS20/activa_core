@@ -157,7 +157,17 @@ Campos reales usados por el Kardex: `activo_id`, `empleado_anterior_id`/`emplead
 ### Tabla: `historial_bajas` *(REAL — dominio Sub-02 ✅ — solo lectura)*
 Campos reales para la `bajaInfo` del Kardex: `activo_id` (UNIQUE), `motivo_baja VARCHAR(30)`, `justificacion TEXT`, `numero_acta VARCHAR(50)`, `fecha_baja DATE`, `valor_en_libros_al_baja NUMERIC(14,2)`, `autorizado_por_id`.
 
-### Tabla: `depreciaciones_mensual` *(contrato provisional — dominio Sub-03, aún sin implementar)*
+### Tabla: `detalle_depreciacion` *(REAL — dominio Sub-03 ✅ — fuente oficial desde la reconciliación)*
+
+> 🔄 **ACTUALIZACIÓN 2026-11-03 — contrato provisional superado.** Sub-03 entregó su esquema oficial (`periodos_depreciacion` + `detalle_depreciacion` + `asientos_contables` + `lineas_asiento`). El Sub-04 fue re-apuntado:
+> - `consultarDepreciacion` / `consultarDepreciacionExport` filtran por `periodo.anio` + `periodo.mes` (derivados de `YYYY-MM`) y agregan `cuotaMensual`, `depreciacionAcumuladaNueva` y `valorEnLibrosNuevo`.
+> - Las cuentas contables ya no son snapshot: se resuelven por join con `tipos_activos` (`cuentaContableCompra` / `cuentaContableDepreciacion`).
+> - `consultarKardex` ordena por `(anio, mes)` descendente y compone el período `YYYY-MM` en memoria.
+> - `app/reportes/depreciacion/page.tsx` lista los períodos desde `periodos_depreciacion` con estado `CALCULADO`/`CERRADO`.
+> - `seedCuotasDepreciacion` se eliminó: además de sembrar datos sintéticos, sobrescribía `depreciacion_acumulada` y `valor_en_libros` reales del motor.
+> - La tabla `depreciaciones_mensual` y su modelo Prisma se conservan **sin uso** hasta que se autorice la migración de `DROP`.
+
+### Tabla: `depreciaciones_mensual` *(LEGACY — contrato provisional superado por Sub-03)*
 | Columna | Tipo | Constraints | Default | Descripción |
 |---------|------|------------|---------|-------------|
 | `id` | `VARCHAR(36)` | PK (uuid) | — | |
@@ -262,7 +272,7 @@ Campos reales para la `bajaInfo` del Kardex: `activo_id` (UNIQUE), `motivo_baja 
 }
 ```
 - **Errors**: 400 (periodo con formato inválido) · 404 **NO_DEVUELVE_NOT_FOUND por diseño**: período sin cierre → 200 con `data: []` + `meta.total: 0` + bandera `sinProceso: true` (la UI muestra "No existe depreciación procesada para el período YYYY-MM"). Razón: un período sin datos NO es error, es estado de negocio válido.
-- **Garantía de solo lectura**: la query usa `SELECT` directo en `depreciaciones_mensual`; nunca invoca el motor de cálculo de Sub-03.
+- **Garantía de solo lectura**: la query usa `SELECT` directo sobre `detalle_depreciacion` de Sub-03; nunca invoca el motor de cálculo ni muta acumulados.
 
 ### GET /api/reportes/activos/[id]/kardex
 - **Map to**: REQ-REP-005

@@ -246,7 +246,8 @@ sequenceDiagram
 ```mermaid
 erDiagram
     activos_fijos ||--o{ historial_custodia : "traza"
-    activos_fijos ||--o{ depreciaciones_mensual : "cuotas"
+    periodos_depreciacion ||--o{ detalle_depreciacion : "contiene"
+    activos_fijos ||--o{ detalle_depreciacion : "cuotas"
     activos_fijos }o--|| tipos_activos : "categoriza"
     activos_fijos }o--|| departamentos : "asignado a"
     activos_fijos }o--|| empleados : "custodio actual"
@@ -280,7 +281,7 @@ erDiagram
 | Sub-módulo 00 (Auth & RBAC) | Sesión NextAuth v5, middleware, permiso `REP_READ`, auditoría de accesos | ✅ **Certificado** | Ninguna requerida |
 | Sub-módulo 01 (Catálogos Base) | Catálogos de `Departamento`, `TipoActivo` (con cuentas y vida útil DGII), `Empleado` custodios | ✅ **Certificado** (commit `5817d8a`) | Ninguna requerida |
 | Sub-módulo 02 (Gestión de Activos y Custodia) | Entidad `ActivoFijo`, códigos `ACT-YYYY-NNNN`, estados operarios, `HistorialCustodia`, `HistorialBaja` | ✅ **Certificado** (commit `e254113` — modelos reales en `schema.prisma` + 30 activos sembrados en `seed-activos.ts`) | Ninguna requerida |
-| Sub-módulo 03 (Motor de Depreciación DGII) | Tabla/lógica `DepreciacionMensual`, períodos `YYYY-MM`, valor en libros post-corte | ❌ **Sin spec** (planned Sub-03) | Seed de cuotas de depreciación sintéticas coherentes con la fórmula de línea recta DGII para escenarios de aceptación (ver Assumptions) |
+| Sub-módulo 03 (Motor de Depreciación DGII) | `PeriodoDepreciacion`, `DetalleDepreciacion`, `AsientoContable`, `LineaAsiento`; períodos `(anio, mes)`; valor en libros post-corte | ✅ **Certificado** (commit `176ece0`; integrado en `dev` y re-apuntado el 2026-11-03) | Ninguna requerida — el stub `depreciaciones_mensual` quedó sin uso |
 
 ## Assumptions
 

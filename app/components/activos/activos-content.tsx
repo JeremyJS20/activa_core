@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { AssetTable, AssetRow } from "@/components/activos/asset-table";
 import { AssetDialog } from "@/components/activos/asset-dialog";
+import { AssetDetailSheet } from "@/components/activos/asset-detail-sheet";
 import { TransferDialog } from "@/components/activos/transfer-dialog";
 import { DisposalDialog } from "@/components/activos/disposal-dialog";
 import { AssetBadgePrint } from "@/components/activos/asset-badge-print";
@@ -40,6 +41,7 @@ export function ActivosContent({
   // Estados de modales
   const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
   const [selectedAssetToEdit, setSelectedAssetToEdit] = useState<AssetRow | null>(null);
+  const [selectedAssetForDetail, setSelectedAssetForDetail] = useState<AssetRow | null>(null);
 
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [selectedAssetToTransfer, setSelectedAssetToTransfer] = useState<AssetRow | null>(null);
@@ -130,8 +132,7 @@ export function ActivosContent({
   };
 
   const handleViewDetail = (asset: AssetRow) => {
-    setSelectedAssetToEdit(asset);
-    setIsAssetDialogOpen(true);
+    setSelectedAssetForDetail(asset);
   };
 
   const handleAddNew = () => {
@@ -261,6 +262,19 @@ export function ActivosContent({
           departamentos={departamentos}
           tiposActivos={tiposActivos}
         />
+
+        {/* Drawer de Consulta de Ficha Técnica (solo lectura) */}
+        {selectedAssetForDetail && (
+          <AssetDetailSheet
+            asset={selectedAssetForDetail}
+            onClose={() => setSelectedAssetForDetail(null)}
+            onEdit={(asset) => {
+              setSelectedAssetForDetail(null);
+              handleEdit(asset);
+            }}
+            canEdit={canOperate}
+          />
+        )}
 
         {/* Modal de Traslado de Custodia y Asignación Departamental */}
         <TransferDialog

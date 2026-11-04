@@ -12,7 +12,7 @@ vi.mock("@/auth", () => ({ auth: mocks.auth }));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    depreciacionMensual: {
+    detalleDepreciacion: {
       findMany: mocks.findMany,
       aggregate: mocks.aggregate,
     },
@@ -52,22 +52,29 @@ const sinPermisoSession = {
   },
 };
 
-function buildCuota(overrides: Record<string, unknown> = {}) {
+/** Fila del detalle oficial de Sub-03 (`detalle_depreciacion`). */
+function buildDetalle(overrides: Record<string, unknown> = {}) {
   return {
     id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    periodoId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     activoId: "11111111-1111-4111-8111-111111111111",
-    periodoFiscal: "2026-10",
-    cuotaMes: new Prisma.Decimal("1275.00"),
-    depreciacionAcumuladaPost: new Prisma.Decimal("12000.00"),
-    valorEnLibrosPost: new Prisma.Decimal("73000.00"),
-    cuentaCompra: "1-01-04-0020",
-    cuentaDepreciacion: "1-01-04-0021",
+    cuotaMensual: new Prisma.Decimal("1275.00"),
+    depreciacionAcumuladaAnterior: new Prisma.Decimal("10725.00"),
+    depreciacionAcumuladaNueva: new Prisma.Decimal("12000.00"),
+    valorEnLibrosAnterior: new Prisma.Decimal("74275.00"),
+    valorEnLibrosNuevo: new Prisma.Decimal("73000.00"),
+    tipoCuota: "NORMAL",
+    esCuotaFinal: false,
     createdAt: new Date("2026-10-01T00:00:00.000Z"),
     activo: {
       codigo: "ACT-2026-0001",
       descripcion: "Laptop Dell Latitude",
       costoAdquisicion: new Prisma.Decimal("85000.00"),
-      tipoActivo: { vidaUtilMeses: 60 },
+      tipoActivo: {
+        vidaUtilMeses: 60,
+        cuentaContableCompra: "1-01-04-0020",
+        cuentaContableDepreciacion: "1-01-04-0021",
+      },
     },
     ...overrides,
   };
@@ -77,9 +84,9 @@ function buildAggregate(count: number, cuota: string, dep: string, valor: string
   return {
     _count: { _all: count },
     _sum: {
-      cuotaMes: count === 0 ? null : new Prisma.Decimal(cuota),
-      depreciacionAcumuladaPost: count === 0 ? null : new Prisma.Decimal(dep),
-      valorEnLibrosPost: count === 0 ? null : new Prisma.Decimal(valor),
+      cuotaMensual: count === 0 ? null : new Prisma.Decimal(cuota),
+      depreciacionAcumuladaNueva: count === 0 ? null : new Prisma.Decimal(dep),
+      valorEnLibrosNuevo: count === 0 ? null : new Prisma.Decimal(valor),
     },
   };
 }
@@ -92,7 +99,7 @@ describe("GET /api/reportes/depreciacion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.auth.mockResolvedValue(adminSession);
-    mocks.findMany.mockResolvedValue([buildCuota()]);
+    mocks.findMany.mockResolvedValue([buildDetalle()]);
     mocks.aggregate.mockResolvedValue(
       buildAggregate(29, "55886.26", "176000.00", "3100000.00")
     );
@@ -135,13 +142,13 @@ describe("GET /api/reportes/depreciacion", () => {
     expect(body.errors.cuentaCompra).toBeDefined();
   });
 
-  it("filtra por período y devuelve los totales del corte", async () => {
+  it("consulta el detalle oficial de Sub-03 por año y mes del período", async () => {
     const res = await depreciacionHandler(makeRequest("?periodo=2026-10"));
     const body = await res.json();
 
     expect(mocks.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { periodoFiscal: "2026-10" },
+        where: { periodo: { anio: 2026, mes: 10 } },
         orderBy: [{ activo: { codigo: "asc" } }, { activoId: "asc" }],
       })
     );
@@ -153,7 +160,7 @@ describe("GET /api/reportes/depreciacion", () => {
     expect(body.meta).toMatchObject({ periodo: "2026-10", total: 29, sinProceso: false });
   });
 
-  it("aplica filtros de cuenta de compra y de depreciación cuando se envían", async () => {
+  it("aplica filtros de cuenta de compra y de depreciación sobre el tipo de activo", async () => {
     await depreciacionHandler(
       makeRequest(
         "?periodo=2026-10&cuentaCompra=1-01-04-0020&cuentaDepreciacion=1-01-04-0021"
@@ -161,9 +168,13 @@ describe("GET /api/reportes/depreciacion", () => {
     );
     const where = mocks.findMany.mock.calls[0][0].where;
     expect(where).toMatchObject({
-      periodoFiscal: "2026-10",
-      cuentaCompra: "1-01-04-0020",
-      cuentaDepreciacion: "1-01-04-0021",
+      periodo: { anio: 2026, mes: 10 },
+      activo: {
+        tipoActivo: {
+          cuentaContableCompra: "1-01-04-0020",
+          cuentaContableDepreciacion: "1-01-04-0021",
+        },
+      },
     });
   });
 

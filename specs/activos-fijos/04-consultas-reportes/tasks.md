@@ -310,6 +310,19 @@ graph TD
 
 ## Total Estimate: ~20.5h (incluye buffer 20%)
 
+### Task 6.1: Reconciliación con Sub-03 (integración del motor real) [COMPLETED]
+- **Status:** COMPLETED — 2026-11-03
+- **Contexto:** el Sub-04 se construyó contra el contrato provisional `depreciaciones_mensual` porque Sub-03 aún no existía. Al integrarse el motor en `dev`, la capa de lectura quedaba apuntando a una tabla sintética que el motor nunca escribe.
+- **Acceptance criteria:**
+  - [x] `consultarDepreciacion` y `consultarDepreciacionExport` leen `detalle_depreciacion` filtrando por `periodo.anio` + `periodo.mes` derivados del período `YYYY-MM`.
+  - [x] Las cuentas contables se resuelven por join con `tipos_activos` (`cuentaContableCompra` / `cuentaContableDepreciacion`) en lugar de snapshot.
+  - [x] `consultarKardex` ordena por `(anio, mes)` descendente y compone el período en memoria.
+  - [x] `app/reportes/depreciacion/page.tsx` resuelve los períodos disponibles desde `periodos_depreciacion` (`CALCULADO`/`CERRADO`).
+  - [x] `seedCuotasDepreciacion` eliminado de `seed-activos.ts` y de `seed.ts` (sobrescribía `depreciacion_acumulada` real).
+  - [x] 4 suites de API actualizadas al nuevo contrato; `npx vitest run` 504/504 y `tsc --noEmit` limpio.
+  - [x] Smoke E2E de reportes en verde contra los períodos reales de Neon.
+  - [ ] Migración `DROP TABLE depreciaciones_mensual` — pendiente de autorización explícita (decisión diferida).
+
 ## Completion Checklist
 - [x] 17 tareas atómicas completadas, cada una con su commit `feat(reportes|reportes-ui|reportes-e2e): Task X.X — ...` y su checkbox `[x]` en este documento al cierre de la tarea (Hard Gate 18).
 - [x] `pnpm lint` (scoped Sub-04, 0 errores) + `pnpm test` (344/344 con Node 22) + `pnpm test:e2e` (17/17) + `pnpm build` (exit 0) en verde; cobertura del sub-módulo ≥ 85% (Stmts 96.83% · Líneas 97.98% · Funciones 100%).
@@ -318,6 +331,7 @@ graph TD
 - [x] Cero endpoints de mutación en el sub-módulo (405 verificado para POST/PUT/DELETE/PATCH).
 - [x] `docs/modules/activos-fijos.md` sincronizado con ERD y catálogo API (Gate 16).
 - [x] `DepreciacionMensual` (provisional) lleva comentario de gobernanza (handoff a Sub-03 documentado) y el historial real de Sub-02 queda ileso.
+- [x] Reconciliación con Sub-03 completada (Task 6.1): el sub-módulo lee el detalle oficial y el contrato provisional queda sin uso.
 - [ ] PR `feature/activos-fijos-04-consultas-reportes` → `dev` creado y vinculado al Work Item de ADO (cuando exista AB#).
 
 ---
