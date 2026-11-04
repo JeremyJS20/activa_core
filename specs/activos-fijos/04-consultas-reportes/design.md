@@ -57,7 +57,7 @@ graph TD
     subgraph DB[("PostgreSQL 16 — Neon")]
         AF[("activos_fijos · Sub-02 *")]
         HC[("historial_custodia · Sub-02 *")]
-        DM[("depreciaciones_mensual · Sub-03 *")]
+        DD[("detalle_depreciacion + periodos_depreciacion · Sub-03 ✅")]
         CAT[("departamentos · tipos_activos · empleados (Sub-01 ✅)")]
         BX[("bitacora_exportaciones · Sub-04")]
     end
@@ -66,12 +66,12 @@ graph TD
     MODAL --> RKDX
     PAGE --> REXP
     RINV --> RSVC --> AF & CAT
-    RDEP --> RSVC --> DM & AF
-    RKDX --> RSVC --> AF & HC & DM
-    REXP --> RSVC & ESVC --> AF & DM
+    RDEP --> RSVC --> DD & AF
+    RKDX --> RSVC --> AF & HC & DD
+    REXP --> RSVC & ESVC --> AF & DD
     REXP -. INSERT log .-> BX
 ```
-> \* `activos_fijos` y `historial_custodia` son tablas **REALES de Sub-02** (implementadas, commit `e254113`) — este módulo solo las lee. `depreciaciones_mensual` es contrato provisional de Sub-03. `bitacora_exportaciones` es propia de Sub-04.
+> \* `activos_fijos` y `historial_custodia` son tablas **REALES de Sub-02** (implementadas, commit `e254113`) — este módulo solo las lee. `periodos_depreciacion` y `detalle_depreciacion` son las tablas oficiales de Sub-03 (el contrato provisional `depreciaciones_mensual` fue eliminado). `bitacora_exportaciones` es propia de Sub-04.
 
 ### Component Diagram (Frontend)
 ```mermaid
@@ -165,9 +165,11 @@ Campos reales para la `bajaInfo` del Kardex: `activo_id` (UNIQUE), `motivo_baja 
 > - `consultarKardex` ordena por `(anio, mes)` descendente y compone el período `YYYY-MM` en memoria.
 > - `app/reportes/depreciacion/page.tsx` lista los períodos desde `periodos_depreciacion` con estado `CALCULADO`/`CERRADO`.
 > - `seedCuotasDepreciacion` se eliminó: además de sembrar datos sintéticos, sobrescribía `depreciacion_acumulada` y `valor_en_libros` reales del motor.
-> - La tabla `depreciaciones_mensual` y su modelo Prisma se conservan **sin uso** hasta que se autorice la migración de `DROP`.
+> - La tabla `depreciaciones_mensual` y su modelo Prisma fueron **eliminados** (migración `20261103010000_drop_depreciaciones_mensual`) una vez autorizado el `DROP`.
 
-### Tabla: `depreciaciones_mensual` *(LEGACY — contrato provisional superado por Sub-03)*
+### Tabla: `depreciaciones_mensual` *(ELIMINADA — contrato provisional superado por Sub-03)*
+
+> 🗑️ **ELIMINADA 2026-11-03.** La tabla contenía 174 filas sintéticas de un seed también eliminado y ningún servicio la consultaba. Se removió mediante la migración `20261103010000_drop_depreciaciones_mensual` junto con su modelo Prisma y su relación en `ActivoFijo`. Se conserva esta sección únicamente como registro histórico del contrato provisional.
 | Columna | Tipo | Constraints | Default | Descripción |
 |---------|------|------------|---------|-------------|
 | `id` | `VARCHAR(36)` | PK (uuid) | — | |
@@ -200,7 +202,6 @@ Campos reales para la `bajaInfo` del Kardex: `activo_id` (UNIQUE), `motivo_baja 
 |--------|-------|----------|------|
 | `idx_activos_fecha_adquis` | `activos_fijos` | `fecha_adquisicion` | B-Tree (aditivo de Sub-04 sobre la tabla REAL de Sub-02) |
 | `idx_activos_costo` | `activos_fijos` | `costo_adquisicion` | B-Tree (aditivo de Sub-04 sobre la tabla REAL de Sub-02) |
-| `idx_dep_periodo` | `depreciaciones_mensual` | `periodo_fiscal, activo_id` | B-Tree UNIQUE compuesto (⚠️ tabla provisional Sub-04) |
 | `idx_bitacora_usuario_fecha` | `bitacora_exportaciones` | `usuario_id, created_at DESC` | B-Tree compuesto (Sub-04) |
 
 ## API Contracts

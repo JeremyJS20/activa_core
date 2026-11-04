@@ -185,7 +185,6 @@ model ActivoFijo {
   empleado              Empleado            @relation(fields: [empleadoId], references: [id], onDelete: Restrict)
   historialesCustodia   HistorialCustodia[]
   historialBaja         HistorialBaja?
-  depreciacionesMensual DepreciacionMensual[] @relation("DepreciacionesActivo")
   detallesDepreciacion  DetalleDepreciacion[]
 
   @@index([codigo])
@@ -239,33 +238,6 @@ model HistorialBaja {
 
   @@index([activoId])
   @@map("historial_bajas")
-}
-
-// ============================================================================
-// CONTRATO PROVISIONAL — Sub-módulo 04 (depreciaciones_mensual)
-// ⚠️ GOBERNANZA: el dominio fue RECLAMADO por el Sub-módulo 03, que ya entregó
-// su esquema oficial (periodos_depreciacion + detalle_depreciacion). Desde la
-// integración de Sub-03, Reportes lee las tablas reales y NINGÚN servicio usa
-// este modelo: se conserva únicamente porque su tabla sigue existiendo en la
-// base compartida. El DROP de `depreciaciones_mensual` está pendiente de
-// autorización explícita (ver tasks.md del Sub-04).
-// ============================================================================
-model DepreciacionMensual {
-  id                        String   @id @default(uuid()) @db.VarChar(36)
-  activoId                  String   @map("activo_id") @db.VarChar(36)
-  periodoFiscal             String   @map("periodo_fiscal") @db.Char(7)
-  cuotaMes                  Decimal  @map("cuota_mes") @db.Decimal(14, 2)
-  depreciacionAcumuladaPost Decimal  @map("depreciacion_acumulada_post") @db.Decimal(14, 2)
-  valorEnLibrosPost         Decimal  @map("valor_en_libros_post") @db.Decimal(14, 2)
-  cuentaCompra              String   @map("cuenta_compra") @db.VarChar(20)
-  cuentaDepreciacion        String   @map("cuenta_depreciacion") @db.VarChar(20)
-  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  activo ActivoFijo @relation("DepreciacionesActivo", fields: [activoId], references: [id], onDelete: Restrict)
-
-  @@unique([activoId, periodoFiscal])
-  @@index([periodoFiscal, activoId])
-  @@map("depreciaciones_mensual")
 }
 
 // ============================================================================

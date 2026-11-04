@@ -45,7 +45,6 @@ erDiagram
     activos_fijos ||--o| historial_bajas : desincorpora
     usuarios ||--o{ historial_custodia : autoriza_traslado
     usuarios ||--o{ historial_bajas : autoriza_baja
-    activos_fijos ||--o{ depreciaciones_mensual : "cuotas_provisionales_legacy"
     usuarios ||--o{ bitacora_exportaciones : audita_exportacion
     periodos_depreciacion ||--o{ detalle_depreciacion : contiene
     activos_fijos ||--o{ detalle_depreciacion : deprecia
@@ -188,18 +187,6 @@ erDiagram
         decimal valor_en_libros_al_baja
         string numero_acta
         uuid autorizado_por_id FK
-        timestamptz created_at
-    }
-
-    depreciaciones_mensual {
-        uuid id PK
-        uuid activo_id FK
-        char periodo_fiscal UK
-        decimal cuota_mes
-        decimal depreciacion_acumulada_post
-        decimal valor_en_libros_post
-        string cuenta_compra
-        string cuenta_depreciacion
         timestamptz created_at
     }
 
@@ -485,21 +472,11 @@ CREATE TABLE historial_bajas (
     CONSTRAINT fk_hb_autorizado_por FOREIGN KEY (autorizado_por_id) REFERENCES usuarios(id) ON DELETE RESTRICT
 );
 
--- 12. Tabla: depreciaciones_mensual (CONTRATO PROVISIONAL Sub-04 — sin uso desde la integración de Sub-03)
-CREATE TABLE depreciaciones_mensual (
-    id VARCHAR(36) PRIMARY KEY,
-    activo_id VARCHAR(36) NOT NULL,
-    periodo_fiscal CHAR(7) NOT NULL,
-    cuota_mes DECIMAL(14, 2) NOT NULL,
-    depreciacion_acumulada_post DECIMAL(14, 2) NOT NULL,
-    valor_en_libros_post DECIMAL(14, 2) NOT NULL,
-    cuenta_compra VARCHAR(20) NOT NULL,
-    cuenta_depreciacion VARCHAR(20) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_dm_activo FOREIGN KEY (activo_id) REFERENCES activos_fijos(id) ON DELETE RESTRICT ON UPDATE CASCADE
-);
-CREATE INDEX depreciaciones_mensual_periodo_fiscal_activo_id_idx ON depreciaciones_mensual(periodo_fiscal, activo_id);
-CREATE UNIQUE INDEX depreciaciones_mensual_activo_id_periodo_fiscal_key ON depreciaciones_mensual(activo_id, periodo_fiscal);
+-- 12. Tabla: depreciaciones_mensual — ELIMINADA
+-- Contrato provisional del Sub-04, superado por el motor oficial de Sub-03
+-- (periodos_depreciacion + detalle_depreciacion). Se eliminó mediante la
+-- migración 20261103010000_drop_depreciaciones_mensual.
+-- DROP TABLE "depreciaciones_mensual";
 
 -- 13. Tabla: bitacora_exportaciones (Sub-04 exclusiva — auditoría de exportaciones)
 CREATE TABLE bitacora_exportaciones (
@@ -626,10 +603,9 @@ El Sub-módulo 04 **no posee dominio de escritura** sobre el esquema operativo. 
 | `activos_fijos`, `historial_custodia`, `historial_bajas` | Sub-02 | SELECT | Solo lectura: nunca UPDATE/DELETE ni recálculo financiero. |
 | `departamentos`, `tipos_activos`, `empleados` | Sub-01 | SELECT | Solo lectura para filtros y cuentas contables. |
 | `periodos_depreciacion`, `detalle_depreciacion` | Sub-03 | SELECT | Fuente oficial del reporte de depreciación y del Kardex (reemplaza al contrato provisional). |
-| `depreciaciones_mensual` | **Contrato provisional Sub-04** | Sin uso | **Legacy** — ninguna consulta la lee desde la integración de Sub-03; su DROP está pendiente de autorización. |
 | `bitacora_exportaciones` | Sub-04 (exclusiva) | INSERT | Auditoría de exportaciones financieras (NFR-REP-005). |
 
-> ✅ **Contrato provisional resuelto:** Sub-03 entregó su esquema oficial y el Sub-04 ya fue re-apuntado. `report.service.ts`, el kardex y la consola `/reportes/depreciacion` leen `detalle_depreciacion` + `periodos_depreciacion`; `seedCuotasDepreciacion` fue eliminado para no sobrescribir la depreciación acumulada real de los activos. La tabla `depreciaciones_mensual` permanece en la base compartida (y en el schema Prisma) únicamente hasta que se autorice su migración de `DROP`.
+> ✅ **Contrato provisional resuelto y eliminado:** Sub-03 entregó su esquema oficial y el Sub-04 ya fue re-apuntado. `report.service.ts`, el kardex y la consola `/reportes/depreciacion` leen `detalle_depreciacion` + `periodos_depreciacion`; `seedCuotasDepreciacion` fue eliminado para no sobrescribir la depreciación acumulada real de los activos. La tabla `depreciaciones_mensual` fue eliminada de la base y del schema Prisma mediante la migración `20261103010000_drop_depreciaciones_mensual`.
 
 ---
 
@@ -661,8 +637,6 @@ El Sub-módulo 04 **no posee dominio de escritura** sobre el esquema operativo. 
 | idx_historial_bajas_fecha_baja | historial_bajas | fecha_baja | B-Tree | Auditoría fiscal de bajas por período contable. |
 | idx_activos_fijos_fecha_adquisicion | activos_fijos | fecha_adquisicion | B-Tree | Filtro por rango de fechas del reporte de inventario (Sub-04, índice aditivo). |
 | idx_activos_fijos_costo_adquisicion | activos_fijos | costo_adquisicion | B-Tree | Filtro por rango de costo del reporte de inventario (Sub-04, índice aditivo). |
-| uq_depreciaciones_mensual_activo_periodo | depreciaciones_mensual | (activo_id, periodo_fiscal) | B-Tree (Unique) | Idempotencia del contrato provisional por activo/período (legacy, sin uso desde Sub-03). |
-| idx_depreciaciones_mensual_periodo_activo | depreciaciones_mensual | (periodo_fiscal, activo_id) | B-Tree (Composite) | Consulta del contrato provisional por período fiscal (legacy, sin uso desde Sub-03). |
 | idx_bitacora_exportaciones_usuario_fecha | bitacora_exportaciones | (usuario_id, created_at DESC) | B-Tree (Composite) | Trazabilidad de exportaciones financieras por usuario (NFR-REP-005). |
 | idx_periodos_depreciacion_anio_mes | periodos_depreciacion | (anio, mes) | B-Tree (Unique) | Garantiza un único período por mes y acelera el orden descendente del listado. |
 | idx_periodos_depreciacion_estado | periodos_depreciacion | estado | B-Tree | Filtro de períodos abiertos, calculados o cerrados en la consola. |

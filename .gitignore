@@ -18,8 +18,11 @@ app/dist/
 coverage/
 app/coverage/
 app/e2e-artifacts/
+app/artifacts/
 app/test-results/
 app/playwright-report/
+backup/
+.playwright-mcp/
 .DS_Store
 Thumbs.db
 

@@ -5,8 +5,8 @@ import { DepreciacionQuerySchema } from "@/lib/schemas/report.schema";
 
 /**
  * GET /api/reportes/depreciacion — Reporte de depreciación periódica y fiscal.
- * SOLO LECTURA sobre `depreciaciones_mensual` (contrato provisional de Sub-03):
- * NO recalcula cuotas, solo las consulta (REQ-REP-004).
+ * SOLO LECTURA sobre el detalle oficial del Sub-03 (`detalle_depreciacion` +
+ * `periodos_depreciacion`): NO recalcula cuotas, solo las consulta (REQ-REP-004).
  */
 export async function GET(req: NextRequest) {
   const { authorized, response } = await requireReportesPermission(req);

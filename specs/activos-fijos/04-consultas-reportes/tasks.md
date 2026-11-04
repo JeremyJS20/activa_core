@@ -321,7 +321,7 @@ graph TD
   - [x] `seedCuotasDepreciacion` eliminado de `seed-activos.ts` y de `seed.ts` (sobrescribía `depreciacion_acumulada` real).
   - [x] 4 suites de API actualizadas al nuevo contrato; `npx vitest run` 504/504 y `tsc --noEmit` limpio.
   - [x] Smoke E2E de reportes en verde contra los períodos reales de Neon.
-  - [ ] Migración `DROP TABLE depreciaciones_mensual` — pendiente de autorización explícita (decisión diferida).
+  - [x] Migración `20261103010000_drop_depreciaciones_mensual` aplicada: la tabla y su modelo Prisma fueron eliminados (autorizado 2026-11-03).
 
 ## Completion Checklist
 - [x] 17 tareas atómicas completadas, cada una con su commit `feat(reportes|reportes-ui|reportes-e2e): Task X.X — ...` y su checkbox `[x]` en este documento al cierre de la tarea (Hard Gate 18).

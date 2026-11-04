@@ -150,7 +150,6 @@ erDiagram
     activos_fijos ||--o| historial_bajas : desincorpora
     usuarios ||--o{ historial_custodia : autoriza_traslado
     usuarios ||--o{ historial_bajas : autoriza_baja
-    activos_fijos ||--o{ depreciaciones_mensual : "cuotas_provisionales_legacy"
     usuarios ||--o{ bitacora_exportaciones : audita_exportacion
     periodos_depreciacion ||--o{ detalle_depreciacion : contiene
     activos_fijos ||--o{ detalle_depreciacion : deprecia
@@ -293,18 +292,6 @@ erDiagram
         decimal valor_en_libros_al_baja
         string numero_acta
         uuid autorizado_por_id FK
-        timestamptz created_at
-    }
-
-    depreciaciones_mensual {
-        uuid id PK
-        uuid activo_id FK
-        char periodo_fiscal UK
-        decimal cuota_mes
-        decimal depreciacion_acumulada_post
-        decimal valor_en_libros_post
-        string cuenta_compra
-        string cuenta_depreciacion
         timestamptz created_at
     }
 
@@ -595,3 +582,4 @@ erDiagram
 | 2026-11-03 | specs/activos-fijos/03-motor-depreciacion | Certificación formal del Sub-módulo 03: Motor de Depreciación y Contabilización DGII (cuota Half Even, universo por estado/corte/vida útil, corrida transaccional idempotente con `FOR UPDATE`, asiento consolidado en `PENDIENTE_ENVIO`, cierre mensual inmutable, bitácora `Auditoria`, consola `/depreciacion`), Vitest 96.44% de cobertura (363 pruebas) y Playwright E2E (1/1 flujo crear → ejecutar → detalle → cerrar). | ccd53e9 | JeremyJS / SDD Build Agent |
 | 2026-11-03 | fix/activos (Sub-01, sin spec) | Corrección del inventario: el icono «Ver Ficha Técnica» abría el formulario de edición (podía alterar el activo desde una acción de consulta). Se añade `AssetDetailSheet`, un drawer lateral de solo lectura con identificación, situación financiera, clasificación fiscal DGII, custodia e historial de baja, sobre `GET /api/activos/{id}`. El lápiz y el botón «Editar activo» del drawer mantienen el formulario de edición. Regresión cubierta con 3 casos Playwright de solo lectura; Vitest 363/363. | c9078e8 | JeremyJS / SDD Build Agent |
 | 2026-11-03 | fix/depreciacion (Sub-03, sin spec) | Cierre de pendientes del motor: (1) las anomalías de datos ahora abortan la corrida con `ASSET_TYPE_INVALID_LIFE` y `RESIDUAL_EXCEEDS_COST` (422) en lugar de excluirse en silencio, alineando el código a `design.md`; (2) la persistencia de acumulados usa `UPDATE … FROM (VALUES …)` en lotes de 500, cumpliendo el AC de 1,000 activos en menos de 5 s (290.8 ms y 445.2 ms medidos contra Neon en transacción revertida, frente a 53.8–106.5 s del enfoque fila por fila); (3) pruebas de atomicidad del detalle e invariante `valor_en_libros = costo − acumulada`. Vitest 367/367 y smoke E2E de depreciación 1/1 contra Neon, con la base restaurada (13 períodos, 34 activos, 0 inconsistencias). | da88579 | JeremyJS / SDD Build Agent |
+| 2026-11-03 | chore(datos): baseline demostrable + DROP del contrato provisional | Se elimina `depreciaciones_mensual` (migración `20261103010000_drop_depreciaciones_mensual`) y su modelo Prisma. Limpieza de datos a baseline demostrable: se conservan RBAC, catálogos base (20 departamentos, 10 tipos de activo, 32 custodios), 6 activos ACTIVO sin depreciación aplicada y el período del mes en curso en `ABIERTO` sin detalle; se purgan 28 activos, 12 períodos históricos, 370 detalles, 1 asiento con 8 líneas, 4 bajas, 32 movimientos de custodia, 2 registros de auditoría, 16 exportaciones y 9 tokens. Respaldo lógico previo en `backup/` (789 filas, 19 tablas). Vitest 504/504 y `tsc --noEmit` limpio. | 05dc11f | JeremyJS / SDD Build Agent |
