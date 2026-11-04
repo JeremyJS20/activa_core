@@ -3,7 +3,7 @@
 > 🎓 **Proyecto Final — Integraciones I**  
 > 🏛️ **Universidad APEC (UNAPEC)**  
 > 👨‍🏫 **Docente:** Prof. Juan P. Valdez  
-> 📦 **Repositorio:** [github.com/JeremyJS20/activa_core-](https://github.com/JeremyJS20/activa_core-)
+> 📦 **Repositorio:** [github.com/JeremyJS20/activa_core](https://github.com/JeremyJS20/activa_core)
 
 ---
 
@@ -30,8 +30,8 @@ El sistema se divide en **6 sub-módulos independientes y desacoplados**. Cada s
 | **00 - Autenticación y RBAC** | `feature/activos-fijos-00-autenticacion-rbac` | ✅ **Listo** | JeremyJS | NextAuth.js v5, roles relacionales, usuarios, middleware y **Wave 0 (Scaffolding Next.js 15 en `app/`)**. |
 | **01 - Catálogos Base** | `feature/activos-fijos-01-catalogos-base` | ✅ **Listo** | JeremyJS | Departamentos, Tipos de Activos (cuentas contables compra/depreciación) y Empleados (Cédula JCE). |
 | **02 - Gestión de Activos y Custodia** | `feature/activos-fijos-02-gestion-activos-custodia` | ✅ **Listo** | JeremyJS | Alta de Activos (`ACT-YYYY-NNNN`), `HistorialCustodia` (ACID), Actas de Entrega PDF y Bajas Formales. |
-| **03 - Motor de Depreciación** | `feature/activos-fijos-03-motor-depreciacion` | ⏳ **Asignado** | *Compañero de Equipo* | Cálculo mensual de cuotas DGII (5%, 25%, 15%) y Línea Recta, corridas mensuales, cierres y reversiones. |
-| **04 - Consultas y Reportes** | `feature/activos-fijos-04-consultas-reportes` | ⏳ **En progreso (15/17)** | JeremyJS | Consola `/reportes` multicriterio con KPIs, depreciación fiscal por período, Kardex, exportación XLSX/CSV (UTF-8 BOM) y vista de impresión. Certificación formal bloqueada por lint preexistente de Sub-01/Sub-02 (0 errores en archivos del Sub-04). |
+| **03 - Motor de Depreciación** | `feature/activos-fijos-03-motor-depreciacion` | ✅ **Listo** | JeremyJS | Cálculo mensual de cuotas DGII por línea recta, universo de activos por estado/corte, corrida transaccional idempotente, asiento contable consolidado y cierre mensual inmutable. |
+| **04 - Consultas y Reportes** | `feature/activos-fijos-04-consultas-reportes` | ✅ **Listo** | Alejandra (@ingmariana) | Consola `/reportes` multicriterio con KPIs, depreciación fiscal por período, Kardex, exportación XLSX/CSV (UTF-8 BOM) y vista de impresión. Lee el detalle oficial del motor (Sub-03). |
 | **05 - Integración WS Contabilidad** | `feature/activos-fijos-05-integracion-ws-contabilidad` | ⏳ **Asignado** | *Compañero de Equipo* | Asientos de diario contables, Outbox Pattern, Mock WS, monitor de envíos y reintentos. |
 
 ---
@@ -47,18 +47,18 @@ flowchart TD
     classDef doneStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
     classDef pendStyle fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#6b21a8;
 
-    Main["Rama main (Base Limpia SDD)"]:::mainStyle
+    Main["Rama main (Producción)"]:::mainStyle
     Dev["Rama dev (Integración ActivaCore)"]:::devStyle
 
     subgraph ModulosListos["Módulos Completados"]
         F00["feature/activos-fijos-00-autenticacion-rbac"]:::doneStyle
         F01["feature/activos-fijos-01-catalogos-base"]:::doneStyle
         F02["feature/activos-fijos-02-gestion-activos-custodia"]:::doneStyle
+        F03["feature/activos-fijos-03-motor-depreciacion"]:::doneStyle
+        F04["feature/activos-fijos-04-consultas-reportes"]:::doneStyle
     end
 
     subgraph ModulosEquipo["Módulos Asignados al Equipo"]
-        F03["feature/activos-fijos-03-motor-depreciacion"]:::pendStyle
-        F04["feature/activos-fijos-04-consultas-reportes"]:::pendStyle
         F05["feature/activos-fijos-05-integracion-ws-contabilidad"]:::pendStyle
     end
 
@@ -66,13 +66,13 @@ flowchart TD
     Dev --> F00 -->|Merge completado| Dev
     Dev --> F01 -->|Merge completado| Dev
     Dev --> F02 -->|Merge completado| Dev
-    Dev -.->|Heredan base de dev| F03
-    Dev -.->|Heredan base de dev| F04
-    Dev -.->|Heredan base de dev| F05
+    Dev --> F03 -->|Merge completado| Dev
+    Dev --> F04 -->|Merge completado| Dev
+    Dev -.->|Hereda base de dev| F05
 ```
 
 ### Convención de Ramas:
-1. **`main`**: Rama de producción y gobernanza base limpia. No contiene especificaciones en borrador.
+1. **`main`**: Rama de producción. Contiene los sub-módulos certificados y promovidos (hoy Sub-00 a Sub-04, alineada con `dev`).
 2. **`dev`**: Rama principal de desarrollo donde convergen todos los módulos certificados y listos.
 3. **`feature/activos-fijos-XX-<nombre>`**: Rama individual y aislada para cada sub-módulo.
 
@@ -80,13 +80,13 @@ flowchart TD
 
 ## 🛠️ 4. Guía Rápida para los Compañeros de Equipo
 
-Si te corresponde desarrollar el **Sub-módulo 03, 04 o 05**, sigue estos pasos exactos:
+Si te corresponde desarrollar el **Sub-módulo 05**, sigue estos pasos exactos:
 
 ### Paso 1: Clonar y ubicarse en tu rama
 ```bash
 # 1. Clonar el repositorio remoto
-git clone https://github.com/JeremyJS20/activa_core-.git
-cd activa_core-
+git clone https://github.com/JeremyJS20/activa_core.git
+cd activa_core
 
 # 2. Descargar todas las ramas
 git fetch --all
