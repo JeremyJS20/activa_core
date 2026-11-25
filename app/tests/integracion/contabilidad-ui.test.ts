@@ -8,6 +8,7 @@ import {
   formatCount,
   formatFechaContable,
   formatRD,
+  mensajeDeErrorIntegracion,
   nombrePeriodo,
   parseContabilidadQuery,
 } from "@/components/contabilidad/types";
@@ -135,5 +136,39 @@ describe("formato de presentación", () => {
     expect(estadoAsientoLabel("ENVIADO")).toBe("Enviado");
     expect(estadoAsientoLabel("ERROR")).toBe("Con error");
     expect(estadoAsientoLabel("OTRO_ESTADO")).toBe("otro estado");
+  });
+});
+
+describe("mensajeDeErrorIntegracion", () => {
+  it("prioriza el mensaje específico del código de integración", () => {
+    expect(
+      mensajeDeErrorIntegracion({ code: "ASIENTO_UNBALANCED", detail: "otro detalle" })
+    ).toContain("no está cuadrado");
+    expect(mensajeDeErrorIntegracion({ code: "WS_TIMEOUT" })).toContain("no respondió a tiempo");
+    expect(mensajeDeErrorIntegracion({ code: "ASIENTO_ALREADY_SENT" })).toContain(
+      "ya fue enviado"
+    );
+  });
+
+  it("usa el primer error de validación cuando no hay código conocido", () => {
+    expect(
+      mensajeDeErrorIntegracion({
+        errors: [{ message: "pageSize debe ser 10, 25 o 50" }],
+      })
+    ).toBe("pageSize debe ser 10, 25 o 50");
+
+    expect(
+      mensajeDeErrorIntegracion({
+        errors: { periodo: "El período es inválido" },
+      })
+    ).toBe("El período es inválido");
+  });
+
+  it("cae al detail/title y finalmente al fallback", () => {
+    expect(mensajeDeErrorIntegracion({ detail: "Detalle del servidor" })).toBe(
+      "Detalle del servidor"
+    );
+    expect(mensajeDeErrorIntegracion({ title: "Bad Request" })).toBe("Bad Request");
+    expect(mensajeDeErrorIntegracion(null, "Fallback propio")).toBe("Fallback propio");
   });
 });

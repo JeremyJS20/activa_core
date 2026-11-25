@@ -56,6 +56,155 @@ export interface ProblemDetails {
   errors?: Record<string, string> | Array<{ message?: string }>;
 }
 
+export interface LineaDetalle {
+  id: string;
+  tipoInventario: string | null;
+  cuentaContable: string;
+  tipoMovimiento: "DB" | "CR";
+  monto: string;
+  descripcion: string;
+}
+
+export interface AsientoDetalle {
+  id: string;
+  numeroAsiento: string;
+  concepto: string;
+  fechaContable: string;
+  estado: EstadoAsiento | string;
+  totalDebito: string;
+  totalCredito: string;
+  balance: string;
+  intentosEnvio: number;
+  transaccionWsId: string | null;
+  codigoRespuestaWs: string | null;
+  mensajeRespuestaWs: string | null;
+  fechaEnvioWs: string | null;
+  periodo: { id: string; anio: number; mes: number; estado: string };
+  lineas: LineaDetalle[];
+  ultimoIntento: {
+    intento: number;
+    resultado: string;
+    httpStatus: number | null;
+    mensaje: string | null;
+    createdAt: string;
+  } | null;
+  puedeDespachar: boolean;
+  puedeReintentar: boolean;
+}
+
+export interface AsientoDetalleResponse {
+  data: AsientoDetalle;
+}
+
+export interface BitacoraItem {
+  id: string;
+  asientoId: string;
+  numeroAsiento: string;
+  usuario: { id: string; correo: string };
+  intento: number;
+  payload: unknown;
+  endpoint: string;
+  httpStatus: number | null;
+  respuesta: unknown;
+  mensaje: string | null;
+  duracionMs: number;
+  resultado: string;
+  correlationId: string;
+  createdAt: string;
+}
+
+export interface BitacoraResponse {
+  data: BitacoraItem[];
+  meta: { page: number; pageSize: number; total: number; totalPages: number };
+}
+
+export interface AccionAsientoResultado {
+  asientoId: string;
+  numeroAsiento: string;
+  estado: EstadoAsiento | string;
+  transaccionWsId: string | null;
+  codigoRespuestaWs?: string | null;
+  fechaEnvioWs?: string | null;
+  intento: number;
+  duracionMs?: number;
+}
+
+export interface AccionAsientoResponse {
+  data: AccionAsientoResultado;
+}
+
+export interface BatchResultadoItem {
+  asientoId: string;
+  numeroAsiento: string;
+  estado: EstadoAsiento | string;
+  transaccionWsId?: string | null;
+  codigo?: string;
+  mensaje?: string;
+}
+
+export interface BatchResultado {
+  total: number;
+  enviados: number;
+  errores: number;
+  restantes: number;
+  resultados: BatchResultadoItem[];
+}
+
+export interface BatchResponse {
+  data: BatchResultado;
+}
+
+export const MENSAJES_INTEGRACION: Record<string, string> = {
+  ASIENTO_NOT_FOUND: "El asiento ya no existe o fue eliminado.",
+  ASIENTO_ALREADY_SENT:
+    "El asiento ya fue enviado a Contabilidad. No se puede despachar dos veces.",
+  ASIENTO_NOT_RETRYABLE:
+    "El asiento no admite reintento en su estado actual. Solo los asientos con error pueden reintentarse.",
+  ASIENTO_SIN_LINEAS: "El asiento no tiene líneas contables para enviar.",
+  ASIENTO_UNBALANCED:
+    "El asiento no está cuadrado: el total de débitos no coincide con el de créditos.",
+  TIPO_INVENTARIO_UNRESOLVED:
+    "No fue posible resolver el tipo de inventario de una o más líneas del asiento.",
+  WS_TIMEOUT:
+    "El Web Service de Contabilidad no respondió a tiempo. El asiento quedó en error y puede reintentarse.",
+  WS_REJECTED: "El Web Service rechazó el asiento. Revise el detalle del rechazo.",
+  WS_SERVER_ERROR:
+    "El Web Service de Contabilidad presentó un error interno. El asiento quedó en error y puede reintentarse.",
+  WS_INVALID_RESPONSE:
+    "El Web Service devolvió una respuesta inválida. El asiento quedó en error y puede reintentarse.",
+  WS_NETWORK_ERROR:
+    "No fue posible conectar con el Web Service de Contabilidad. El asiento quedó en error y puede reintentarse.",
+  AUDIT_LOG_FAILED:
+    "No fue posible registrar la bitácora del envío. La operación fue revertida para preservar la trazabilidad.",
+  BATCH_START_FAILED:
+    "No fue posible iniciar el despacho por lote. Intente nuevamente.",
+  FORBIDDEN:
+    "No posee privilegios suficientes para esta operación. Se requiere INT_MANAGE o ACC_POST_SEND.",
+  UNAUTHORIZED: "Su sesión expiró o no es válida. Inicie sesión nuevamente.",
+};
+
+/** Extrae el mensaje más útil de un problem+json de integración. */
+export function mensajeDeErrorIntegracion(
+  problem: ProblemDetails | null,
+  fallback = "No fue posible completar la operación de integración."
+): string {
+  if (!problem) return fallback;
+
+  if (problem.code && MENSAJES_INTEGRACION[problem.code]) {
+    return MENSAJES_INTEGRACION[problem.code];
+  }
+
+  if (Array.isArray(problem.errors)) {
+    const primero = problem.errors[0]?.message;
+    if (primero) return primero;
+  } else if (problem.errors) {
+    const primero = Object.values(problem.errors)[0];
+    if (primero) return primero;
+  }
+
+  return problem.detail || problem.message || problem.title || fallback;
+}
+
 export const DEFAULT_CONTABILIDAD_QUERY: ContabilidadQuery = {
   estado: "TODOS",
   periodo: "",
@@ -205,7 +354,7 @@ export function formatFechaContable(value: string): string {
   });
 }
 
-/** Fecha y hora de auditoría en hora institucional local. */
+/** Fecha y hora de auditoría en hora institucional (America/Santo_Domingo). */
 export function formatFechaHora(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
@@ -215,6 +364,7 @@ export function formatFechaHora(value: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Santo_Domingo",
   });
 }
 

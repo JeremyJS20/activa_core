@@ -9,8 +9,10 @@ import {
   ChevronRight,
   Eye,
   FileSearch,
+  Loader2,
   RefreshCw,
   RotateCcw,
+  Send,
 } from "lucide-react";
 import {
   ESTADOS_ASIENTO,
@@ -41,6 +43,9 @@ interface AsientosTableProps {
   onReset: () => void;
   onRefresh: () => void;
   onVer?: (asiento: AsientoListado) => void;
+  canManage?: boolean;
+  onAccion?: (asiento: AsientoListado, tipo: "despachar" | "reintentar") => void;
+  accionEnCurso?: string | null;
 }
 
 function EstadoAsientoPill({ estado }: { estado: string }) {
@@ -145,10 +150,14 @@ export function AsientosTable({
   onReset,
   onRefresh,
   onVer,
+  canManage = false,
+  onAccion,
+  accionEnCurso = null,
 }: AsientosTableProps) {
   const startRecord = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const endRecord = Math.min(page * pageSize, totalCount);
   const paginas = totalPages || 1;
+  const mostrarAcciones = Boolean(onVer || onAccion);
 
   const toggleSort = (field: SortAsiento) => {
     const nextDir: DirAsiento =
@@ -343,7 +352,7 @@ export function AsientosTable({
                   <th scope="col" className="px-4 sm:px-5 py-3 text-center">
                     Intentos
                   </th>
-                  {onVer && (
+                  {mostrarAcciones && (
                     <th scope="col" className="px-3 py-3 text-center">
                       Acciones
                     </th>
@@ -406,17 +415,63 @@ export function AsientosTable({
                         {asiento.intentosEnvio}
                       </span>
                     </td>
-                    {onVer && (
+                    {mostrarAcciones && (
                       <td className="px-3 py-4 text-center whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => onVer(asiento)}
-                          title="Ver detalle del asiento"
-                          aria-label={`Ver detalle del asiento ${asiento.numeroAsiento}`}
-                          className="p-1.5 text-slate-400 hover:text-[#003D9B] hover:bg-slate-100 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-4 h-4" aria-hidden="true" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          {onVer && (
+                            <button
+                              type="button"
+                              onClick={() => onVer(asiento)}
+                              title="Ver detalle del asiento"
+                              aria-label={`Ver detalle del asiento ${asiento.numeroAsiento}`}
+                              className="p-1.5 text-slate-400 hover:text-[#003D9B] hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                              <Eye className="w-4 h-4" aria-hidden="true" />
+                            </button>
+                          )}
+
+                          {canManage &&
+                            onAccion &&
+                            asiento.estado === "PENDIENTE_ENVIO" && (
+                              <button
+                                type="button"
+                                onClick={() => onAccion(asiento, "despachar")}
+                                disabled={accionEnCurso === `${asiento.id}:despachar`}
+                                title="Despachar a Contabilidad"
+                                aria-label={`Despachar el asiento ${asiento.numeroAsiento}`}
+                                className="p-1.5 text-slate-400 hover:text-[#003D9B] hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                {accionEnCurso === `${asiento.id}:despachar` ? (
+                                  <Loader2
+                                    className="w-4 h-4 animate-spin text-[#003D9B]"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  <Send className="w-4 h-4" aria-hidden="true" />
+                                )}
+                              </button>
+                            )}
+
+                          {canManage && onAccion && asiento.estado === "ERROR" && (
+                            <button
+                              type="button"
+                              onClick={() => onAccion(asiento, "reintentar")}
+                              disabled={accionEnCurso === `${asiento.id}:reintentar`}
+                              title="Reintentar envío"
+                              aria-label={`Reintentar el asiento ${asiento.numeroAsiento}`}
+                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {accionEnCurso === `${asiento.id}:reintentar` ? (
+                                <Loader2
+                                  className="w-4 h-4 animate-spin text-amber-600"
+                                  aria-hidden="true"
+                                />
+                              ) : (
+                                <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>

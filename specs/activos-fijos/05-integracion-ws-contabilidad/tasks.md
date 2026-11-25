@@ -19,17 +19,17 @@
 - **Assignee:** TBD — confirmar con el Lead (no auto-asignar)
 
 ## Task Progress
-> Actualizado 2026-11-24 tras completar Task 2.1.
+> Actualizado 2026-11-24 tras completar Task 2.2.
 
 | Ámbito | Total | Completadas | Restantes | Avance |
 |--------|-------|-------------|-----------|--------|
-| **Sub-módulo 05** | **10** | **8** | **2** | **80%** |
+| **Sub-módulo 05** | **10** | **9** | **1** | **90%** |
 | Wave 1 — Servicios y Endpoints | 7 | 7 (1.1–1.7) | 0 | **100%** |
-| Wave 2 — Consola UI y Certificación | 3 | 1 (2.1) | 2 (2.2–2.3) | 33% |
+| Wave 2 — Consola UI y Certificación | 3 | 2 (2.1–2.2) | 1 (2.3) | 67% |
 
-**Tareas restantes:** `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
+**Tareas restantes:** `2.3` E2E + certificación + docs.
 
-**Esfuerzo restante estimado:** ~10h (8h base + 2h de buffer restante).
+**Esfuerzo restante estimado:** ~5.5h (4h base + 1.5h de buffer restante).
 
 ## Estimation Rules
 - Máximo **4 horas** por tarea; si una tarea excede 4h durante la ejecución, se descompone inmediatamente.
@@ -214,7 +214,7 @@ graph TD
 - **Dependencies:** Task 1.6
 - **Files to create/modify:** `app/app/contabilidad/page.tsx`, `app/components/contabilidad/contabilidad-content.tsx`, `app/components/contabilidad/kpi-cards.tsx`, `app/components/contabilidad/asientos-table.tsx`, `app/components/contabilidad/types.ts`, `app/components/layout/app-sidebar.tsx`, `app/components/layout/console-breadcrumb.tsx`, `app/tests/integracion/contabilidad-ui.test.ts`
 
-### Task 2.2: Drawer de detalle, visor de payload/bitácora y acciones operativas (~4h)
+### Task 2.2: Drawer de detalle, visor de payload/bitácora y acciones operativas (~4h) [COMPLETED 2026-11-24]
 - **Description:** Crear:
   - `asiento-detail-sheet.tsx`: cabecera, líneas DB/CR, balance, panel de integración, acciones.
   - `payload-viewer.tsx`: JSON formateado, copiar, solo lectura.
@@ -222,13 +222,13 @@ graph TD
   - Toasts accesibles; refresco de KPIs/lista tras cada acción.
   - Reglas de visibilidad: `INT_MANAGE`/`ACC_POST_SEND` para acciones; `ACC_LOG_READ` para historial completo.
 - **Acceptance criteria:**
-  - [ ] Drawer con focus trap, `Escape`, overlay y retorno de foco; balance `RD$ 0.00` en verde y diferencia en rojo.
-  - [ ] Despachar/reintentar actualizan estado y KPIs sin recargar la página; 409/502/504 muestran mensaje específico.
-  - [ ] Lote pide confirmación, muestra resumen (`enviados/errores/restantes`) y refresca.
-  - [ ] AUDITOR ve detalle y bitácora, pero ningún botón de acción.
-  - [ ] Payload viewer muestra el JSON exacto y permite copiar; sin edición.
+  - [x] Drawer con focus trap, `Escape`, overlay y retorno de foco; balance `RD$ 0.00` en verde y diferencia en rojo. **✅ Playwright: `Escape` cierra y devuelve foco al botón `Ver`; balance verde verificado; detalle interceptado con `0.01` muestra "Diferencia detectada" en rojo y deshabilita Despachar.**
+  - [x] Despachar/reintentar actualizan estado y KPIs sin recargar la página; 409/502/504 muestran mensaje específico. **✅ Playwright: despacho exitoso muestra toast y dispara refresh del listado; 504 `WS_TIMEOUT` y 502 `WS_SERVER_ERROR` muestran mensajes específicos. Transiciones cubiertas por tests de servicio/API.**
+  - [x] Lote pide confirmación, muestra resumen (`enviados/errores/restantes`) y refresca. **✅ Playwright: confirmación con conteo, advertencia de irreversibilidad; resumen interceptado 1/1/0/0 con transacción WS y refresh.**
+  - [x] AUDITOR ve detalle y bitácora, pero ningún botón de acción. **✅ Playwright AUDITOR: 0 botones de despacho/reintento en fila y drawer; nota "Modo auditoría"; bitácora y payload visibles.**
+  - [x] Payload viewer muestra el JSON exacto y permite copiar; sin edición. **✅ `<pre>` con payload real (`numeroAsiento`, líneas DB/CR), botón Copiar → "Copiado"; solo lectura. Evidencia: `evidence/contabilidad-detalle-2.2.png` y `evidence/contabilidad-lote-2.2.png`.**
 - **Dependencies:** Task 2.1, Task 1.7
-- **Files to create/modify:** `app/components/contabilidad/asiento-detail-sheet.tsx`, `app/components/contabilidad/payload-viewer.tsx`, `app/components/contabilidad/batch-dispatch-dialog.tsx`, `app/components/contabilidad/contabilidad-content.tsx`
+- **Files to create/modify:** `app/components/contabilidad/asiento-detail-sheet.tsx`, `app/components/contabilidad/payload-viewer.tsx`, `app/components/contabilidad/batch-dispatch-dialog.tsx`, `app/components/contabilidad/asientos-table.tsx`, `app/components/contabilidad/types.ts`, `app/components/contabilidad/contabilidad-content.tsx`, `app/tests/integracion/contabilidad-ui.test.ts`
 
 ### Task 2.3: E2E Playwright, certificación y documentación viva (~4h)
 - **Description:** Crear `app/e2e/contabilidad-smoke.spec.ts` con los flujos de `design.md` §12.3; ejecutar lint scoped, suite Vitest completa, suite E2E completa, cobertura del sub-módulo y build; actualizar documentación viva.
@@ -288,6 +288,7 @@ graph TD
 | 2026-11-24 | Task 1.7 completada — rutas POST de despacho/reintento/lote, `maxDuration=300` y guard de despacho; 13 tests verdes, rutas 97.05% stmts. **Wave 1 cerrada.** | `5000546` |
 | 2026-11-24 | Corrección de build — se removió `runtime = "nodejs"` de las 3 rutas POST de contabilidad por incompatibilidad con `cacheComponents`; `pnpm build` OK. | `21ae582` |
 | 2026-11-24 | Task 2.1 completada — consola `/contabilidad` con KPIs, filtros/URL, tabla, orden, paginación, empty/skeleton, sidebar por permisos y breadcrumb; 15 tests de UI; smoke Playwright ADMIN/AUDITOR. | `21ae582` |
+| 2026-11-24 | Task 2.2 completada — drawer con focus trap/balance, bitácora/payload copiable, acciones individuales, lote con resumen y toasts; 119 tests Sub-05; smoke Playwright ADMIN/AUDITOR + errores 502/504 interceptados. | `pending` |
 
 ---
 > 📍 Sub-módulo 05 · 🌿 `feature/activos-fijos-05-integracion-ws-contabilidad` · Generated by SDD Standard · Generated by `task-planner` (SDD Plan Agent)
