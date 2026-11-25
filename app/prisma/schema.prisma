@@ -67,6 +67,7 @@ model Usuario {
   exportacionesBitacora          BitacoraExportacion[]
   periodosDepreciacionEjecutados PeriodoDepreciacion[] @relation("PeriodoEjecutadoPor")
   periodosDepreciacionCerrados   PeriodoDepreciacion[] @relation("PeriodoCerradoPor")
+  enviosContabilidad             BitacoraEnvioWS[]
 
   @@index([correo])
   @@index([empleadoId])
@@ -321,14 +322,50 @@ model AsientoContable {
   estado        String   @default("PENDIENTE_ENVIO") @db.VarChar(20)
   totalDebito   Decimal  @default(0.00) @map("total_debito") @db.Decimal(14, 2)
   totalCredito  Decimal  @default(0.00) @map("total_credito") @db.Decimal(14, 2)
+  transaccionWsId    String?   @map("transaccion_ws_id") @db.VarChar(60)
+  codigoRespuestaWs  String?   @map("codigo_respuesta_ws") @db.VarChar(10)
+  mensajeRespuestaWs String?   @map("mensaje_respuesta_ws") @db.VarChar(500)
+  fechaEnvioWs       DateTime? @map("fecha_envio_ws") @db.Timestamptz
+  intentosEnvio      Int       @default(0) @map("intentos_envio")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   periodo PeriodoDepreciacion @relation(fields: [periodoId], references: [id], onDelete: Restrict)
   lineas  LineaAsiento[]
+  envios  BitacoraEnvioWS[]
 
   @@index([estado])
+  @@index([estado, fechaContable(sort: Desc)])
   @@map("asientos_contables")
+}
+
+/// Bitácora append-only de cada intento de comunicación con el WS Contabilidad.
+/// La aplicación nunca ejecuta UPDATE/DELETE; la migración agrega un trigger que lo impide.
+model BitacoraEnvioWS {
+  id             String   @id @default(uuid()) @db.VarChar(36)
+  asientoId      String   @map("asiento_id") @db.VarChar(36)
+  numeroAsiento  String   @map("numero_asiento") @db.VarChar(20)
+  usuarioId      String   @map("usuario_id") @db.VarChar(36)
+  correoUsuario  String   @map("correo_usuario") @db.VarChar(255)
+  intento        Int
+  payload        Json
+  endpoint       String   @db.VarChar(500)
+  httpStatus     Int?     @map("http_status")
+  respuesta      Json?
+  mensaje        String?  @db.VarChar(1000)
+  duracionMs     Int      @map("duracion_ms")
+  resultado      String   @db.VarChar(20)
+  correlationId  String   @map("correlation_id") @db.VarChar(64)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  asiento AsientoContable @relation(fields: [asientoId], references: [id], onDelete: Restrict)
+  usuario Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@unique([asientoId, intento])
+  @@index([asientoId, createdAt(sort: Desc)])
+  @@index([resultado, createdAt(sort: Desc)])
+  @@index([correlationId])
+  @@map("bitacora_envio_ws")
 }
 
 model LineaAsiento {

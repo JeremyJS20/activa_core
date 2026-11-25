@@ -95,6 +95,7 @@ async function main() {
     { codigo: "REP_READ", modulo: "REPORTES", descripcion: "Generacion de consultas multicriterio" },
     { codigo: "REP_EXPORT", modulo: "REPORTES", descripcion: "Exportacion de reportes PDF y Excel" },
     { codigo: "ACC_POST_SEND", modulo: "CONTABILIDAD", descripcion: "Envio de asientos contables a WS Contabilidad" },
+    { codigo: "INT_MANAGE", modulo: "CONTABILIDAD", descripcion: "Despacho y reintento de asientos al WS Contabilidad" },
     { codigo: "ACC_LOG_READ", modulo: "CONTABILIDAD", descripcion: "Consulta de bitacora de integracion contable" },
   ];
 
@@ -122,6 +123,7 @@ async function main() {
       "REP_READ",
       "REP_EXPORT",
       "ACC_POST_SEND",
+      "INT_MANAGE",
     ],
     AUDITOR: [
       "CAT_READ",
