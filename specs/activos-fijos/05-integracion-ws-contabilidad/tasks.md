@@ -19,17 +19,17 @@
 - **Assignee:** TBD — confirmar con el Lead (no auto-asignar)
 
 ## Task Progress
-> Actualizado 2026-11-24 tras completar Task 1.4.
+> Actualizado 2026-11-24 tras completar Task 1.5.
 
 | Ámbito | Total | Completadas | Restantes | Avance |
 |--------|-------|-------------|-----------|--------|
-| **Sub-módulo 05** | **10** | **4** | **6** | **40%** |
-| Wave 1 — Servicios y Endpoints | 7 | 4 (1.1–1.4) | 3 (1.5–1.7) | 57% |
+| **Sub-módulo 05** | **10** | **5** | **5** | **50%** |
+| Wave 1 — Servicios y Endpoints | 7 | 5 (1.1–1.5) | 2 (1.6–1.7) | 71% |
 | Wave 2 — Consola UI y Certificación | 3 | 0 | 3 (2.1–2.3) | 0% |
 
-**Tareas restantes:** `1.5` Mock simulator · `1.6` APIs GET + guards · `1.7` APIs POST · `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
+**Tareas restantes:** `1.6` APIs GET + guards · `1.7` APIs POST · `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
 
-**Esfuerzo restante estimado:** ~22h (18.5h base + 3.5h de buffer restante).
+**Esfuerzo restante estimado:** ~20h (16.5h base + 3.5h de buffer restante).
 
 ## Estimation Rules
 - Máximo **4 horas** por tarea; si una tarea excede 4h durante la ejecución, se descompone inmediatamente.
@@ -145,7 +145,7 @@ graph TD
 - **Dependencies:** Task 1.2, Task 1.3
 - **Files to create/modify:** `app/lib/services/integracion-contable.service.ts`, `app/lib/services/ws-contabilidad.client.ts`, `app/lib/integracion/payload.ts`, `app/tests/services/integracion-contable.test.ts`
 
-### Task 1.5: Mock simulator del Web Service (~1.5h)
+### Task 1.5: Mock simulator del Web Service (~1.5h) [COMPLETED 2026-11-24]
 - **Description:** Crear `app/app/api/mock/contabilidad/asientos/route.ts`:
   - Validar payload con Zod; `201` con `numeroConfirmacion` `WS-YYYYMMDD-NNNNN`.
   - Duplicado por `numeroAsiento` → `409 ASIENTO_ALREADY_SENT` con la confirmación original.
@@ -153,13 +153,13 @@ graph TD
   - `404` en producción salvo `ENABLE_WS_MOCK=true`; sin sesión (servidor→servidor) y exento en middleware.
   - Sin escrituras en `asientos_contables` ni `bitacora_envio_ws`.
 - **Acceptance criteria:**
-  - [ ] Payload válido → 201 con `codigoRespuesta="201"` y confirmación con formato correcto.
-  - [ ] Segundo envío del mismo `numeroAsiento` → 409 con la misma confirmación.
-  - [ ] Escenarios 400/500 y delay funcionan; `x-mock-delay-ms: 11000` provoca timeout en el cliente.
-  - [ ] Producción sin bandera → 404; desarrollo → disponible.
-  - [ ] Tests en `app/tests/api/mock-contabilidad.test.ts`.
+  - [x] Payload válido → 201 con `codigoRespuesta="201"` y confirmación con formato correcto. **✅ `WS-YYYYMMDD-NNNNN` verificado por regex.**
+  - [x] Segundo envío del mismo `numeroAsiento` → 409 con la misma confirmación. **✅ test de duplicado.**
+  - [x] Escenarios 400/500 y delay funcionan; `x-mock-delay-ms: 11000` provoca timeout en el cliente. **✅ 400/500/409 y delay válido cubiertos; el timeout de 11 s se valida en el cliente (Task 1.3) y se usará en E2E (Task 2.3).**
+  - [x] Producción sin bandera → 404; desarrollo → disponible. **✅ 404 con `NODE_ENV=production` sin `ENABLE_WS_MOCK`; 201 con `ENABLE_WS_MOCK=true`.**
+  - [x] Tests en `app/tests/api/mock-contabilidad.test.ts`. **✅ 12 tests verdes; cobertura 96.15% stmts / 98% líneas.**
 - **Dependencies:** Task 1.2
-- **Files to create/modify:** `app/app/api/mock/contabilidad/asientos/route.ts`, `app/tests/api/mock-contabilidad.test.ts`
+- **Files to create/modify:** `app/app/api/mock/contabilidad/asientos/route.ts`, `app/lib/integracion/mock-store.ts`, `app/tests/api/mock-contabilidad.test.ts`
 
 ### Task 1.6: APIs GET (lista + KPIs, detalle, bitácora), guards y middleware (~3h)
 - **Description:** Implementar:
@@ -282,7 +282,8 @@ graph TD
 | 2026-11-24 | Task 1.2 completada — schemas Zod del wire/query, catálogo `IntegrationError`, mapper `DEBITO→DB/CREDITO→CR`, montos string 2 decimales y resolución determinista de `tipoInventario`; 35 tests verdes, 95.41% cobertura. | `9187a9b` |
 | 2026-11-24 | Añadido tablero de progreso: 2/10 tareas completadas, 8 restantes (~30h estimadas). | `—` |
 | 2026-11-24 | Task 1.3 completada — cliente HTTP del WS con `AbortController`, timeout configurable, auth enmascarada, mapeo 200/201/400/409/5xx/red y reconciliación 409; 27 tests verdes, 98.24% cobertura. | `dc04fcf` |
-| 2026-11-24 | Task 1.4 completada — servicio de despacho/reintento/lote con lock asesor, transacción estado+bitácora, rollback `AUDIT_LOG_FAILED` y resultado parcial; 44 tests verdes, servicio 94.28% stmts. | `pending` |
+| 2026-11-24 | Task 1.4 completada — servicio de despacho/reintento/lote con lock asesor, transacción estado+bitácora, rollback `AUDIT_LOG_FAILED` y resultado parcial; 44 tests verdes, servicio 94.28% stmts. | `9ee6200` |
+| 2026-11-24 | Task 1.5 completada — mock `/api/mock/contabilidad/asientos` con 201/409/400/500, delay y 404 en producción; 12 tests verdes, 96.15% cobertura. | `pending` |
 
 ---
 > 📍 Sub-módulo 05 · 🌿 `feature/activos-fijos-05-integracion-ws-contabilidad` · Generated by SDD Standard · Generated by `task-planner` (SDD Plan Agent)
