@@ -19,17 +19,17 @@
 - **Assignee:** TBD — confirmar con el Lead (no auto-asignar)
 
 ## Task Progress
-> Actualizado 2026-11-24: **Wave 1 cerrada**.
+> Actualizado 2026-11-24 tras completar Task 2.1.
 
 | Ámbito | Total | Completadas | Restantes | Avance |
 |--------|-------|-------------|-----------|--------|
-| **Sub-módulo 05** | **10** | **7** | **3** | **70%** |
+| **Sub-módulo 05** | **10** | **8** | **2** | **80%** |
 | Wave 1 — Servicios y Endpoints | 7 | 7 (1.1–1.7) | 0 | **100%** |
-| Wave 2 — Consola UI y Certificación | 3 | 0 | 3 (2.1–2.3) | 0% |
+| Wave 2 — Consola UI y Certificación | 3 | 1 (2.1) | 2 (2.2–2.3) | 33% |
 
-**Tareas restantes:** `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
+**Tareas restantes:** `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
 
-**Esfuerzo restante estimado:** ~14h (11.5h base + 2.5h de buffer restante).
+**Esfuerzo restante estimado:** ~10h (8h base + 2h de buffer restante).
 
 ## Estimation Rules
 - Máximo **4 horas** por tarea; si una tarea excede 4h durante la ejecución, se descompone inmediatamente.
@@ -198,7 +198,7 @@ graph TD
 
 ## Wave 2: Consola UI y Certificación (~11.5h)
 
-### Task 2.1: Consola `/contabilidad` — shell, KPIs, filtros y tabla (~3.5h)
+### Task 2.1: Consola `/contabilidad` — shell, KPIs, filtros y tabla (~3.5h) [COMPLETED 2026-11-24]
 - **Description:** Crear:
   - `app/app/contabilidad/page.tsx` (server, guard de permisos, `Suspense`).
   - `app/components/contabilidad/contabilidad-content.tsx` (estado URL, fetch, loading/error/empty).
@@ -206,13 +206,13 @@ graph TD
   - Item "Contabilidad" en `app-sidebar.tsx` y breadcrumb, filtrado por permisos.
   - Filtros estado/período, tamaño 10/25/50, orden por fecha/número, paginación server-side.
 - **Acceptance criteria:**
-  - [ ] `/contabilidad` muestra 4 KPIs y la tabla con datos reales del API.
-  - [ ] Filtros actualizan URL, lista y KPIs correctamente; "Restablecer" limpia todo.
-  - [ ] Paginación server-side exacta; empty state y skeleton visibles.
-  - [ ] El item de menú solo aparece con `INT_MANAGE`/`ACC_POST_SEND`/`ACC_LOG_READ`.
-  - [ ] Sin `console.error` inesperados; diseño consistente con Catálogos/Reportes.
+  - [x] `/contabilidad` muestra 4 KPIs y la tabla con datos reales del API. **✅ Playwright (ADMIN): KPIs 3/1/1/1 y 3 asientos reales (`DEP-202610/09/08`).**
+  - [x] Filtros actualizan URL, lista y KPIs correctamente; "Restablecer" limpia todo. **✅ `estado=ERROR` deja solo el asiento con error y mantiene KPIs globales; `periodo=2026-10` sin coincidencias muestra empty state; Restablecer vuelve a los 3 asientos.**
+  - [x] Paginación server-side exacta; empty state y skeleton visibles. **✅ "Mostrando 1–3 de 3", `pageSize=25` en URL, orden por fecha/número verificado; skeleton durante fetch y empty state con Restablecer.**
+  - [x] El item de menú solo aparece con `INT_MANAGE`/`ACC_POST_SEND`/`ACC_LOG_READ`. **✅ filtro por permisos en `app-sidebar.tsx`; visible para ADMIN y AUDITOR (`ACC_LOG_READ`), con badge "Solo lectura / auditoría" para auditor.**
+  - [x] Sin `console.error` inesperados; diseño consistente con Catálogos/Reportes. **✅ 0 errores de consola tras login; solo warnings de preload CSS del framework. Captura: `evidence/contabilidad-2.1.png`.**
 - **Dependencies:** Task 1.6
-- **Files to create/modify:** `app/app/contabilidad/page.tsx`, `app/components/contabilidad/contabilidad-content.tsx`, `app/components/contabilidad/kpi-cards.tsx`, `app/components/contabilidad/asientos-table.tsx`, `app/components/contabilidad/types.ts`, `app/components/layout/app-sidebar.tsx`, `app/components/layout/console-breadcrumb.tsx`
+- **Files to create/modify:** `app/app/contabilidad/page.tsx`, `app/components/contabilidad/contabilidad-content.tsx`, `app/components/contabilidad/kpi-cards.tsx`, `app/components/contabilidad/asientos-table.tsx`, `app/components/contabilidad/types.ts`, `app/components/layout/app-sidebar.tsx`, `app/components/layout/console-breadcrumb.tsx`, `app/tests/integracion/contabilidad-ui.test.ts`
 
 ### Task 2.2: Drawer de detalle, visor de payload/bitácora y acciones operativas (~4h)
 - **Description:** Crear:
@@ -286,6 +286,8 @@ graph TD
 | 2026-11-24 | Task 1.5 completada — mock `/api/mock/contabilidad/asientos` con 201/409/400/500, delay y 404 en producción; 12 tests verdes, 96.15% cobertura. | `46aa3e5` |
 | 2026-11-24 | Task 1.6 completada — consulta con KPIs/filtros, detalle con `tipoInventario`/balance, bitácora, guards RBAC y middleware; 18 tests verdes, 96.49% cobertura. | `33143a5` |
 | 2026-11-24 | Task 1.7 completada — rutas POST de despacho/reintento/lote, `maxDuration=300` y guard de despacho; 13 tests verdes, rutas 97.05% stmts. **Wave 1 cerrada.** | `5000546` |
+| 2026-11-24 | Corrección de build — se removió `runtime = "nodejs"` de las 3 rutas POST de contabilidad por incompatibilidad con `cacheComponents`; `pnpm build` OK. | `pending` |
+| 2026-11-24 | Task 2.1 completada — consola `/contabilidad` con KPIs, filtros/URL, tabla, orden, paginación, empty/skeleton, sidebar por permisos y breadcrumb; 15 tests de UI; smoke Playwright ADMIN/AUDITOR. | `pending` |
 
 ---
 > 📍 Sub-módulo 05 · 🌿 `feature/activos-fijos-05-integracion-ws-contabilidad` · Generated by SDD Standard · Generated by `task-planner` (SDD Plan Agent)

@@ -6,8 +6,6 @@ import {
 import { respuestaIntegracionError } from "@/lib/integracion/http";
 import { despacharAsiento } from "@/lib/services/integracion-contable.service";
 
-export const runtime = "nodejs";
-
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
