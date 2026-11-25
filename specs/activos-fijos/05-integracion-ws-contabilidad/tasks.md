@@ -19,17 +19,17 @@
 - **Assignee:** TBD — confirmar con el Lead (no auto-asignar)
 
 ## Task Progress
-> Actualizado 2026-11-24 tras completar Task 1.5.
+> Actualizado 2026-11-24 tras completar Task 1.6.
 
 | Ámbito | Total | Completadas | Restantes | Avance |
 |--------|-------|-------------|-----------|--------|
-| **Sub-módulo 05** | **10** | **5** | **5** | **50%** |
-| Wave 1 — Servicios y Endpoints | 7 | 5 (1.1–1.5) | 2 (1.6–1.7) | 71% |
+| **Sub-módulo 05** | **10** | **6** | **4** | **60%** |
+| Wave 1 — Servicios y Endpoints | 7 | 6 (1.1–1.6) | 1 (1.7) | 86% |
 | Wave 2 — Consola UI y Certificación | 3 | 0 | 3 (2.1–2.3) | 0% |
 
-**Tareas restantes:** `1.6` APIs GET + guards · `1.7` APIs POST · `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
+**Tareas restantes:** `1.7` APIs POST · `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
 
-**Esfuerzo restante estimado:** ~20h (16.5h base + 3.5h de buffer restante).
+**Esfuerzo restante estimado:** ~17h (14h base + 3h de buffer restante).
 
 ## Estimation Rules
 - Máximo **4 horas** por tarea; si una tarea excede 4h durante la ejecución, se descompone inmediatamente.
@@ -161,20 +161,20 @@ graph TD
 - **Dependencies:** Task 1.2
 - **Files to create/modify:** `app/app/api/mock/contabilidad/asientos/route.ts`, `app/lib/integracion/mock-store.ts`, `app/tests/api/mock-contabilidad.test.ts`
 
-### Task 1.6: APIs GET (lista + KPIs, detalle, bitácora), guards y middleware (~3h)
+### Task 1.6: APIs GET (lista + KPIs, detalle, bitácora), guards y middleware (~3h) [COMPLETED 2026-11-24]
 - **Description:** Implementar:
   - `app/lib/services/contabilidad-query.service.ts`: lista paginada con filtros `estado`/`periodo`, orden `fecha|numero`, KPIs sobre el universo del período; detalle con líneas, `tipoInventario`, balance y último intento; bitácora paginada.
   - `app/lib/guards/contabilidad-guard.ts`: `requireContabilidadRead` (`INT_MANAGE` | `ACC_POST_SEND` | `ACC_LOG_READ`), `requireContabilidadManage` (`INT_MANAGE` | `ACC_POST_SEND`), `requireContabilidadLog` (`ACC_LOG_READ`).
   - Rutas `GET /api/contabilidad/asientos`, `GET /api/contabilidad/asientos/[id]`, `GET /api/contabilidad/bitacora`.
   - Corregir `app/middleware.ts`: bloque de `/api/contabilidad` con `INT_MANAGE`/`ACC_POST_SEND` (reemplaza `DEP_EXECUTE`/`ACC_DISPATCH` inexistentes) y exención de `/api/mock/**` solo con mock habilitado.
 - **Acceptance criteria:**
-  - [ ] Lista responde `data`, `kpis` y `meta` exactos; KPIs no cambian con el filtro de estado, sí con `periodo`.
-  - [ ] Detalle devuelve líneas con `DB/CR`, `tipoInventario`, `balance` y `puedeDespachar/puedeReintentar`; 404 si no existe.
-  - [ ] Bitácora exige `ACC_LOG_READ`; un usuario solo `INT_MANAGE` recibe 403.
-  - [ ] Sin sesión → 401; sin permiso → 403; método no soportado → 405.
-  - [ ] Tests en `app/tests/api/contabilidad.test.ts` (lista, detalle, bitácora, RBAC).
+  - [x] Lista responde `data`, `kpis` y `meta` exactos; KPIs no cambian con el filtro de estado, sí con `periodo`. **✅ tests: `kpisWhere` solo aplica período; 2 grupos → `{total:2, pendientes:1, errores:1}`.**
+  - [x] Detalle devuelve líneas con `DB/CR`, `tipoInventario`, `balance` y `puedeDespachar/puedeReintentar`; 404 si no existe. **✅ tests de asiento cuadrado, descuadrado, último intento y 404.**
+  - [x] Bitácora exige `ACC_LOG_READ`; un usuario solo `INT_MANAGE` recibe 403. **✅ guard `requireContabilidadLog` verificado con `["ACC_LOG_READ"]`; 403 cubierto.**
+  - [x] Sin sesión → 401; sin permiso → 403; método no soportado → 405. **✅ 401/403 con RFC 7807; solo se exporta `GET`, por lo que Next responde 405 a otros métodos.**
+  - [x] Tests en `app/tests/api/contabilidad.test.ts` (lista, detalle, bitácora, RBAC). **✅ 9 tests API + 9 tests del servicio de consulta = 18 verdes; cobertura global 96.49% stmts / 98.11% líneas.**
 - **Dependencies:** Task 1.1, Task 1.2
-- **Files to create/modify:** `app/lib/services/contabilidad-query.service.ts`, `app/lib/guards/contabilidad-guard.ts`, `app/app/api/contabilidad/asientos/route.ts`, `app/app/api/contabilidad/asientos/[id]/route.ts`, `app/app/api/contabilidad/bitacora/route.ts`, `app/middleware.ts`, `app/tests/api/contabilidad.test.ts`
+- **Files to create/modify:** `app/lib/services/contabilidad-query.service.ts`, `app/lib/guards/contabilidad-guard.ts`, `app/app/api/contabilidad/asientos/route.ts`, `app/app/api/contabilidad/asientos/[id]/route.ts`, `app/app/api/contabilidad/bitacora/route.ts`, `app/middleware.ts`, `app/tests/services/contabilidad-query.test.ts`, `app/tests/api/contabilidad.test.ts`
 
 ### Task 1.7: APIs POST de despacho, reintento y lote (~2.5h)
 - **Description:** Implementar:
@@ -284,6 +284,7 @@ graph TD
 | 2026-11-24 | Task 1.3 completada — cliente HTTP del WS con `AbortController`, timeout configurable, auth enmascarada, mapeo 200/201/400/409/5xx/red y reconciliación 409; 27 tests verdes, 98.24% cobertura. | `dc04fcf` |
 | 2026-11-24 | Task 1.4 completada — servicio de despacho/reintento/lote con lock asesor, transacción estado+bitácora, rollback `AUDIT_LOG_FAILED` y resultado parcial; 44 tests verdes, servicio 94.28% stmts. | `9ee6200` |
 | 2026-11-24 | Task 1.5 completada — mock `/api/mock/contabilidad/asientos` con 201/409/400/500, delay y 404 en producción; 12 tests verdes, 96.15% cobertura. | `46aa3e5` |
+| 2026-11-24 | Task 1.6 completada — consulta con KPIs/filtros, detalle con `tipoInventario`/balance, bitácora, guards RBAC y middleware; 18 tests verdes, 96.49% cobertura. | `pending` |
 
 ---
 > 📍 Sub-módulo 05 · 🌿 `feature/activos-fijos-05-integracion-ws-contabilidad` · Generated by SDD Standard · Generated by `task-planner` (SDD Plan Agent)

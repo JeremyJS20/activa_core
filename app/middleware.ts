@@ -32,6 +32,20 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
+  // 3b. Simulador interno del WS Contabilidad: sin sesión solo si está habilitado.
+  //     En producción sin ENABLE_WS_MOCK=true responde 404 (nunca se expone).
+  if (nextUrl.pathname.startsWith("/api/mock/")) {
+    const mockHabilitado =
+      process.env.NODE_ENV !== "production" || process.env.ENABLE_WS_MOCK === "true";
+    if (!mockHabilitado) {
+      return NextResponse.json(
+        { codigo: "NOT_FOUND", mensaje: "Mock deshabilitado en producción." },
+        { status: 404 }
+      );
+    }
+    return NextResponse.next();
+  }
+
   // 4. Bloquear solicitudes no autenticadas hacia rutas protegidas
   if (!isLoggedIn) {
     if (nextUrl.pathname.startsWith("/api/")) {
@@ -108,11 +122,10 @@ export default auth((req) => {
     }
   }
 
-  // 8. Validacion RBAC para ejecucion contable o de depreciacion
+  // 8. Validacion RBAC para el legado de depreciaciones (ruta histórica)
   if (
-    (nextUrl.pathname.startsWith("/api/depreciaciones") ||
-      nextUrl.pathname.startsWith("/api/contabilidad")) &&
-    ["POST", "PUT", "DELETE"].includes(req.method)
+    nextUrl.pathname.startsWith("/api/depreciaciones") &&
+    ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)
   ) {
     if (
       !userPermisos.includes("DEP_EXECUTE") &&
@@ -125,6 +138,31 @@ export default auth((req) => {
           message: "No posee privilegios para calculo de depreciacion o asientos contables.",
         },
         { status: 403 }
+      );
+    }
+  }
+
+  // 8b. Sub-05: mutaciones de contabilidad requieren INT_MANAGE o ACC_POST_SEND.
+  if (
+    nextUrl.pathname.startsWith("/api/contabilidad") &&
+    ["POST", "PUT", "DELETE", "PATCH"].includes(req.method)
+  ) {
+    const isSuperAdmin =
+      req.auth?.user?.rol?.codigo === "ADMIN" || userPermisos.includes("USER_ADMIN");
+    if (
+      !isSuperAdmin &&
+      !userPermisos.includes("INT_MANAGE") &&
+      !userPermisos.includes("ACC_POST_SEND")
+    ) {
+      return NextResponse.json(
+        {
+          type: "https://activacore.unapec.edu.do/problems/forbidden",
+          title: "FORBIDDEN",
+          status: 403,
+          detail:
+            "Acceso denegado. Se requiere INT_MANAGE o ACC_POST_SEND para despachar asientos.",
+        },
+        { status: 403, headers: { "Content-Type": "application/problem+json" } }
       );
     }
   }
