@@ -52,7 +52,7 @@ export interface AsientoPayload {
   numeroAsiento: string;
   concepto: string;
   fechaAsiento: string;
-  estado: string;
+  estado: "PENDIENTE_ENVIO";
   lineas: LineaPayload[];
   totalDebito: string;
   totalCredito: string;
@@ -231,7 +231,7 @@ export function construirPayloadAsiento(
     numeroAsiento: asiento.numeroAsiento,
     concepto: asiento.concepto,
     fechaAsiento: fechaIso(asiento.fechaContable),
-    estado: asiento.estado,
+    estado: "PENDIENTE_ENVIO",
     lineas,
     totalDebito: totalDebito.toFixed(2),
     totalCredito: totalCredito.toFixed(2),

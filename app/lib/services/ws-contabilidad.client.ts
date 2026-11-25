@@ -27,6 +27,10 @@ export interface WsDispatchResult {
   respuesta?: unknown;
   resultado: WsResultado;
   duracionMs: number;
+  /** URL efectiva invocada (sin credenciales), para la bitácora. */
+  endpoint: string;
+  /** Correlation-id enviado en el header `x-correlation-id`. */
+  correlationId: string;
 }
 
 export interface WsClientOptions {
@@ -177,6 +181,8 @@ export async function dispatchAsiento(
           respuesta: json ?? texto,
           resultado: "RECHAZADO",
           duracionMs,
+          endpoint: url,
+          correlationId,
         };
       }
       return {
@@ -188,6 +194,8 @@ export async function dispatchAsiento(
         respuesta: exitoso.data,
         resultado: "EXITOSO",
         duracionMs,
+        endpoint: url,
+        correlationId,
       };
     }
 
@@ -203,6 +211,8 @@ export async function dispatchAsiento(
           respuesta: json ?? texto,
           resultado: "RECONCILIADO",
           duracionMs,
+          endpoint: url,
+          correlationId,
         };
       }
       return {
@@ -217,6 +227,8 @@ export async function dispatchAsiento(
         respuesta: json ?? texto,
         resultado: "RECHAZADO",
         duracionMs,
+        endpoint: url,
+        correlationId,
       };
     }
 
@@ -229,6 +241,8 @@ export async function dispatchAsiento(
         respuesta: json ?? texto,
         resultado: "RECHAZADO",
         duracionMs,
+        endpoint: url,
+        correlationId,
       };
     }
 
@@ -241,6 +255,8 @@ export async function dispatchAsiento(
         respuesta: json ?? texto,
         resultado: "RECHAZADO",
         duracionMs,
+        endpoint: url,
+        correlationId,
       };
     }
 
@@ -252,6 +268,8 @@ export async function dispatchAsiento(
       respuesta: json ?? texto,
       resultado: "RECHAZADO",
       duracionMs,
+      endpoint: url,
+      correlationId,
     };
   } catch (error) {
     const duracionMs = Date.now() - inicio;
@@ -264,6 +282,8 @@ export async function dispatchAsiento(
         mensaje: `El Web Service no respondió dentro de ${timeoutMs} ms.`,
         resultado: "TIMEOUT",
         duracionMs,
+        endpoint: url,
+        correlationId,
       };
     }
 
@@ -277,6 +297,8 @@ export async function dispatchAsiento(
       respuesta: error instanceof Error ? error.message : undefined,
       resultado: "ERROR_RED",
       duracionMs,
+      endpoint: url,
+      correlationId,
     };
   } finally {
     clearTimeout(timer);
