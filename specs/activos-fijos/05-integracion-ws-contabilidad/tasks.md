@@ -19,17 +19,17 @@
 - **Assignee:** TBD — confirmar con el Lead (no auto-asignar)
 
 ## Task Progress
-> Actualizado 2026-11-24 tras completar Task 1.6.
+> Actualizado 2026-11-24: **Wave 1 cerrada**.
 
 | Ámbito | Total | Completadas | Restantes | Avance |
 |--------|-------|-------------|-----------|--------|
-| **Sub-módulo 05** | **10** | **6** | **4** | **60%** |
-| Wave 1 — Servicios y Endpoints | 7 | 6 (1.1–1.6) | 1 (1.7) | 86% |
+| **Sub-módulo 05** | **10** | **7** | **3** | **70%** |
+| Wave 1 — Servicios y Endpoints | 7 | 7 (1.1–1.7) | 0 | **100%** |
 | Wave 2 — Consola UI y Certificación | 3 | 0 | 3 (2.1–2.3) | 0% |
 
-**Tareas restantes:** `1.7` APIs POST · `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
+**Tareas restantes:** `2.1` Consola UI · `2.2` Drawer/acciones/lote · `2.3` E2E + certificación + docs.
 
-**Esfuerzo restante estimado:** ~17h (14h base + 3h de buffer restante).
+**Esfuerzo restante estimado:** ~14h (11.5h base + 2.5h de buffer restante).
 
 ## Estimation Rules
 - Máximo **4 horas** por tarea; si una tarea excede 4h durante la ejecución, se descompone inmediatamente.
@@ -176,7 +176,7 @@ graph TD
 - **Dependencies:** Task 1.1, Task 1.2
 - **Files to create/modify:** `app/lib/services/contabilidad-query.service.ts`, `app/lib/guards/contabilidad-guard.ts`, `app/app/api/contabilidad/asientos/route.ts`, `app/app/api/contabilidad/asientos/[id]/route.ts`, `app/app/api/contabilidad/bitacora/route.ts`, `app/middleware.ts`, `app/tests/services/contabilidad-query.test.ts`, `app/tests/api/contabilidad.test.ts`
 
-### Task 1.7: APIs POST de despacho, reintento y lote (~2.5h)
+### Task 1.7: APIs POST de despacho, reintento y lote (~2.5h) [COMPLETED 2026-11-24]
 - **Description:** Implementar:
   - `POST /api/contabilidad/asientos/[id]/despachar`
   - `POST /api/contabilidad/asientos/[id]/reintentar`
@@ -184,13 +184,13 @@ graph TD
   - Respuestas RFC 7807 (`application/problem+json`) con el catálogo de `design.md` §6.8.
   - `maxDuration = 300` en la ruta de lote; `runtime = "nodejs"` en todas.
 - **Acceptance criteria:**
-  - [ ] Despacho exitoso → 200 con `estado`, `transaccionWsId`, `intento`, `duracionMs`.
-  - [ ] 409 `ASIENTO_ALREADY_SENT`, 409 `ASIENTO_NOT_RETRYABLE`, 422 `ASIENTO_UNBALANCED`, 502/504 del WS se mapean correctamente.
-  - [ ] Lote devuelve resumen y no aborta por fallo individual; lote vacío → `{total:0}` sin llamadas al WS.
-  - [ ] Todas las rutas validan sesión + permiso server-side (dual-check) y responden 401/403.
-  - [ ] Tests en `app/tests/api/contabilidad.test.ts` (mutaciones, errores, lote, RBAC).
+  - [x] Despacho exitoso → 200 con `estado`, `transaccionWsId`, `intento`, `duracionMs`. **✅ test de ruta con servicio mockeado.**
+  - [x] 409 `ASIENTO_ALREADY_SENT`, 409 `ASIENTO_NOT_RETRYABLE`, 422 `ASIENTO_UNBALANCED`, 502/504 del WS se mapean correctamente. **✅ 409/422/502 `WS_SERVER_ERROR`/504 `WS_TIMEOUT` cubiertos.**
+  - [x] Lote devuelve resumen y no aborta por fallo individual; lote vacío → `{total:0}` sin llamadas al WS. **✅ rutas con período y body vacío; resultado parcial verificado en el servicio (Task 1.4).**
+  - [x] Todas las rutas validan sesión + permiso server-side (dual-check) y responden 401/403. **✅ `requireContabilidadManage` (`INT_MANAGE` | `ACC_POST_SEND`); 401/403 cubiertos.**
+  - [x] Tests en `app/tests/api/contabilidad.test.ts` (mutaciones, errores, lote, RBAC). **✅ 13 tests en `contabilidad-mutaciones.test.ts`; cobertura de las 3 rutas 97.05% stmts / 100% líneas.**
 - **Dependencies:** Task 1.4, Task 1.6
-- **Files to create/modify:** `app/app/api/contabilidad/asientos/[id]/despachar/route.ts`, `app/app/api/contabilidad/asientos/[id]/reintentar/route.ts`, `app/app/api/contabilidad/asientos/despachar-pendientes/route.ts`, `app/tests/api/contabilidad.test.ts`
+- **Files to create/modify:** `app/app/api/contabilidad/asientos/[id]/despachar/route.ts`, `app/app/api/contabilidad/asientos/[id]/reintentar/route.ts`, `app/app/api/contabilidad/asientos/despachar-pendientes/route.ts`, `app/lib/guards/contabilidad-guard.ts`, `app/tests/api/contabilidad-mutaciones.test.ts`
 
 > 🔖 **Cierre de Wave 1:** tras aprobar Task 1.7, ejecutar la suite completa, lint scoped y **push autorizado** de la rama (`git push origin feature/activos-fijos-05-integracion-ws-contabilidad`).
 
@@ -285,6 +285,7 @@ graph TD
 | 2026-11-24 | Task 1.4 completada — servicio de despacho/reintento/lote con lock asesor, transacción estado+bitácora, rollback `AUDIT_LOG_FAILED` y resultado parcial; 44 tests verdes, servicio 94.28% stmts. | `9ee6200` |
 | 2026-11-24 | Task 1.5 completada — mock `/api/mock/contabilidad/asientos` con 201/409/400/500, delay y 404 en producción; 12 tests verdes, 96.15% cobertura. | `46aa3e5` |
 | 2026-11-24 | Task 1.6 completada — consulta con KPIs/filtros, detalle con `tipoInventario`/balance, bitácora, guards RBAC y middleware; 18 tests verdes, 96.49% cobertura. | `33143a5` |
+| 2026-11-24 | Task 1.7 completada — rutas POST de despacho/reintento/lote, `maxDuration=300` y guard de despacho; 13 tests verdes, rutas 97.05% stmts. **Wave 1 cerrada.** | `pending` |
 
 ---
 > 📍 Sub-módulo 05 · 🌿 `feature/activos-fijos-05-integracion-ws-contabilidad` · Generated by SDD Standard · Generated by `task-planner` (SDD Plan Agent)

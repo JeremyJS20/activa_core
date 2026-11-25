@@ -41,3 +41,17 @@ export function requireContabilidadManage(req: NextRequest): Promise<Contabilida
 export function requireContabilidadLog(req: NextRequest): Promise<ContabilidadGuardResult> {
   return requirePermisos(req, ["ACC_LOG_READ"]);
 }
+
+export interface UsuarioSesionIntegracion {
+  id: string;
+  correo: string;
+}
+
+/** Extrae el usuario responsable de la sesión ya validada por el guard. */
+export function usuarioDesdeSesion(session: unknown): UsuarioSesionIntegracion {
+  const user = (session as { user?: { id?: unknown; correo?: unknown } } | null)?.user;
+  if (!user || typeof user.id !== "string" || typeof user.correo !== "string") {
+    throw new IntegrationError("UNAUTHORIZED");
+  }
+  return { id: user.id, correo: user.correo };
+}
