@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   FolderTree,
   Layers,
   Calculator,
   FileSpreadsheet,
+  Landmark,
   Users,
   UserCircle,
 } from "lucide-react";
@@ -17,6 +19,8 @@ interface NavItem {
   href: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
+  /** Si se define, el item solo es visible con al menos uno de estos permisos. */
+  permissions?: string[];
 }
 
 interface NavSection {
@@ -37,6 +41,12 @@ const SECTIONS: NavSection[] = [
       { name: "Catálogos Base", href: "/catalogos", icon: FolderTree },
       { name: "Inventario de Activos", href: "/activos", icon: Layers },
       { name: "Depreciación", href: "/depreciacion", icon: Calculator },
+      {
+        name: "Contabilidad",
+        href: "/contabilidad",
+        icon: Landmark,
+        permissions: ["INT_MANAGE", "ACC_POST_SEND", "ACC_LOG_READ"],
+      },
       { name: "Reportes DGII", href: "/reportes", icon: FileSpreadsheet },
     ],
   },
@@ -51,6 +61,21 @@ const SECTIONS: NavSection[] = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  const permisos = session?.user?.permisos ?? [];
+  const isSuperAdmin =
+    session?.user?.rol?.codigo === "ADMIN" || permisos.includes("USER_ADMIN");
+
+  const visibleSections = SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter(
+      (item) =>
+        !item.permissions ||
+        isSuperAdmin ||
+        item.permissions.some((permiso) => permisos.includes(permiso))
+    ),
+  })).filter((section) => section.items.length > 0);
 
   return (
     <aside className="no-print w-64 bg-[#0F172A] text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800/80 min-h-screen sticky top-0 z-30 select-none hidden md:flex">
@@ -74,7 +99,7 @@ export function AppSidebar() {
 
         {/* Navigation Sections */}
         <nav className="p-4 space-y-6">
-          {SECTIONS.map((section) => (
+          {visibleSections.map((section) => (
             <div key={section.title} className="space-y-1.5">
               <span className="px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-widest block font-mono">
                 {section.title}

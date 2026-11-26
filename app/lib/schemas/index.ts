@@ -5,3 +5,4 @@ export * from "./auth.schema";
 export * from "./user.schema";
 export * from "./asset.schema";
 export * from "./report.schema";
+export * from "./integracion";

@@ -50,6 +50,8 @@ erDiagram
     activos_fijos ||--o{ detalle_depreciacion : deprecia
     periodos_depreciacion ||--o| asientos_contables : genera
     asientos_contables ||--o{ lineas_asiento : compone
+    asientos_contables ||--o{ bitacora_envio_ws : audita_envio
+    usuarios ||--o{ bitacora_envio_ws : registra_envio
     usuarios ||--o{ periodos_depreciacion : ejecuta_y_cierra
     usuarios ||--o{ auditoria : registra
 
@@ -244,6 +246,11 @@ erDiagram
         string estado
         decimal total_debito
         decimal total_credito
+        string transaccion_ws_id
+        string codigo_respuesta_ws
+        string mensaje_respuesta_ws
+        timestamptz fecha_envio_ws
+        int intentos_envio
         timestamptz created_at
         timestamptz updated_at
     }
@@ -255,6 +262,24 @@ erDiagram
         string tipo_movimiento
         decimal monto
         string descripcion
+        timestamptz created_at
+    }
+
+    bitacora_envio_ws {
+        uuid id PK
+        uuid asiento_id FK
+        string numero_asiento
+        uuid usuario_id FK
+        string correo_usuario
+        int intento
+        json payload
+        string endpoint
+        int http_status
+        json respuesta
+        string mensaje
+        int duracion_ms
+        string resultado
+        string correlation_id
         timestamptz created_at
     }
 
@@ -556,6 +581,11 @@ CREATE TABLE asientos_contables (
     estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE_ENVIO',
     total_debito DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
     total_credito DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    transaccion_ws_id VARCHAR(60),
+    codigo_respuesta_ws VARCHAR(10),
+    mensaje_respuesta_ws VARCHAR(500),
+    fecha_envio_ws TIMESTAMPTZ,
+    intentos_envio INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_asientos_contables_numero UNIQUE (numero_asiento),
@@ -579,7 +609,46 @@ CREATE TABLE lineas_asiento (
     CONSTRAINT fk_la_asiento FOREIGN KEY (asiento_id) REFERENCES asientos_contables(id) ON DELETE CASCADE
 );
 
--- 17. Tabla: auditoria (bitacora append-only del modulo)
+-- 17. Tabla: bitacora_envio_ws (Sub-05 - append-only)
+CREATE TABLE bitacora_envio_ws (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    asiento_id UUID NOT NULL,
+    numero_asiento VARCHAR(20) NOT NULL,
+    usuario_id UUID NOT NULL,
+    correo_usuario VARCHAR(255) NOT NULL,
+    intento INTEGER NOT NULL,
+    payload JSONB NOT NULL,
+    endpoint VARCHAR(500) NOT NULL,
+    http_status INTEGER,
+    respuesta JSONB,
+    mensaje VARCHAR(1000),
+    duracion_ms INTEGER NOT NULL,
+    resultado VARCHAR(20) NOT NULL,
+    correlation_id VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_bitacora_envio_asiento_intento UNIQUE (asiento_id, intento),
+    CONSTRAINT chk_bitacora_envio_resultado CHECK (resultado IN ('EXITOSO', 'RECHAZADO', 'ERROR_RED', 'TIMEOUT', 'RECONCILIADO')),
+    CONSTRAINT fk_bew_asiento FOREIGN KEY (asiento_id) REFERENCES asientos_contables(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_bew_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_bitacora_envio_asiento_fecha ON bitacora_envio_ws(asiento_id, created_at DESC);
+CREATE INDEX idx_bitacora_envio_resultado_fecha ON bitacora_envio_ws(resultado, created_at DESC);
+CREATE INDEX idx_bitacora_envio_correlation ON bitacora_envio_ws(correlation_id);
+
+-- Trigger append-only: la aplicación nunca actualiza ni elimina eventos del WS.
+CREATE OR REPLACE FUNCTION fn_bitacora_envio_ws_append_only()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'bitacora_envio_ws es append-only: UPDATE/DELETE no permitido';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_bitacora_envio_ws_append_only
+BEFORE UPDATE OR DELETE ON bitacora_envio_ws
+FOR EACH ROW EXECUTE FUNCTION fn_bitacora_envio_ws_append_only();
+
+-- 18. Tabla: auditoria (bitacora append-only del modulo)
 CREATE TABLE auditoria (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     usuario_id UUID,
@@ -606,6 +675,13 @@ El Sub-módulo 04 **no posee dominio de escritura** sobre el esquema operativo. 
 | `bitacora_exportaciones` | Sub-04 (exclusiva) | INSERT | Auditoría de exportaciones financieras (NFR-REP-005). |
 
 > ✅ **Contrato provisional resuelto y eliminado:** Sub-03 entregó su esquema oficial y el Sub-04 ya fue re-apuntado. `report.service.ts`, el kardex y la consola `/reportes/depreciacion` leen `detalle_depreciacion` + `periodos_depreciacion`; `seedCuotasDepreciacion` fue eliminado para no sobrescribir la depreciación acumulada real de los activos. La tabla `depreciaciones_mensual` fue eliminada de la base y del schema Prisma mediante la migración `20261103010000_drop_depreciaciones_mensual`.
+
+### 3.3 Cobertura de Escritura del Sub-módulo 05 (Integración WS)
+
+| Tabla | Acceso Sub-05 | Gobernanza |
+|---|---|---|
+| `asientos_contables` | SELECT + UPDATE de campos de integración (`estado`, `transaccion_ws_id`, `codigo_respuesta_ws`, `mensaje_respuesta_ws`, `fecha_envio_ws`, `intentos_envio`) | Solo el servicio de integración muta el estado; `PENDIENTE_ENVIO`/`ERROR` se despachan y `ENVIADO` es terminal. |
+| `bitacora_envio_ws` | INSERT | Append-only por trigger PostgreSQL: UPDATE/DELETE bloqueados. Cada intento registra payload, endpoint, HTTP, respuesta, duración y `correlation_id`. |
 
 ---
 
@@ -643,6 +719,10 @@ El Sub-módulo 04 **no posee dominio de escritura** sobre el esquema operativo. 
 | idx_detalle_depreciacion_periodo | detalle_depreciacion | periodo_id | B-Tree | Carga del desglose por activo del período en un solo recorrido. |
 | idx_detalle_depreciacion_activo | detalle_depreciacion | activo_id | B-Tree | Trazabilidad histórica de cuotas por activo (Kardex y reporte de Sub-04). |
 | idx_asientos_contables_estado | asientos_contables | estado | B-Tree | Bandeja de asientos `PENDIENTE_ENVIO` para el despacho contable del Sub-05. |
+| idx_asientos_contables_estado_fecha | asientos_contables | (estado, fecha_contable DESC) | B-Tree (Composite) | Listado y KPIs de la consola `/contabilidad` (Sub-05). |
+| idx_bitacora_envio_asiento_fecha | bitacora_envio_ws | (asiento_id, created_at DESC) | B-Tree (Composite) | Historial cronológico de intentos por asiento en el drawer de detalle. |
+| idx_bitacora_envio_resultado_fecha | bitacora_envio_ws | (resultado, created_at DESC) | B-Tree (Composite) | Consulta de envíos exitosos, rechazados o con error de red. |
+| idx_bitacora_envio_correlation | bitacora_envio_ws | correlation_id | B-Tree | Correlación de un intento con los logs estructurados del servidor. |
 | idx_lineas_asiento_asiento_id | lineas_asiento | asiento_id | B-Tree | Recuperación de líneas débito/crédito de un asiento. |
 | idx_auditoria_accion | auditoria | accion | B-Tree | Consulta de eventos por tipo (`DEPRECIATION_RUN`, `PERIOD_CLOSE`). |
 | idx_auditoria_recurso_id | auditoria | recurso_id | B-Tree | Traza completa de un período o activo específico. |

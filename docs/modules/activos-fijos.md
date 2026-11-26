@@ -1,7 +1,7 @@
 # ActivaCore — Sistema de Gestión de Activos Fijos & Contabilización DGII
 
 > 📖 Master Module Documentation · Living Domain Document
-> 🔄 Last Updated: 2026-11-03 · Status: Active / Certified Sub-00, Sub-01, Sub-02, Sub-03 & Sub-04
+> 🔄 Last Updated: 2026-11-26 · Status: Active / Certified Sub-00, Sub-01, Sub-02, Sub-03, Sub-04 & Sub-05
 > 👤 Technical & Functional Lead: Dirección de Tecnología & Finanzas (UNAPEC)
 > 📂 Scope: Gestión integral del ciclo de vida de activos fijos institucionales, asignación y transferencias de custodios, motor de cálculo de depreciación por línea recta bajo normativa DGII (Norma General 07-07 / Ley 11-92 Art. 287), integración contable auxiliar y gobernanza de acceso basada en roles relacionales (RBAC).
 
@@ -33,6 +33,7 @@
 | /api/catalogos/export | Exportación Tabular (.xlsx y .csv) | Operadores, Auditores y Administradores (CAT_READ) | ✅ Certified |
 | /activos | Registro Patrimonial, Custodia y Bajas de Activos | Operadores, Auditores y Administradores | ✅ Certified |
 | /depreciacion | Corrida Mensual y Asientos de Depreciación DGII | Operadores y Administradores (DEP_CALCULATE) · Consulta de asientos: AUDITOR (ACC_LOG_READ) | ✅ Certified |
+| /contabilidad | Monitoreo, Despacho y Reintento de Asientos al WS Contabilidad | Operadores y Administradores (INT_MANAGE / ACC_POST_SEND) · Consulta y bitácora: AUDITOR (ACC_LOG_READ) | ✅ Certified |
 | /reportes | Consulta Multicriterio, KPIs, Kardex y Exportación Fiscal | Auditores, Operadores y Administradores (REP_READ) | ✅ Certified |
 | /reportes/depreciacion | Reporte de Depreciación Periódica y Fiscal por Período (lee `detalle_depreciacion` de Sub-03) | Auditores, Operadores y Administradores (REP_READ) | ✅ Certified |
 
@@ -47,6 +48,16 @@
 | **02** | **Gestión de Activos Fijos y Custodia** | Altas patrimoniales con código correlativo anual (ACT-YYYY-NNNN), bloqueo contable de campos financieros, traslados ACID de custodio y departamento, emisión de Actas de Entrega en PDF Carta, marbetes imprimibles, bajas formales irreversibles restringidas a ADMIN y ficha técnica de consulta en drawer de solo lectura (identificación, situación financiera, clasificación DGII, custodia e historial de baja). | ✅ Certified | [specs/activos-fijos/02-gestion-activos-custodia/](../../specs/activos-fijos/02-gestion-activos-custodia/requirements.md) | Unit & Integration: 93.33% (207 pruebas Vitest) · E2E: ✅ (6/6 Playwright) |
 | **03** | **Motor de Depreciación y Contabilización DGII** | Cálculo mensual determinista por línea recta según Ley 11-92 Art. 287 con redondeo bancario Half Even, universo de activos por estado/fecha/vida útil, corrida transaccional idempotente con bloqueo `FOR UPDATE`, generación del asiento consolidado débito/crédito en estado `PENDIENTE_ENVIO`, cierre mensual inmutable y bitácora `Auditoria`. | ✅ Certified | [specs/activos-fijos/03-motor-depreciacion/](../../specs/activos-fijos/03-motor-depreciacion/requirements.md) | Unit & Integration: 96.44% (367 pruebas Vitest) · E2E: ✅ (1/1 Playwright) |
 | **04** | **Consultas y Reportes (Solo Lectura)** | Consola `/reportes` de consulta multicriterio con KPIs consolidados, reporte de depreciación fiscal por período, Kardex inmutable del activo, exportación institucional XLSX/CSV (UTF-8 BOM) con bitácora de auditoría y vista de impresión (`@media print`). Dominio estrictamente read-only: lee `activos_fijos`, `historial_custodia` y el detalle oficial de Sub-03 (`detalle_depreciacion` + `periodos_depreciacion`); la integración con el WS contable es alcance del Sub-05. | ✅ Certified | [specs/activos-fijos/04-consultas-reportes/](../../specs/activos-fijos/04-consultas-reportes/requirements.md) | Unit & Integration: 504 pruebas Vitest (37 archivos, suite integrada Sub-00…04) · E2E: ✅ 18/18 (5 de reportes) |
+| **05** | **Integración Contable y Web Service Contabilidad** | Consola `/contabilidad` con KPIs, filtros, detalle del asiento, balance, despacho/reintento individual, lote (máx. 25), visor de payload y bitácora append-only. Cliente HTTP con timeout/reconciliación, resolución de `tipoInventario`, advisory lock por asiento, mock interno para dev/E2E y RBAC `INT_MANAGE`/`ACC_POST_SEND`/`ACC_LOG_READ`. | ✅ Certified | [specs/activos-fijos/05-integracion-ws-contabilidad/](../../specs/activos-fijos/05-integracion-ws-contabilidad/requirements.md) | Unit & API: 119 pruebas Vitest · Cobertura: 96.25% statements · E2E: ✅ 6/6 |
+
+### 2.1 Integración Contable (Sub-05)
+
+- **Flujo**: consola `/contabilidad` → APIs `/api/contabilidad/*` → guard RBAC → servicio de integración → WS real o mock → actualización del asiento + bitácora append-only.
+- **Estados**: `PENDIENTE_ENVIO` → `ENVIADO` (confirmación del WS) o `ERROR` (rechazo/timeout/red); `ENVIADO` es terminal y `ERROR` admite reintento.
+- **Despacho por lote**: `POST /api/contabilidad/asientos/despachar-pendientes` procesa hasta 25 pendientes del período y devuelve resumen (`enviados/errores/restantes`); los fallos individuales no abortan el lote.
+- **Trazabilidad**: `bitacora_envio_ws` es append-only (trigger bloquea UPDATE/DELETE) y expone payload, endpoint, HTTP, respuesta, duración y `correlation_id`.
+- **Acceso**: `INT_MANAGE`/`ACC_POST_SEND` para operar; `ACC_LOG_READ` para bitácora/payload; el AUDITOR ve la consola y el detalle sin acciones.
+- **Mock**: `/api/mock/contabilidad/asientos` simula 201/409/400/500 y delay; habilitado en dev/E2E y bloqueado en producción salvo `ENABLE_WS_MOCK=true`.
 
 ---
 

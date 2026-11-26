@@ -32,7 +32,7 @@ El sistema se divide en **6 sub-módulos independientes y desacoplados**. Cada s
 | **02 - Gestión de Activos y Custodia** | `feature/activos-fijos-02-gestion-activos-custodia` | ✅ **Listo** | JeremyJS | Alta de Activos (`ACT-YYYY-NNNN`), `HistorialCustodia` (ACID), Actas de Entrega PDF y Bajas Formales. |
 | **03 - Motor de Depreciación** | `feature/activos-fijos-03-motor-depreciacion` | ✅ **Listo** | JeremyJS | Cálculo mensual de cuotas DGII por línea recta, universo de activos por estado/corte, corrida transaccional idempotente, asiento contable consolidado y cierre mensual inmutable. |
 | **04 - Consultas y Reportes** | `feature/activos-fijos-04-consultas-reportes` | ✅ **Listo** | Alejandra (@ingmariana) | Consola `/reportes` multicriterio con KPIs, depreciación fiscal por período, Kardex, exportación XLSX/CSV (UTF-8 BOM) y vista de impresión. Lee el detalle oficial del motor (Sub-03). |
-| **05 - Integración WS Contabilidad** | `feature/activos-fijos-05-integracion-ws-contabilidad` | ⏳ **Asignado** | *Compañero de Equipo* | Asientos de diario contables, Outbox Pattern, Mock WS, monitor de envíos y reintentos. |
+| **05 - Integración WS Contabilidad** | `feature/activos-fijos-05-integracion-ws-contabilidad` | ✅ **Listo** | *Compañero de Equipo* | Consola `/contabilidad`, despacho/reintento de asientos, lote (máx. 25), cliente HTTP con timeout/reconciliación, bitácora append-only, mock interno y RBAC `INT_MANAGE`/`ACC_POST_SEND`/`ACC_LOG_READ`. |
 
 ---
 
@@ -154,6 +154,15 @@ cp .env.example .env
 # 3. Iniciar servidor de desarrollo
 pnpm dev
 ```
+
+Datos demo del Sub-05 (3 asientos representativos + auditor de solo lectura):
+
+```bash
+cd app
+pnpm exec tsx prisma/seed-integracion.ts
+```
+
+La consola de integración queda en `http://localhost:3000/contabilidad`; en desarrollo usa el mock interno del WS. Para producción configure `WS_CONTABILIDAD_URL` (HTTPS), `WS_CONTABILIDAD_API_KEY` y `WS_CONTABILIDAD_TIMEOUT_MS`.
 
 La aplicación estará accesible en: `http://localhost:3000`
 

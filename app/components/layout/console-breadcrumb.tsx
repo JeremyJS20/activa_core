@@ -18,6 +18,7 @@ const ROUTE_MAP: Record<string, RouteInfo> = {
   "/catalogos/empleados": { section: "Catálogos Base", page: "Empleados Custodios" },
   "/activos": { section: "Gestión de Activos", page: "Activos Fijos" },
   "/depreciacion": { section: "Gestión de Activos", page: "Depreciación" },
+  "/contabilidad": { section: "Contabilidad", page: "Integración WS" },
   "/reportes": { section: "Gestión de Activos", page: "Reportes DGII" },
   "/reportes/depreciacion": { section: "Reportes DGII", page: "Depreciación Fiscal" },
 };
